@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Indore Sun Clock</string>
+    <string name="widget_description">Digital clock with daily sunrise and sunset for Indore.</string>
+</resources>
