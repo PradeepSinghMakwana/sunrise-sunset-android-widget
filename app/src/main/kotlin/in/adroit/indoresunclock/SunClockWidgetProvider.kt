@@ -1,4 +1,4 @@
-package in.adroit.indoresunclock
+package `in`.adroit.indoresunclock
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
