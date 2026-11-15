@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,7 +10,7 @@
         android:id="@+id/date_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Monday, 9 November • Indore"
+        android:text="Open app to set approximate location"
         android:textColor="#D8E5F5"
         android:textSize="12sp"
         android:letterSpacing="0.02" />
@@ -20,18 +21,20 @@
         android:layout_height="wrap_content"
         android:format12Hour="hh:mm:ss a"
         android:format24Hour="HH:mm:ss"
-        android:timeZone="Asia/Kolkata"
         android:textColor="#FFFFFF"
         android:textSize="34sp"
         android:textStyle="bold"
         android:gravity="center_vertical"
         android:includeFontPadding="false" />
 
-    <View
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:minHeight="0dp"
+        android:padding="0dp"
+        android:text=""
         android:background="#52647B" />
 
     <LinearLayout
