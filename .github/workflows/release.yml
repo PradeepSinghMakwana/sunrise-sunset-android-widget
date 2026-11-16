@@ -58,9 +58,10 @@ jobs:
           {
             echo "Store screenshot count: $COUNT"
             if [ "$COUNT" -eq 0 ]; then
-              echo "STATUS: screenshots still need to be captured and added."
+              echo "FAIL: no genuine store screenshots found. Add screenshots before tagging a release."
+              exit 1
             else
-              echo "STATUS: screenshot files found; review them before store submission."
+              echo "PASS: $COUNT screenshot file(s) found; review them before store submission."
             fi
           } | tee release-reports/screenshots-status.txt
 
