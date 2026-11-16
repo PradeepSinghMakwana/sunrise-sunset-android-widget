@@ -68,25 +68,25 @@ class SolarCalculatorEdgeCaseTest {
         )
         val locations = listOf(
             Triple(
-        0.0,
-        0.0,
-        ZoneOffset.UTC
-    ),
+                0.0,
+                0.0,
+                ZoneOffset.UTC
+            ),
             Triple(
-        34.0,
-        -118.0,
-        ZoneId.of("America/Los_Angeles")
-    ),
+                34.0,
+                -118.0,
+                ZoneId.of("America/Los_Angeles")
+            ),
             Triple(
-        40.7,
-        -74.0,
-        ZoneId.of("America/New_York")
-    ),
+                40.7,
+                -74.0,
+                ZoneId.of("America/New_York")
+            ),
             Triple(
-        -33.9,
-        151.2,
-        ZoneId.of("Australia/Sydney")
-    )
+                -33.9,
+                151.2,
+                ZoneId.of("Australia/Sydney")
+            )
         )
 
         locations.forEach { (latitude, longitude, zone) ->
@@ -401,42 +401,42 @@ class SolarCalculatorEdgeCaseTest {
         assertEquals(
             null,
             SolarCalculator.calculate(
-        date,
-        Double.NEGATIVE_INFINITY,
-        0.0,
-        true,
-        ZoneOffset.UTC
-    )
+                date,
+                Double.NEGATIVE_INFINITY,
+                0.0,
+                true,
+                ZoneOffset.UTC
+            )
         )
         assertEquals(
             null,
             SolarCalculator.calculate(
-        date,
-        0.0,
-        Double.NEGATIVE_INFINITY,
-        false,
-        ZoneOffset.UTC
-    )
+                date,
+                0.0,
+                Double.NEGATIVE_INFINITY,
+                false,
+                ZoneOffset.UTC
+            )
         )
         assertEquals(
             null,
             SolarCalculator.calculate(
-        date,
-        0.0,
-        180.000001,
-        true,
-        ZoneOffset.UTC
-    )
+                date,
+                0.0,
+                180.000001,
+                true,
+                ZoneOffset.UTC
+            )
         )
         assertEquals(
             null,
             SolarCalculator.calculate(
-        date,
-        -90.000001,
-        0.0,
-        false,
-        ZoneOffset.UTC
-    )
+                date,
+                -90.000001,
+                0.0,
+                false,
+                ZoneOffset.UTC
+            )
         )
     }
 

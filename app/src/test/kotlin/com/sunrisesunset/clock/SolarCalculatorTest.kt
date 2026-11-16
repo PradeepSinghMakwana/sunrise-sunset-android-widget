@@ -1,8 +1,8 @@
 package com.sunrisesunset.clock
 
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -22,22 +22,22 @@ class SolarCalculatorTest {
         assertTimeNear(
             "06:04",
             SolarCalculator.calculate(
-        date,
-        0.0,
-        0.0,
-        true,
-        utc
-    )
+                date,
+                0.0,
+                0.0,
+                true,
+                utc
+            )
         )
         assertTimeNear(
             "18:11",
             SolarCalculator.calculate(
-        date,
-        0.0,
-        0.0,
-        false,
-        utc
-    )
+                date,
+                0.0,
+                0.0,
+                false,
+                utc
+            )
         )
     }
 
@@ -98,22 +98,22 @@ class SolarCalculatorTest {
         assertTimeNear(
             "12:16",
             SolarCalculator.calculate(
-        date,
-        40.7,
-        -74.0,
-        true,
-        utc
-    )
+                date,
+                40.7,
+                -74.0,
+                true,
+                utc
+            )
         )
         assertTimeNear(
             "18:41",
             SolarCalculator.calculate(
-        date,
-        -33.9,
-        151.2,
-        true,
-        utc
-    )
+                date,
+                -33.9,
+                151.2,
+                true,
+                utc
+            )
         )
     }
 
@@ -121,10 +121,10 @@ class SolarCalculatorTest {
     fun polarDayAndPolarNightReturnNoEvent() {
         assertNull(SolarCalculator.calculate(
             LocalDate.of(
-        2026,
-        6,
-        21
-    ),
+                2026,
+                6,
+                21
+            ),
             89.0,
             0.0,
             true,
@@ -132,10 +132,10 @@ class SolarCalculatorTest {
         ))
         assertNull(SolarCalculator.calculate(
             LocalDate.of(
-        2026,
-        12,
-        21
-    ),
+                2026,
+                12,
+                21
+            ),
             89.0,
             0.0,
             true,
@@ -143,10 +143,10 @@ class SolarCalculatorTest {
         ))
         assertNull(SolarCalculator.calculate(
             LocalDate.of(
-        2026,
-        12,
-        21
-    ),
+                2026,
+                12,
+                21
+            ),
             -89.0,
             0.0,
             false,
@@ -154,10 +154,10 @@ class SolarCalculatorTest {
         ))
         assertNull(SolarCalculator.calculate(
             LocalDate.of(
-        2026,
-        6,
-        21
-    ),
+                2026,
+                6,
+                21
+            ),
             -89.0,
             0.0,
             false,
@@ -241,9 +241,9 @@ class SolarCalculatorTest {
         assertEquals(
             "11:34",
             india!!.toLocalTime().toString().substring(
-        0,
-        5
-    )
+                0,
+                5
+            )
         )
         assertEquals(
             utcValue!!.toInstant(),
