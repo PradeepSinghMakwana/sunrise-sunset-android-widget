@@ -83,9 +83,8 @@ internal object SolarCalculator {
                 sinDeclination * sin(latitudeRadians)
             ) / (cosDeclination * cos(latitudeRadians))
 
-        if (cosHourAngle !in -1.0..1.0) return null
-
-        val hourAngle = if (isSunrise) {
+        return if (cosHourAngle in -1.0..1.0) {
+            val hourAngle = if (isSunrise) {
             DEGREES_PER_CIRCLE - Math.toDegrees(acos(cosHourAngle))
         } else {
             Math.toDegrees(acos(cosHourAngle))
@@ -102,9 +101,12 @@ internal object SolarCalculator {
         val utcDayOffset = floor(approximateTime).toLong() - day
         val utcDate = date.plusDays(utcDayOffset)
         val utcMinutes = (utcHour * MINUTES_PER_HOUR).roundToLong()
-        return utcDate.atStartOfDay(ZoneOffset.UTC)
-            .plusMinutes(utcMinutes)
-            .withZoneSameInstant(zone)
+            utcDate.atStartOfDay(ZoneOffset.UTC)
+                .plusMinutes(utcMinutes)
+                .withZoneSameInstant(zone)
+        } else {
+            null
+        }
     }
 
     fun hasValidCoordinates(latitude: Double, longitude: Double): Boolean =
