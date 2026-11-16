@@ -1,167 +1,199 @@
 package com.sunrisesunset.clock
 
 import android.Manifest
-import android.app.Activity
+import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class LocationSetupActivity : Activity(), LocationListener {
-    private lateinit var status: TextView
-    private lateinit var locationManager: LocationManager
+object LocationPreferences {
+    const val PREFS = "sunrise_location"
+    const val LATITUDE = "latitude"
+    const val LONGITUDE = "longitude"
+}
 
-    companion object {
-        private const val REQUEST_LOCATION = 100
-        const val PREFS = "sunrise_location"
-        const val LATITUDE = "latitude"
-        const val LONGITUDE = "longitude"
+data class LocationSetupUiState(
+    val message: String = "Allow approximate location to calculate sunrise and sunset for your area.",
+    val isLoading: Boolean = false,
+    val hasSavedLocation: Boolean = false
+)
+
+class LocationRepository(private val context: Context) {
+    suspend fun findLastKnownLocation(): Location? = withContext(Dispatchers.IO) {
+        val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            .firstNotNullOfOrNull { provider ->
+                try {
+                    if (manager.isProviderEnabled(provider)) manager.getLastKnownLocation(provider) else null
+                } catch (_: SecurityException) {
+                    null
+                } catch (_: RuntimeException) {
+                    null
+                }
+            }
+    }
+
+    suspend fun save(location: Location) = withContext(Dispatchers.IO) {
+        context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE).edit()
+            .putString(LocationPreferences.LATITUDE, location.latitude.toString())
+            .putString(LocationPreferences.LONGITUDE, location.longitude.toString())
+            .apply()
+    }
+}
+
+class LocationSetupViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = LocationRepository(application)
+    private val _uiState = MutableStateFlow(LocationSetupUiState())
+    val uiState: StateFlow<LocationSetupUiState> = _uiState.asStateFlow()
+
+    fun loadSavedLocation() {
+        val prefs = getApplication<Application>().getSharedPreferences(
+            LocationPreferences.PREFS, Context.MODE_PRIVATE
+        )
+        val hasLocation = prefs.contains(LocationPreferences.LATITUDE) &&
+            prefs.contains(LocationPreferences.LONGITUDE)
+        if (hasLocation) {
+            _uiState.value = LocationSetupUiState(
+                message = "Approximate location is saved. Your widget can show local sunrise and sunset.",
+                hasSavedLocation = true
+            )
+        }
+    }
+
+    fun findLocation() {
+        if (_uiState.value.isLoading) return
+        _uiState.value = _uiState.value.copy(
+            message = "Finding your approximate location…",
+            isLoading = true
+        )
+        viewModelScope.launch {
+            try {
+                val location = repository.findLastKnownLocation()
+                if (location == null) {
+                    _uiState.value = LocationSetupUiState(
+                        message = "No recent location is available. Turn on Location services and try again."
+                    )
+                } else {
+                    repository.save(location)
+                    refreshWidgets()
+                    _uiState.value = LocationSetupUiState(
+                        message = "Approximate location saved. Your widget is ready.",
+                        hasSavedLocation = true
+                    )
+                }
+            } catch (_: SecurityException) {
+                _uiState.value = LocationSetupUiState(
+                    message = "Location permission is needed. Please try again."
+                )
+            } catch (_: Exception) {
+                _uiState.value = LocationSetupUiState(
+                    message = "Could not get your location. Please try again."
+                )
+            }
+        }
+    }
+
+    private fun refreshWidgets() {
+        val context = getApplication<Application>()
+        val manager = AppWidgetManager.getInstance(context)
+        val ids = manager.getAppWidgetIds(
+            ComponentName(context, SunClockWidgetProvider::class.java)
+        )
+        ids.forEach { SunClockWidgetProvider.updateWidget(context, manager, it) }
+    }
+}
+
+class LocationSetupViewModelFactory(private val application: Application) :
+    ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(LocationSetupViewModel::class.java)) {
+            return LocationSetupViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+class LocationSetupActivity : ComponentActivity() {
+    private var setupViewModel: LocationSetupViewModel? = null
+    private val locationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) setupViewModel?.findLocation()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val factory = LocationSetupViewModelFactory(application)
+        setContent {
+            val model: LocationSetupViewModel = viewModel(factory = factory)
+            setupViewModel = model
+            val state by model.uiState.collectAsState()
+            LaunchedEffect(Unit) { model.loadSavedLocation() }
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(32, 48, 32, 32)
-        }
-
-        val heading = TextView(this).apply {
-            text = "Sunrise Sunset Clock"
-            textSize = 25f
-        }
-        status = TextView(this).apply {
-            textSize = 16f
-            setPadding(0, 24, 0, 24)
-        }
-        val button = Button(this).apply {
-            text = "Use approximate location"
-            setOnClickListener { beginLocationSetup() }
-        }
-
-        layout.addView(heading)
-        layout.addView(status)
-        layout.addView(button)
-        setContentView(layout)
-
-        if (hasLocationPermission()) {
-            findLocation()
-        } else {
-            status.text = "Allow approximate location to calculate sunrise and sunset for your area. Precise location is not requested."
-        }
-    }
-
-    private fun hasLocationPermission(): Boolean =
-        checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-
-    private fun beginLocationSetup() {
-        if (!hasLocationPermission()) {
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                REQUEST_LOCATION
-            )
-        } else {
-            findLocation()
-        }
-    }
-
-    private fun findLocation() {
-        if (!hasLocationPermission()) return
-
-        status.text = "Finding your approximate location…"
-
-        try {
-            val lastKnown = listOf(
-                LocationManager.NETWORK_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER
-            ).firstNotNullOfOrNull { provider ->
-                try {
-                    if (locationManager.isProviderEnabled(provider)) {
-                        locationManager.getLastKnownLocation(provider)
-                    } else null
-                } catch (_: Exception) {
-                    null
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Text("Sunrise Sunset Clock", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            "Use your approximate location to calculate local sunrise and sunset. Precise location is not requested.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(state.message, style = MaterialTheme.typography.bodyMedium)
+                        if (state.isLoading) CircularProgressIndicator()
+                        Button(
+                            onClick = {
+                                if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                                    PackageManager.PERMISSION_GRANTED) {
+                                    model.findLocation()
+                                } else {
+                                    locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isLoading
+                        ) {
+                            Text(if (state.hasSavedLocation) "Refresh approximate location" else "Use approximate location")
+                        }
+                    }
                 }
             }
-
-            if (lastKnown != null) {
-                saveLocation(lastKnown)
-                return
-            }
-
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    0L,
-                    0f,
-                    this
-                )
-                status.text = "Waiting for a location fix. Keep this screen open briefly."
-            } else {
-                status.text = "Network location is unavailable. Enable location services and try again."
-            }
-        } catch (_: SecurityException) {
-            status.text = "Location permission is needed. Please try again."
-        } catch (e: Exception) {
-            status.text = "Could not get location: ${e.localizedMessage ?: "try again"}"
-        }
-    }
-
-    override fun onLocationChanged(location: Location) {
-        saveLocation(location)
-        try {
-            locationManager.removeUpdates(this)
-        } catch (_: Exception) {
-        }
-    }
-
-    private fun saveLocation(location: Location) {
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(LATITUDE, location.latitude.toString())
-            .putString(LONGITUDE, location.longitude.toString())
-            .apply()
-
-        status.text = "Approximate location saved. Your widget is ready."
-        refreshWidgets()
-    }
-
-    private fun refreshWidgets() {
-        val manager = AppWidgetManager.getInstance(this)
-        val component = ComponentName(this, SunClockWidgetProvider::class.java)
-        val ids = manager.getAppWidgetIds(component)
-        ids.forEach { SunClockWidgetProvider.updateWidget(this, manager, it) }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                findLocation()
-            } else {
-                status.text = "Approximate location was not allowed. You can enable it in Android app permissions."
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        try {
-            locationManager.removeUpdates(this)
-        } catch (_: Exception) {
         }
     }
 }
