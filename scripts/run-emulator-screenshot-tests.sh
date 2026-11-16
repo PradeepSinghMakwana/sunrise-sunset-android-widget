@@ -30,8 +30,6 @@ collect_diagnostics() {
   status=$?
   trap - EXIT
   mkdir -p "$DIAG_DIR"
-  printf '%s\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
-
   # Pull the same external-files directory used by StoreScreenshotTest.
   mkdir -p screenshots/test-captures
   adb pull "/sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/." screenshots/test-captures/ > "$DIAG_DIR/screenshot-pull.txt" 2>&1 || true
@@ -46,7 +44,7 @@ collect_diagnostics() {
       fi
     done
   fi
-  printf '%s\\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
+  printf '%s\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
 
   adb devices -l > "$DIAG_DIR/adb-devices.txt" 2>&1 || true
   adb shell pm list packages > "$DIAG_DIR/installed-packages.txt" 2>&1 || true
