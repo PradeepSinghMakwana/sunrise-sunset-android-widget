@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import java.io.File
 import org.junit.Assert.assertTrue
@@ -63,7 +64,7 @@ class StoreScreenshotTest {
 
         val width = device.displayWidth
         val height = device.displayHeight
-        var widgetsButton = null
+        var widgetsButton: UiObject2? = null
 
         // Launcher layouts differ. Try several empty workspace positions rather
         // than assuming one fixed coordinate contains a long-press target.
