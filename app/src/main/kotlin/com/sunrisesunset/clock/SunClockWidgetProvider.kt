@@ -67,13 +67,17 @@ class SunClockWidgetProvider : AppWidgetProvider() {
             val latitude = prefs.getString(
                 LocationSetupActivity.LATITUDE,
                 null
-            )?.toDoubleOrNull() ?: return null
+            )?.toDoubleOrNull()
             val longitude = prefs.getString(
                 LocationSetupActivity.LONGITUDE,
                 null
-            )?.toDoubleOrNull() ?: return null
+            )?.toDoubleOrNull()
 
-            return if (SolarCalculator.hasValidCoordinates(latitude, longitude)) {
+            return if (
+                latitude != null &&
+                longitude != null &&
+                SolarCalculator.hasValidCoordinates(latitude, longitude)
+            ) {
                 latitude to longitude
             } else {
                 null
