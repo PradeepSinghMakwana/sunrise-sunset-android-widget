@@ -23,7 +23,7 @@ finish_diagnostics() {
     if [ -s screenshots/diagnostics/app-private-files.tar ]; then
       mkdir -p screenshots/private-fallback
       tar -xf screenshots/diagnostics/app-private-files.tar -C screenshots/private-fallback || true
-      find screenshots/private-fallback -type f -name '*.png' -exec cp {} screenshots/ \\;
+      while IFS= read -r png; do cp "$png" screenshots/; done < <(find screenshots/private-fallback -type f -name '*.png')
     fi
   fi
 
