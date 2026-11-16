@@ -32,7 +32,7 @@ The test writes diagnostics into the app's private files area so the workflow ca
 5. Fix the underlying cause. Do not make a test pass by skipping the UI check, accepting a blank screenshot, or fabricating an image.
 6. Rerun the workflow and inspect both required screenshots. A green APK build alone does not mean screenshot validation passed.
 
-The diagnostic artifact is produced for workflow-dispatched and pull-request runs. Ordinary pushes to `main` build the APK without starting the slower emulator UI suite. Keep genuine emulator UI validation enabled for pull requests, manual validation, and release validation.
+The emulator UI suite runs for push, pull-request, and manually dispatched builds. Its screenshot and diagnostic artifact is uploaded even when the tests fail. This keeps real app and launcher evidence available for every build trigger.
 
 ## Permissions and privacy
 
