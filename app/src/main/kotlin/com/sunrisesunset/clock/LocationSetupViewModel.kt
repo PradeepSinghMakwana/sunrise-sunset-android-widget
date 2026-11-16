@@ -17,6 +17,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 class LocationSetupViewModel(application: Application) : AndroidViewModel(application) {
+    private companion object {
+        const val LOCATION_TIMEOUT_MILLIS = 30_000L
+    }
+
     private val repository = LocationRepository(application)
     private val _uiState = MutableStateFlow(LocationSetupUiState())
     val uiState: StateFlow<LocationSetupUiState> = _uiState.asStateFlow()
@@ -47,7 +51,7 @@ class LocationSetupViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             try {
                 val location: Location? = try {
-                    withTimeout(30_000L) { repository.findLocation() }
+                    withTimeout(LOCATION_TIMEOUT_MILLIS) { repository.findLocation() }
                 } catch (_: TimeoutCancellationException) {
                     null
                 }

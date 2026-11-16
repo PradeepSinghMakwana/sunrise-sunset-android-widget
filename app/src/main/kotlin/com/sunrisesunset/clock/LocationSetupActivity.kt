@@ -26,7 +26,7 @@ class LocationSetupActivity : ComponentActivity() {
         setContent {
             val model: LocationSetupViewModel = viewModel(factory = factory)
             setupViewModel = model
-            LocationSetupScreen(model) {
+            locationSetupScreen(model) {
                 if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                     PackageManager.PERMISSION_GRANTED
                 ) {
