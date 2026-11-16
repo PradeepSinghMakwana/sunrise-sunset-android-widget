@@ -25,8 +25,8 @@ class SolarCalculatorTest {
         val northernSunrise = SolarCalculator.calculate(date, 40.7, -74.0, true, utc)
         val southernSunrise = SolarCalculator.calculate(date, -33.9, 151.2, true, utc)
 
-        assertTimeNear("10:59", northernSunrise)
-        assertTimeNear("20:59", southernSunrise)
+        assertTimeNear("09:25", northernSunrise)
+        assertTimeNear("21:00", southernSunrise)
         assertNotNull(SolarCalculator.calculate(date, 40.7, -74.0, false, utc))
         assertNotNull(SolarCalculator.calculate(date, -33.9, 151.2, false, utc))
     }
@@ -35,8 +35,8 @@ class SolarCalculatorTest {
     fun decemberSolsticeShowsExpectedSeasonInBothHemispheres() {
         val date = LocalDate.of(2026, 12, 21)
 
-        assertTimeNear("11:00", SolarCalculator.calculate(date, 40.7, -74.0, true, utc))
-        assertTimeNear("18:40", SolarCalculator.calculate(date, -33.9, 151.2, true, utc))
+        assertTimeNear("12:16", SolarCalculator.calculate(date, 40.7, -74.0, true, utc))
+        assertTimeNear("18:41", SolarCalculator.calculate(date, -33.9, 151.2, true, utc))
     }
 
     @Test
