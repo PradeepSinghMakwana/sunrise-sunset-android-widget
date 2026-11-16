@@ -83,8 +83,7 @@ class StoreScreenshotTest {
             }
         }
         assertTrue(
-            "Widget picker did not list Sunrise Sunset Clock. UI hierarchy: " +
-                device.dumpWindowHierarchyToString(),
+            "Widget picker did not list Sunrise Sunset Clock.",
             appEntry != null
         )
 
@@ -97,14 +96,13 @@ class StoreScreenshotTest {
             8_000
         )
         assertTrue(
-            "Could not locate the Sunrise Sunset Clock widget preview. UI hierarchy: " +
-                device.dumpWindowHierarchyToString(),
+            "Could not locate the Sunrise Sunset Clock widget preview.",
             widgetEntry != null
         )
 
         val bounds = widgetEntry!!.visibleBounds
         assertTrue("Widget preview has no visible bounds: $bounds", !bounds.isEmpty)
-        assertTrue("Could not long-press widget preview", widgetEntry.longClick())
+        widgetEntry.longClick()
         device.waitForIdle()
 
         // Drag the selected widget from the picker onto the launcher workspace.
@@ -119,8 +117,7 @@ class StoreScreenshotTest {
             12_000
         ) || device.hasObject(By.text("SUNSET"))
         assertTrue(
-            "Widget was not placed on the launcher home screen. UI hierarchy: " +
-                device.dumpWindowHierarchyToString(),
+            "Widget was not placed on the launcher home screen.",
             widgetVisible
         )
 
