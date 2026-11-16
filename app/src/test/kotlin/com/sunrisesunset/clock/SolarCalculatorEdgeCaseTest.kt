@@ -5,154 +5,473 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SolarCalculatorEdgeCaseTest {
     @Test
     fun dateLineSunsetAtWestLongitudeBoundaryStaysOnRequestedLocalDate() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
-        val result = SolarCalculator.calculate(\n    date,\n    0.0,\n    -180.0,\n    false,\n    ZoneOffset.ofHours(-12)\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    20
+)
+        val result = SolarCalculator.calculate(
+    date,
+    0.0,
+    -180.0,
+    false,
+    ZoneOffset.ofHours(-12)
+)
 
-        assertEquals(\n    date,\n    result?.toLocalDate()\n)
-        assertEquals(\n    ZoneOffset.ofHours(-12),\n    result?.offset\n)
+        assertEquals(
+    date,
+    result?.toLocalDate()
+)
+        assertEquals(
+    ZoneOffset.ofHours(-12),
+    result?.offset
+)
     }
 
     @Test
     fun dateLineSunriseAtEastLongitudeBoundaryStaysOnRequestedLocalDate() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
-        val result = SolarCalculator.calculate(\n    date,\n    0.0,\n    180.0,\n    true,\n    ZoneOffset.ofHours(12)\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    20
+)
+        val result = SolarCalculator.calculate(
+    date,
+    0.0,
+    180.0,
+    true,
+    ZoneOffset.ofHours(12)
+)
 
-        assertEquals(\n    date,\n    result?.toLocalDate()\n)
-        assertEquals(\n    ZoneOffset.ofHours(12),\n    result?.offset\n)
+        assertEquals(
+    date,
+    result?.toLocalDate()
+)
+        assertEquals(
+    ZoneOffset.ofHours(12),
+    result?.offset
+)
     }
 
     @Test
     fun sunrisePrecedesSunsetAtRepresentativeLocations() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
-        val locations = listOf(\n    Triple(\n    0.0,\n    0.0,\n    ZoneOffset.UTC\n),\n    Triple(\n    34.0,\n    -118.0,\n    ZoneId.of("America/Los_Angeles")\n),\n    Triple(\n    40.7,\n    -74.0,\n    ZoneId.of("America/New_York")\n),\n    Triple(\n    -33.9,\n    151.2,\n    ZoneId.of("Australia/Sydney")\n)\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    20
+)
+        val locations = listOf(
+    Triple(
+    0.0,
+    0.0,
+    ZoneOffset.UTC
+),
+    Triple(
+    34.0,
+    -118.0,
+    ZoneId.of("America/Los_Angeles")
+),
+    Triple(
+    40.7,
+    -74.0,
+    ZoneId.of("America/New_York")
+),
+    Triple(
+    -33.9,
+    151.2,
+    ZoneId.of("Australia/Sydney")
+)
+)
 
         locations.forEach { (latitude, longitude, zone) ->
-            val sunrise = SolarCalculator.calculate(\n    date,\n    latitude,\n    longitude,\n    true,\n    zone\n)
-            val sunset = SolarCalculator.calculate(\n    date,\n    latitude,\n    longitude,\n    false,\n    zone\n)
+            val sunrise = SolarCalculator.calculate(
+    date,
+    latitude,
+    longitude,
+    true,
+    zone
+)
+            val sunset = SolarCalculator.calculate(
+    date,
+    latitude,
+    longitude,
+    false,
+    zone
+)
 
-            assertTrue(\n    "Missing sunrise at $latitude, $longitude",\n    sunrise != null\n)
-            assertTrue(\n    "Missing sunset at $latitude, $longitude",\n    sunset != null\n)
-            assertEquals(\n    date,\n    sunrise!!.toLocalDate()\n)
-            assertEquals(\n    date,\n    sunset!!.toLocalDate()\n)
-            assertTrue(\n    "Sunrise must precede sunset at $latitude, $longitude",\n    sunrise.toInstant().isBefore(sunset.toInstant())\n)
+            assertTrue(
+    "Missing sunrise at $latitude, $longitude",
+    sunrise != null
+)
+            assertTrue(
+    "Missing sunset at $latitude, $longitude",
+    sunset != null
+)
+            assertEquals(
+    date,
+    sunrise!!.toLocalDate()
+)
+            assertEquals(
+    date,
+    sunset!!.toLocalDate()
+)
+            assertTrue(
+    "Sunrise must precede sunset at $latitude, $longitude",
+    sunrise.toInstant().isBefore(sunset.toInstant())
+)
         }
     }
 
     @Test
     fun movingEastByFifteenDegreesMovesSolarEventsEarlierInUtc() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
-        val greenwich = SolarCalculator.calculate(\n    date,\n    0.0,\n    0.0,\n    true,\n    ZoneOffset.UTC\n)
-        val fifteenEast = SolarCalculator.calculate(\n    date,\n    0.0,\n    15.0,\n    true,\n    ZoneOffset.UTC\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    20
+)
+        val greenwich = SolarCalculator.calculate(
+    date,
+    0.0,
+    0.0,
+    true,
+    ZoneOffset.UTC
+)
+        val fifteenEast = SolarCalculator.calculate(
+    date,
+    0.0,
+    15.0,
+    true,
+    ZoneOffset.UTC
+)
 
-        val difference = Duration.between(\n    fifteenEast!!.toInstant(),\n    greenwich!!.toInstant()\n)
+        val difference = Duration.between(
+    fifteenEast!!.toInstant(),
+    greenwich!!.toInstant()
+)
             .toMinutes()
-        assertTrue(\n    "Expected about one hour, got $difference minutes",\n    difference in 45..75\n)
+        assertTrue(
+    "Expected about one hour, got $difference minutes",
+    difference in 45..75
+)
     }
 
     @Test
     fun northernSummerDayIsLongerAtHigherLatitude() {
-        val date = LocalDate.of(\n    2026,\n    6,\n    21\n)
-        val equatorDay = dayLengthMinutes(\n    date,\n    0.0,\n    0.0,\n    ZoneOffset.UTC\n)
-        val northernDay = dayLengthMinutes(\n    date,\n    50.0,\n    0.0,\n    ZoneOffset.UTC\n)
+        val date = LocalDate.of(
+    2026,
+    6,
+    21
+)
+        val equatorDay = dayLengthMinutes(
+    date,
+    0.0,
+    0.0,
+    ZoneOffset.UTC
+)
+        val northernDay = dayLengthMinutes(
+    date,
+    50.0,
+    0.0,
+    ZoneOffset.UTC
+)
 
-        assertTrue(\n    "Higher northern latitude should have a longer summer day",\n    northernDay > equatorDay\n)
+        assertTrue(
+    "Higher northern latitude should have a longer summer day",
+    northernDay > equatorDay
+)
     }
 
     @Test
     fun southernSummerDayIsLongerThanSouthernWinterDay() {
-        val summer = LocalDate.of(\n    2026,\n    12,\n    21\n)
-        val winter = LocalDate.of(\n    2026,\n    6,\n    21\n)
+        val summer = LocalDate.of(
+    2026,
+    12,
+    21
+)
+        val winter = LocalDate.of(
+    2026,
+    6,
+    21
+)
 
-        val summerLength = dayLengthMinutes(\n    summer,\n    -33.9,\n    151.2,\n    ZoneId.of("Australia/Sydney")\n)
-        val winterLength = dayLengthMinutes(\n    winter,\n    -33.9,\n    151.2,\n    ZoneId.of("Australia/Sydney")\n)
+        val summerLength = dayLengthMinutes(
+    summer,
+    -33.9,
+    151.2,
+    ZoneId.of("Australia/Sydney")
+)
+        val winterLength = dayLengthMinutes(
+    winter,
+    -33.9,
+    151.2,
+    ZoneId.of("Australia/Sydney")
+)
 
-        assertTrue(\n    "Southern summer should have a longer day",\n    summerLength > winterLength\n)
+        assertTrue(
+    "Southern summer should have a longer day",
+    summerLength > winterLength
+)
     }
 
     @Test
     fun daylightSavingSpringTransitionUsesPostTransitionOffset() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    8\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    8
+)
         val zone = ZoneId.of("America/New_York")
-        val sunrise = SolarCalculator.calculate(\n    date,\n    40.7128,\n    -74.0060,\n    true,\n    zone\n)
-        val sunset = SolarCalculator.calculate(\n    date,\n    40.7128,\n    -74.0060,\n    false,\n    zone\n)
+        val sunrise = SolarCalculator.calculate(
+    date,
+    40.7128,
+    -74.0060,
+    true,
+    zone
+)
+        val sunset = SolarCalculator.calculate(
+    date,
+    40.7128,
+    -74.0060,
+    false,
+    zone
+)
 
-        assertEquals(\n    date,\n    sunrise?.toLocalDate()\n)
-        assertEquals(\n    date,\n    sunset?.toLocalDate()\n)
-        assertEquals(\n    ZoneOffset.ofHours(-4),\n    sunrise?.offset\n)
-        assertEquals(\n    ZoneOffset.ofHours(-4),\n    sunset?.offset\n)
+        assertEquals(
+    date,
+    sunrise?.toLocalDate()
+)
+        assertEquals(
+    date,
+    sunset?.toLocalDate()
+)
+        assertEquals(
+    ZoneOffset.ofHours(-4),
+    sunrise?.offset
+)
+        assertEquals(
+    ZoneOffset.ofHours(-4),
+    sunset?.offset
+)
     }
 
     @Test
     fun daylightSavingAutumnTransitionUsesPostTransitionOffsetForBothEvents() {
-        val date = LocalDate.of(\n    2026,\n    11,\n    1\n)
+        val date = LocalDate.of(
+    2026,
+    11,
+    1
+)
         val zone = ZoneId.of("America/New_York")
-        val sunrise = SolarCalculator.calculate(\n    date,\n    40.7128,\n    -74.0060,\n    true,\n    zone\n)
-        val sunset = SolarCalculator.calculate(\n    date,\n    40.7128,\n    -74.0060,\n    false,\n    zone\n)
+        val sunrise = SolarCalculator.calculate(
+    date,
+    40.7128,
+    -74.0060,
+    true,
+    zone
+)
+        val sunset = SolarCalculator.calculate(
+    date,
+    40.7128,
+    -74.0060,
+    false,
+    zone
+)
 
         // The autumn transition occurs at 02:00; both solar events are later.
-        assertEquals(\n    ZoneOffset.ofHours(-5),\n    sunrise?.offset\n)
-        assertEquals(\n    ZoneOffset.ofHours(-5),\n    sunset?.offset\n)
-        assertEquals(\n    date,\n    sunrise?.toLocalDate()\n)
-        assertEquals(\n    date,\n    sunset?.toLocalDate()\n)
+        assertEquals(
+    ZoneOffset.ofHours(-5),
+    sunrise?.offset
+)
+        assertEquals(
+    ZoneOffset.ofHours(-5),
+    sunset?.offset
+)
+        assertEquals(
+    date,
+    sunrise?.toLocalDate()
+)
+        assertEquals(
+    date,
+    sunset?.toLocalDate()
+)
     }
 
     @Test
     fun leapDayProducesBothSolarEvents() {
-        val date = LocalDate.of(\n    2024,\n    2,\n    29\n)
+        val date = LocalDate.of(
+    2024,
+    2,
+    29
+)
         val zone = ZoneId.of("Asia/Kolkata")
 
-        val sunrise = SolarCalculator.calculate(\n    date,\n    22.7196,\n    75.8577,\n    true,\n    zone\n)
-        val sunset = SolarCalculator.calculate(\n    date,\n    22.7196,\n    75.8577,\n    false,\n    zone\n)
+        val sunrise = SolarCalculator.calculate(
+    date,
+    22.7196,
+    75.8577,
+    true,
+    zone
+)
+        val sunset = SolarCalculator.calculate(
+    date,
+    22.7196,
+    75.8577,
+    false,
+    zone
+)
 
-        assertEquals(\n    date,\n    sunrise?.toLocalDate()\n)
-        assertEquals(\n    date,\n    sunset?.toLocalDate()\n)
+        assertEquals(
+    date,
+    sunrise?.toLocalDate()
+)
+        assertEquals(
+    date,
+    sunset?.toLocalDate()
+)
         assertTrue(sunrise!!.toInstant().isBefore(sunset!!.toInstant()))
     }
 
     @Test
     fun returnedZonedDateTimeUsesRequestedZone() {
-        val date = LocalDate.of(\n    2026,\n    9,\n    1\n)
+        val date = LocalDate.of(
+    2026,
+    9,
+    1
+)
         val zone = ZoneId.of("Asia/Kolkata")
 
-        val result = SolarCalculator.calculate(\n    date,\n    22.7196,\n    75.8577,\n    true,\n    zone\n)
+        val result = SolarCalculator.calculate(
+    date,
+    22.7196,
+    75.8577,
+    true,
+    zone
+)
 
-        assertEquals(\n    zone,\n    result?.zone\n)
+        assertEquals(
+    zone,
+    result?.zone
+)
     }
 
     @Test
     fun repeatedCalculationReturnsIdenticalResult() {
-        val date = LocalDate.of(\n    2026,\n    7,\n    14\n)
+        val date = LocalDate.of(
+    2026,
+    7,
+    14
+)
         val zone = ZoneId.of("Asia/Kolkata")
 
-        val first = SolarCalculator.calculate(\n    date,\n    22.7196,\n    75.8577,\n    true,\n    zone\n)
-        val second = SolarCalculator.calculate(\n    date,\n    22.7196,\n    75.8577,\n    true,\n    zone\n)
+        val first = SolarCalculator.calculate(
+    date,
+    22.7196,
+    75.8577,
+    true,
+    zone
+)
+        val second = SolarCalculator.calculate(
+    date,
+    22.7196,
+    75.8577,
+    true,
+    zone
+)
 
-        assertEquals(\n    first,\n    second\n)
+        assertEquals(
+    first,
+    second
+)
     }
 
     @Test
     fun invalidCoordinatesRejectNegativeInfinityAndOutOfRangeValues() {
-        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
+        val date = LocalDate.of(
+    2026,
+    3,
+    20
+)
 
-        assertEquals(\n    null,\n    SolarCalculator.calculate(\n    date,\n    Double.NEGATIVE_INFINITY,\n    0.0,\n    true,\n    ZoneOffset.UTC\n)\n)
-        assertEquals(\n    null,\n    SolarCalculator.calculate(\n    date,\n    0.0,\n    Double.NEGATIVE_INFINITY,\n    false,\n    ZoneOffset.UTC\n)\n)
-        assertEquals(\n    null,\n    SolarCalculator.calculate(\n    date,\n    0.0,\n    180.000001,\n    true,\n    ZoneOffset.UTC\n)\n)
-        assertEquals(\n    null,\n    SolarCalculator.calculate(\n    date,\n    -90.000001,\n    0.0,\n    false,\n    ZoneOffset.UTC\n)\n)
+        assertEquals(
+    null,
+    SolarCalculator.calculate(
+    date,
+    Double.NEGATIVE_INFINITY,
+    0.0,
+    true,
+    ZoneOffset.UTC
+)
+)
+        assertEquals(
+    null,
+    SolarCalculator.calculate(
+    date,
+    0.0,
+    Double.NEGATIVE_INFINITY,
+    false,
+    ZoneOffset.UTC
+)
+)
+        assertEquals(
+    null,
+    SolarCalculator.calculate(
+    date,
+    0.0,
+    180.000001,
+    true,
+    ZoneOffset.UTC
+)
+)
+        assertEquals(
+    null,
+    SolarCalculator.calculate(
+    date,
+    -90.000001,
+    0.0,
+    false,
+    ZoneOffset.UTC
+)
+)
     }
 
-    private fun dayLengthMinutes(\n    date: LocalDate,\n    latitude: Double,\n    longitude: Double,\n    zone: ZoneId\n): Long {
-        val sunrise = SolarCalculator.calculate(\n    date,\n    latitude,\n    longitude,\n    true,\n    zone\n)
-        val sunset = SolarCalculator.calculate(\n    date,\n    latitude,\n    longitude,\n    false,\n    zone\n)
+    private fun dayLengthMinutes(
+    date: LocalDate,
+    latitude: Double,
+    longitude: Double,
+    zone: ZoneId
+): Long {
+        val sunrise = SolarCalculator.calculate(
+    date,
+    latitude,
+    longitude,
+    true,
+    zone
+)
+        val sunset = SolarCalculator.calculate(
+    date,
+    latitude,
+    longitude,
+    false,
+    zone
+)
 
-        assertTrue(\n    "Expected sunrise for $date at $latitude, $longitude",\n    sunrise != null\n)
-        assertTrue(\n    "Expected sunset for $date at $latitude, $longitude",\n    sunset != null\n)
-        return Duration.between(\n    sunrise!!.toInstant(),\n    sunset!!.toInstant()\n).toMinutes()
+        assertTrue(
+    "Expected sunrise for $date at $latitude, $longitude",
+    sunrise != null
+)
+        assertTrue(
+    "Expected sunset for $date at $latitude, $longitude",
+    sunset != null
+)
+        return Duration.between(
+    sunrise!!.toInstant(),
+    sunset!!.toInstant()
+).toMinutes()
     }
 }
