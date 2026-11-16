@@ -20,6 +20,14 @@ class LocationSetupActivity : Activity(), LocationListener {
 
     companion object {
         private const val REQUEST_LOCATION = 100
+        private const val OUTER_HORIZONTAL_PADDING = 32
+        private const val TOP_PADDING = 48
+        private const val BOTTOM_PADDING = 32
+        private const val HEADING_TEXT_SIZE = 25f
+        private const val STATUS_TEXT_SIZE = 16f
+        private const val STATUS_VERTICAL_PADDING = 24
+        private const val MINIMUM_DISTANCE_METERS = 0f
+        private const val MINIMUM_TIME_MILLIS = 0L
         const val PREFS = "sunrise_location"
         const val LATITUDE = "latitude"
         const val LONGITUDE = "longitude"
@@ -31,16 +39,21 @@ class LocationSetupActivity : Activity(), LocationListener {
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(32, 48, 32, 32)
+            setPadding(
+                OUTER_HORIZONTAL_PADDING,
+                TOP_PADDING,
+                OUTER_HORIZONTAL_PADDING,
+                BOTTOM_PADDING
+            )
         }
 
         val heading = TextView(this).apply {
             text = "Sunrise Sunset Clock"
-            textSize = 25f
+            textSize = HEADING_TEXT_SIZE
         }
         status = TextView(this).apply {
-            textSize = 16f
-            setPadding(0, 24, 0, 24)
+            textSize = STATUS_TEXT_SIZE
+            setPadding(0, STATUS_VERTICAL_PADDING, 0, STATUS_VERTICAL_PADDING)
         }
         val button = Button(this).apply {
             text = "Use approximate location"
@@ -55,7 +68,8 @@ class LocationSetupActivity : Activity(), LocationListener {
         if (hasLocationPermission()) {
             findLocation()
         } else {
-            status.text = "Allow approximate location to calculate sunrise and sunset for your area. Precise location is not requested."
+            status.text = "Allow approximate location to calculate sunrise and sunset for your area. " +
+                "Precise location is not requested."
         }
     }
 
@@ -87,8 +101,12 @@ class LocationSetupActivity : Activity(), LocationListener {
                 try {
                     if (locationManager.isProviderEnabled(provider)) {
                         locationManager.getLastKnownLocation(provider)
-                    } else null
-                } catch (_: Exception) {
+                    } else {
+                        null
+                    }
+                } catch (_: SecurityException) {
+                    null
+                } catch (_: IllegalArgumentException) {
                     null
                 }
             }
@@ -101,8 +119,8 @@ class LocationSetupActivity : Activity(), LocationListener {
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    0L,
-                    0f,
+                    MINIMUM_TIME_MILLIS,
+                    MINIMUM_DISTANCE_METERS,
                     this
                 )
                 status.text = "Waiting for a location fix. Keep this screen open briefly."
@@ -111,17 +129,14 @@ class LocationSetupActivity : Activity(), LocationListener {
             }
         } catch (_: SecurityException) {
             status.text = "Location permission is needed. Please try again."
-        } catch (e: Exception) {
-            status.text = "Could not get location: ${e.localizedMessage ?: "try again"}"
+        } catch (e: IllegalArgumentException) {
+            status.text = "Could not get location: " + (e.localizedMessage ?: "try again")
         }
     }
 
     override fun onLocationChanged(location: Location) {
         saveLocation(location)
-        try {
-            locationManager.removeUpdates(this)
-        } catch (_: Exception) {
-        }
+        removeLocationUpdates()
     }
 
     private fun saveLocation(location: Location) {
@@ -148,20 +163,30 @@ class LocationSetupActivity : Activity(), LocationListener {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (
+                grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
                 findLocation()
             } else {
-                status.text = "Approximate location was not allowed. You can enable it in Android app permissions."
+                status.text =
+                    "Approximate location was not allowed. You can enable it in Android app permissions."
             }
         }
     }
 
     override fun onDestroy() {
+        removeLocationUpdates()
         super.onDestroy()
+    }
+
+    private fun removeLocationUpdates() {
         try {
             locationManager.removeUpdates(this)
-        } catch (_: Exception) {
+        } catch (_: SecurityException) {
+            // Permission may have been revoked while the activity was open.
+        } catch (_: IllegalArgumentException) {
+            // The location provider may no longer be registered.
         }
     }
 }
