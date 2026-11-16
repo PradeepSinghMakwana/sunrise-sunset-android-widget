@@ -63,9 +63,10 @@ internal object SolarCalculator {
         val rawUtcHour = localMeanTime - longitudeHour
         val utcHour = ((rawUtcHour % 24.0) + 24.0) % 24.0
 
-        // The requested date is the observer's local date. The unwrapped UTC
-        // hour carries the correct previous/next-day offset before normalization.
-        val utcDayOffset = floor(rawUtcHour / 24.0).toLong()
+        // The requested date is the observer's local date. The NOAA time
+        // fraction identifies whether the corresponding UTC instant belongs
+        // to the previous, same, or next UTC date.
+        val utcDayOffset = floor(approximateTime).toLong() - day
         val utcDate = date.plusDays(utcDayOffset)
         val utcMinutes = (utcHour * 60.0).roundToLong()
         return utcDate.atStartOfDay(ZoneOffset.UTC)
