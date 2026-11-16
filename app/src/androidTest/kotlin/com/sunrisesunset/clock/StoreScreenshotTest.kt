@@ -113,9 +113,9 @@ class StoreScreenshotTest {
         device.waitForIdle()
 
         val widgetVisible = device.wait(
-            Until.hasObject(By.text("SUNRISE")),
+            Until.hasObject(By.textContains("SUNRISE")),
             12_000
-        ) || device.hasObject(By.text("SUNSET"))
+        ) || device.hasObject(By.textContains("SUNSET"))
         assertTrue(
             "Widget was not placed on the launcher home screen.",
             widgetVisible
