@@ -29,7 +29,7 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          profile: pixel_2
+          profile: pixel_5
           disable-animations: true
           script: bash scripts/run-emulator-screenshot-tests.sh
       - uses: actions/upload-artifact@v4
