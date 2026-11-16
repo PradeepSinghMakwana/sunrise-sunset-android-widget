@@ -1,8 +1,8 @@
 package com.sunrisesunset.clock
 
 import java.time.LocalDate
-import java.time.ZonedDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -71,20 +71,24 @@ class SolarCalculatorTest {
             "21:00",
             southernSunrise
         )
-        assertNotNull(SolarCalculator.calculate(
+        assertNotNull(
+            SolarCalculator.calculate(
             date,
             40.7,
             -74.0,
             false,
             utc
-        ))
-        assertNotNull(SolarCalculator.calculate(
+            )
+        )
+        assertNotNull(
+            SolarCalculator.calculate(
             date,
             -33.9,
             151.2,
             false,
             utc
-        ))
+            )
+        )
     }
 
     @Test
@@ -119,50 +123,58 @@ class SolarCalculatorTest {
 
     @Test
     fun polarDayAndPolarNightReturnNoEvent() {
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(
-                2026,
-                6,
-                21
-            ),
+        assertNull(
+            SolarCalculator.calculate(
+                LocalDate.of(
+                    2026,
+                    6,
+                    21
+                ),
             89.0,
             0.0,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(
-                2026,
-                12,
-                21
-            ),
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
+                LocalDate.of(
+                    2026,
+                    12,
+                    21
+                ),
             89.0,
             0.0,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(
-                2026,
-                12,
-                21
-            ),
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
+                LocalDate.of(
+                    2026,
+                    12,
+                    21
+                ),
             -89.0,
             0.0,
             false,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(
-                2026,
-                6,
-                21
-            ),
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
+                LocalDate.of(
+                    2026,
+                    6,
+                    21
+                ),
             -89.0,
             0.0,
             false,
             utc
-        ))
+            )
+        )
     }
 
     @Test
@@ -172,48 +184,60 @@ class SolarCalculatorTest {
             3,
             20
         )
-        assertNull(SolarCalculator.calculate(
+        assertNull(
+            SolarCalculator.calculate(
             date,
             90.1,
             0.0,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
             date,
             -90.1,
             0.0,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
             date,
             0.0,
             180.1,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
             date,
             0.0,
             -180.1,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
             date,
             Double.NaN,
             0.0,
             true,
             utc
-        ))
-        assertNull(SolarCalculator.calculate(
+            )
+        )
+        assertNull(
+            SolarCalculator.calculate(
             date,
             0.0,
             Double.POSITIVE_INFINITY,
             true,
             utc
-        ))
+            )
+        )
     }
 
     @Test

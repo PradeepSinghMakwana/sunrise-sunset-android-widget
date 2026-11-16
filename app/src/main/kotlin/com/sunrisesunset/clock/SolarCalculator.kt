@@ -85,22 +85,22 @@ internal object SolarCalculator {
 
         return if (cosHourAngle in -1.0..1.0) {
             val hourAngle = if (isSunrise) {
-            DEGREES_PER_CIRCLE - Math.toDegrees(acos(cosHourAngle))
-        } else {
-            Math.toDegrees(acos(cosHourAngle))
-        }
+                DEGREES_PER_CIRCLE - Math.toDegrees(acos(cosHourAngle))
+            } else {
+                Math.toDegrees(acos(cosHourAngle))
+            }
 
-        val localMeanTime = hourAngle / DEGREES_PER_HOUR +
-            rightAscension - LOCAL_TIME_COEFFICIENT * approximateTime - LOCAL_TIME_OFFSET
-        val rawUtcHour = localMeanTime - longitudeHour
-        val utcHour = ((rawUtcHour % HOURS_PER_DAY) + HOURS_PER_DAY) % HOURS_PER_DAY
+            val localMeanTime = hourAngle / DEGREES_PER_HOUR +
+                rightAscension - LOCAL_TIME_COEFFICIENT * approximateTime - LOCAL_TIME_OFFSET
+            val rawUtcHour = localMeanTime - longitudeHour
+            val utcHour = ((rawUtcHour % HOURS_PER_DAY) + HOURS_PER_DAY) % HOURS_PER_DAY
 
-        // The requested date is the observer's local date. The NOAA time
-        // fraction identifies whether the corresponding UTC instant belongs
-        // to the previous, same, or next UTC date.
-        val utcDayOffset = floor(approximateTime).toLong() - day
-        val utcDate = date.plusDays(utcDayOffset)
-        val utcMinutes = (utcHour * MINUTES_PER_HOUR).roundToLong()
+            // The requested date is the observer's local date. The NOAA time
+            // fraction identifies whether the corresponding UTC instant belongs
+            // to the previous, same, or next UTC date.
+            val utcDayOffset = floor(approximateTime).toLong() - day
+            val utcDate = date.plusDays(utcDayOffset)
+            val utcMinutes = (utcHour * MINUTES_PER_HOUR).roundToLong()
             utcDate.atStartOfDay(ZoneOffset.UTC)
                 .plusMinutes(utcMinutes)
                 .withZoneSameInstant(zone)
