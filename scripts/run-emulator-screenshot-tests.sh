@@ -19,7 +19,11 @@ collect_diagnostics() {
   # survive Gradle uninstalling the test and target APKs after the run.
   for name in 03-test-app-setup.png 03-test-app-setup.xml \
               04-test-launcher-before-widget.png 04-test-launcher-before-widget.xml \
-              05-test-widget-after-placement.png 05-test-widget-after-placement.xml; do
+              05-launcher-edit-menu.png 05-launcher-edit-menu.xml \
+              06-widget-picker-open.png 06-widget-picker-open.xml \
+              07-widget-preview.png 07-widget-preview.xml \
+              08-test-widget-after-placement.png 08-test-widget-after-placement.xml \
+              08-widget-after-placement.png 08-widget-after-placement.xml; do
     adb pull "/sdcard/$name" "$DIAG_DIR/$name" >/dev/null 2>&1 || true
   done
 
