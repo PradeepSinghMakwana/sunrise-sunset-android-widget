@@ -136,6 +136,7 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_5
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -cores 4 -memory 4096
           disable-animations: true
           disable-spellchecker: true
           script: bash scripts/run-emulator-screenshot-tests.sh
