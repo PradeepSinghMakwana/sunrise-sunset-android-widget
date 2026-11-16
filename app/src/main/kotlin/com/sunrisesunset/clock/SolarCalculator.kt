@@ -71,7 +71,7 @@ internal object SolarCalculator {
         val utcMinutes = (utcHour * 60.0).roundToLong()
         return utcDate.atStartOfDay(ZoneOffset.UTC)
             .plusMinutes(utcMinutes)
-            .atZone(zone)
+            .withZoneSameInstant(zone)
     }
 
     private fun Double.normalizeDegrees(): Double = (this % 360.0 + 360.0) % 360.0
