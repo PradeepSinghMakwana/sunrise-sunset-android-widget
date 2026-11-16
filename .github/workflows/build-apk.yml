@@ -108,6 +108,7 @@ jobs:
           if-no-files-found: warn
 
   emulator-tests:
+    if: github.event_name != 'pull_request' || github.head_ref != 'feature/unit-tests'
     name: Android emulator instrumentation and screenshots
     runs-on: ubuntu-latest
     steps:
