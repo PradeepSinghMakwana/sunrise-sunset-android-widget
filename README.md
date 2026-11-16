@@ -66,6 +66,48 @@ The emulator screenshot workflow is designed to validate the real app setup scre
 5. The exit handler collects test screenshots and UI hierarchies from the emulator, plus ADB/device, package, activity, window, logcat, and test-report diagnostics. The final emulator screen is diagnostic evidence only; it is not a substitute for either required app screenshot.
 6. The workflow uploads the collected screenshots/diagnostics and debug APK even when the emulator test step fails.
 
+### Live artifact upload design and commit history
+
+Live checkpoint upload is an intentional feature of this workflow. It is not interchangeable with the final `actions/upload-artifact@v4` step.
+
+The implementation was introduced in these historical commits:
+
+| Commit | Responsibility |
+|---|---|
+| `ff79a90` | Added the live uploader based on `@actions/artifact`. |
+| `9d8b823` | Added calls from the emulator runner to upload checkpoints while the emulator job is running. |
+| `ed49d24` | Installed the `@actions/artifact` dependency in the workflow. |
+| `24cf227` | Exported the GitHub Actions artifact runtime URL and token for the uploader process. |
+
+The current implementation has three cooperating parts:
+
+1. **Workflow setup** — `.github/workflows/build-apk.yml` installs the pinned `@actions/artifact@2.3.2` package and exports `ACTIONS_RESULTS_URL`, `ACTIONS_RUNTIME_URL`, and `ACTIONS_RUNTIME_TOKEN` using `actions/github-script@v7`. These runtime credentials let the Node uploader publish artifacts during the still-running job.
+2. **Checkpoint capture and invocation** — `scripts/run-emulator-screenshot-tests.sh` captures host-side emulator screenshots with `adb exec-out screencap -p` and calls `scripts/upload-screenshot-artifact.cjs` immediately after each selected checkpoint.
+3. **Artifact creation** — `scripts/upload-screenshot-artifact.cjs` uses `DefaultArtifactClient` to create a separately named artifact for each checkpoint. Names use the `pixel5-` prefix plus a sanitized checkpoint name. Each live artifact has a seven-day retention period and compression level zero; the uploader logs its artifact ID and byte size.
+
+The currently wired live checkpoints are:
+
+| Checkpoint | Capture point |
+|---|---|
+| `00-emulator-boot-screen.png` | Immediately after the emulator reports boot complete, before waiting for unlock. |
+| `00b-emulator-after-wake-and-dismiss-1s.png` | After the user is unlocked, keyguard is dismissed, and the one-second pause completes. |
+| `01-app-setup-after-1s.png` | After installing and explicitly launching the real setup activity, followed by one second. |
+| `02-home-screen-before-widget-after-1s.png` | After returning to the launcher before widget placement, followed by one second. |
+
+These are four **separate live artifacts**, uploaded during the emulator job. They provide time-ordered evidence even if later UI automation fails or the runner is interrupted. A checkpoint is uploaded only when its PNG exists and is non-empty. If an individual live upload fails, the script reports the error and continues the UI tests; the failure is not silently treated as a successful upload.
+
+### Live uploads versus final artifacts
+
+There are two distinct evidence-delivery paths, and both must be retained:
+
+- **Live checkpoint artifacts:** uploaded during emulator execution by the Node uploader. They are independent artifacts and can be inspected before the job finishes.
+- **Final diagnostic artifact:** uploaded by `actions/upload-artifact@v4` with `if: always()` after the emulator step. It contains the collected screenshot directory, test captures, reports, and diagnostics, including evidence generated later in the test sequence.
+- **APK artifact:** also uploaded with `if: always()`; this is separate from screenshot evidence.
+
+The UI test checkpoints (setup ready, launcher before widget, launcher edit menu, widget picker, widget preview, and widget after placement) are captured by `StoreScreenshotTest.kt`. They are collected into the final diagnostic artifact after instrumentation exits; the current runner does not individually stream each of those later test captures as a live artifact. The final emulator display image is diagnostic only and must never be substituted for the genuine app setup or placed-widget screenshots.
+
+Do not remove the live uploader, runtime credential export, checkpoint calls, or the final always-run artifact upload as if they were duplicate mechanisms. They serve different recovery and observability purposes.
+
 ### Screenshot evidence and failure handling
 
 - The required genuine UI captures are `01-app-setup.png` and `02-home-screen-widget.png`. A successful test run must produce both; a blank final emulator capture does not satisfy either requirement.
