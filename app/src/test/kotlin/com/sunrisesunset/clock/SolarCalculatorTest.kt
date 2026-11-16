@@ -13,96 +13,80 @@ class SolarCalculatorTest {
 
     @Test
     fun equinoxAtEquatorIsCloseToSixAndEighteenUtc() {
-        val date = LocalDate.of(2026, 3, 20)
+        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
 
-        assertTimeNear("06:04", SolarCalculator.calculate(date, 0.0, 0.0, true, utc))
-        assertTimeNear("18:11", SolarCalculator.calculate(date, 0.0, 0.0, false, utc))
+        assertTimeNear(\n    "06:04",\n    SolarCalculator.calculate(\n    date,\n    0.0,\n    0.0,\n    true,\n    utc\n)\n)
+        assertTimeNear(\n    "18:11",\n    SolarCalculator.calculate(\n    date,\n    0.0,\n    0.0,\n    false,\n    utc\n)\n)
     }
 
     @Test
     fun juneSolsticeShowsExpectedSeasonInBothHemispheres() {
-        val date = LocalDate.of(2026, 6, 21)
-        val northernSunrise = SolarCalculator.calculate(date, 40.7, -74.0, true, utc)
-        val southernSunrise = SolarCalculator.calculate(date, -33.9, 151.2, true, utc)
+        val date = LocalDate.of(\n    2026,\n    6,\n    21\n)
+        val northernSunrise = SolarCalculator.calculate(\n    date,\n    40.7,\n    -74.0,\n    true,\n    utc\n)
+        val southernSunrise = SolarCalculator.calculate(\n    date,\n    -33.9,\n    151.2,\n    true,\n    utc\n)
 
-        assertTimeNear("09:25", northernSunrise)
-        assertTimeNear("21:00", southernSunrise)
-        assertNotNull(SolarCalculator.calculate(date, 40.7, -74.0, false, utc))
-        assertNotNull(SolarCalculator.calculate(date, -33.9, 151.2, false, utc))
+        assertTimeNear(\n    "09:25",\n    northernSunrise\n)
+        assertTimeNear(\n    "21:00",\n    southernSunrise\n)
+        assertNotNull(SolarCalculator.calculate(\n    date,\n    40.7,\n    -74.0,\n    false,\n    utc\n))
+        assertNotNull(SolarCalculator.calculate(\n    date,\n    -33.9,\n    151.2,\n    false,\n    utc\n))
     }
 
     @Test
     fun decemberSolsticeShowsExpectedSeasonInBothHemispheres() {
-        val date = LocalDate.of(2026, 12, 21)
+        val date = LocalDate.of(\n    2026,\n    12,\n    21\n)
 
-        assertTimeNear("12:16", SolarCalculator.calculate(date, 40.7, -74.0, true, utc))
-        assertTimeNear("18:41", SolarCalculator.calculate(date, -33.9, 151.2, true, utc))
+        assertTimeNear(\n    "12:16",\n    SolarCalculator.calculate(\n    date,\n    40.7,\n    -74.0,\n    true,\n    utc\n)\n)
+        assertTimeNear(\n    "18:41",\n    SolarCalculator.calculate(\n    date,\n    -33.9,\n    151.2,\n    true,\n    utc\n)\n)
     }
 
     @Test
     fun polarDayAndPolarNightReturnNoEvent() {
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(2026, 6, 21), 89.0, 0.0, true, utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(2026, 12, 21), 89.0, 0.0, true, utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(2026, 12, 21), -89.0, 0.0, false, utc
-        ))
-        assertNull(SolarCalculator.calculate(
-            LocalDate.of(2026, 6, 21), -89.0, 0.0, false, utc
-        ))
+        assertNull(SolarCalculator.calculate(\n    LocalDate.of(\n    2026,\n    6,\n    21\n),\n    89.0,\n    0.0,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    LocalDate.of(\n    2026,\n    12,\n    21\n),\n    89.0,\n    0.0,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    LocalDate.of(\n    2026,\n    12,\n    21\n),\n    -89.0,\n    0.0,\n    false,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    LocalDate.of(\n    2026,\n    6,\n    21\n),\n    -89.0,\n    0.0,\n    false,\n    utc\n))
     }
 
     @Test
     fun rejectsInvalidAndNonFiniteCoordinates() {
-        val date = LocalDate.of(2026, 3, 20)
-        assertNull(SolarCalculator.calculate(date, 90.1, 0.0, true, utc))
-        assertNull(SolarCalculator.calculate(date, -90.1, 0.0, true, utc))
-        assertNull(SolarCalculator.calculate(date, 0.0, 180.1, true, utc))
-        assertNull(SolarCalculator.calculate(date, 0.0, -180.1, true, utc))
-        assertNull(SolarCalculator.calculate(date, Double.NaN, 0.0, true, utc))
-        assertNull(SolarCalculator.calculate(date, 0.0, Double.POSITIVE_INFINITY, true, utc))
+        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
+        assertNull(SolarCalculator.calculate(\n    date,\n    90.1,\n    0.0,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    date,\n    -90.1,\n    0.0,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    date,\n    0.0,\n    180.1,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    date,\n    0.0,\n    -180.1,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    date,\n    Double.NaN,\n    0.0,\n    true,\n    utc\n))
+        assertNull(SolarCalculator.calculate(\n    date,\n    0.0,\n    Double.POSITIVE_INFINITY,\n    true,\n    utc\n))
     }
 
     @Test
     fun convertsUtcInstantIntoRequestedTimezone() {
-        val date = LocalDate.of(2026, 3, 20)
-        val india = SolarCalculator.calculate(
-            date, 0.0, 0.0, true, ZoneId.of("Asia/Kolkata")
-        )
-        val utcValue = SolarCalculator.calculate(date, 0.0, 0.0, true, utc)
+        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
+        val india = SolarCalculator.calculate(\n    date,\n    0.0,\n    0.0,\n    true,\n    ZoneId.of("Asia/Kolkata")\n)
+        val utcValue = SolarCalculator.calculate(\n    date,\n    0.0,\n    0.0,\n    true,\n    utc\n)
 
-        assertEquals("11:34", india!!.toLocalTime().toString().substring(0, 5))
-        assertEquals(utcValue!!.toInstant(), india.toInstant())
+        assertEquals(\n    "11:34",\n    india!!.toLocalTime().toString().substring(\n    0,\n    5\n)\n)
+        assertEquals(\n    utcValue!!.toInstant(),\n    india.toInstant()\n)
     }
 
     @Test
     fun preservesLocalDateAcrossUtcMidnightBoundaries() {
-        val date = LocalDate.of(2026, 3, 20)
-        val losAngelesSunset = SolarCalculator.calculate(
-            date, 34.0, -118.0, false, ZoneId.of("America/Los_Angeles")
-        )
-        val newYorkSunset = SolarCalculator.calculate(
-            date, 40.7, -74.0, false, ZoneId.of("America/New_York")
-        )
-        val sydneySunrise = SolarCalculator.calculate(
-            date, -33.9, 151.2, true, ZoneId.of("Australia/Sydney")
-        )
+        val date = LocalDate.of(\n    2026,\n    3,\n    20\n)
+        val losAngelesSunset = SolarCalculator.calculate(\n    date,\n    34.0,\n    -118.0,\n    false,\n    ZoneId.of("America/Los_Angeles")\n)
+        val newYorkSunset = SolarCalculator.calculate(\n    date,\n    40.7,\n    -74.0,\n    false,\n    ZoneId.of("America/New_York")\n)
+        val sydneySunrise = SolarCalculator.calculate(\n    date,\n    -33.9,\n    151.2,\n    true,\n    ZoneId.of("Australia/Sydney")\n)
 
-        assertEquals(date, losAngelesSunset!!.toLocalDate())
-        assertEquals(date, newYorkSunset!!.toLocalDate())
-        assertEquals(date, sydneySunrise!!.toLocalDate())
+        assertEquals(\n    date,\n    losAngelesSunset!!.toLocalDate()\n)
+        assertEquals(\n    date,\n    newYorkSunset!!.toLocalDate()\n)
+        assertEquals(\n    date,\n    sydneySunrise!!.toLocalDate()\n)
     }
 
-    private fun assertTimeNear(expected: String, actual: ZonedDateTime?) {
-        assertNotNull("Expected a solar event near $expected", actual)
-        val expectedMinutes = expected.substring(0, 2).toInt() * 60 +
-            expected.substring(3, 5).toInt()
+    private fun assertTimeNear(\n    expected: String,\n    actual: ZonedDateTime?\n) {
+        assertNotNull(\n    "Expected a solar event near $expected",\n    actual\n)
+        val expectedMinutes = expected.substring(\n    0,\n    2\n).toInt() * 60 +
+            expected.substring(\n    3,\n    5\n).toInt()
         val actualMinutes = actual!!.toLocalTime().hour * 60 +
             actual.toLocalTime().minute
         val difference = kotlin.math.abs(expectedMinutes - actualMinutes)
-        assertEquals("Expected $expected, got ${actual.toLocalTime()}", true, difference <= 20)
+        assertEquals(\n    "Expected $expected, got ${actual.toLocalTime()}",\n    true,\n    difference <= 20\n)
     }
 }
