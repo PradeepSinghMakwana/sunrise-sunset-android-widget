@@ -30,6 +30,7 @@ jobs:
             gradle :app:connectedDebugAndroidTest
             mkdir -p screenshots
             adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png screenshots/01-app-setup.png
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png screenshots/02-home-screen-widget.png
       - uses: actions/upload-artifact@v4
         with:
           name: Sunrise-Sunset-Clock-genuine-screenshots
