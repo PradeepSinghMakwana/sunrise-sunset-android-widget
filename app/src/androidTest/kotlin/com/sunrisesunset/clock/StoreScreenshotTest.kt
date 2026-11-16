@@ -1,5 +1,6 @@
 package com.sunrisesunset.clock
 
+import android.app.KeyguardManager
 import android.content.Context
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
@@ -26,7 +27,7 @@ class StoreScreenshotTest {
         val device = UiDevice.getInstance(instrumentation)
         val output = screenshotDirectory(instrumentation.context)
 
-        unlockDevice(device)
+        unlockDevice(device, instrumentation.context)
         val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
         try {
             assertTrue("Setup action did not become visible to UI Automator",
@@ -114,11 +115,12 @@ class StoreScreenshotTest {
         return directory
     }
 
-    private fun unlockDevice(device: UiDevice) {
+    private fun unlockDevice(device: UiDevice, context: Context) {
         device.wakeUp()
         device.executeShellCommand("wm dismiss-keyguard")
         device.waitForIdle()
         assertTrue("Emulator screen did not turn on", device.isScreenOn)
-        assertTrue("Emulator keyguard is still locked", !device.isKeyguardLocked)
+        val keyguardManager = context.getSystemService(KeyguardManager::class.java)
+        assertTrue("Emulator keyguard is still locked", !keyguardManager.isKeyguardLocked)
     }
 }
