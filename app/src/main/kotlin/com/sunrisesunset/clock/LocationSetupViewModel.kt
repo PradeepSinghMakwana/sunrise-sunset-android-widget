@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,6 +63,8 @@ class LocationSetupViewModel(application: Application) : AndroidViewModel(applic
                         hasSavedLocation = true
                     )
                 }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (_: SecurityException) {
                 _uiState.value = LocationSetupUiState(
                     message = "Location permission is needed. Please try again."

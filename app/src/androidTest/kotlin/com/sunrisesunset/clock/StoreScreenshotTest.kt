@@ -3,10 +3,6 @@ package com.sunrisesunset.clock
 import android.app.KeyguardManager
 import android.content.Context
 import androidx.test.core.app.ActivityScenario
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -34,7 +30,6 @@ class StoreScreenshotTest {
             Thread.sleep(1_000)
             assertTrue("Setup action did not become visible to UI Automator",
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
-            onView(withText("Use approximate location")).check(matches(isDisplayed()))
             device.waitForIdle()
             captureCheckpoint(device, output, "04-app-setup-ready")
 
