@@ -44,3 +44,10 @@ The current application ID `com.sunrisesunset.clock` must also be checked for F-
 ## Screenshots
 
 Screenshots must be genuine captures of the running application. Add them to the Fastlane screenshots directory. The release workflow uses an Android emulator and UI Automator to open the launcher widget picker, place the Sunrise Sunset Clock widget on the home screen, verify its SUNRISE and SUNSET labels, and capture the actual launcher screen. It also captures the app setup screen separately. Both captures are genuine emulator screenshots, not mockups. Demo coordinates are written only to the disposable emulator test profile.
+
+
+## Emulator diagnostics and test permissions
+
+The UI screenshot suite is also a release-readiness check. Keep the failure-evidence collection and genuine screenshot requirements described in [Emulator UI test diagnostics](EMULATOR_DIAGNOSTICS.md). On failure, inspect the uploaded diagnostics artifact before changing app code or relaxing assertions. The app setup screenshot and actual launcher widget screenshot must both be verified; an APK build or a black final-emulator capture is not a substitute.
+
+The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. The emulator test harness uses instrumentation/ADB to inspect and capture its disposable test device; those test capabilities are not requested from installed app users. Deterministic coordinates are seeded only in the emulator test profile. See the diagnostics guide for the complete permission and privacy explanation.
