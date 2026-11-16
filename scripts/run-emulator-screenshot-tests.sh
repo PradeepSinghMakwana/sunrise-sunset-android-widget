@@ -32,17 +32,21 @@ collect_diagnostics() {
   mkdir -p "$DIAG_DIR"
   printf '%s\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
 
-  # UI Automator writes test captures to shared emulator storage so they
-  # survive Gradle uninstalling the test and target APKs after the run.
-  for name in 03-test-app-setup.png 03-test-app-setup.xml \
-              04-test-launcher-before-widget.png 04-test-launcher-before-widget.xml \
-              05-launcher-edit-menu.png 05-launcher-edit-menu.xml \
-              06-widget-picker-open.png 06-widget-picker-open.xml \
-              07-widget-preview.png 07-widget-preview.xml \
-              08-test-widget-after-placement.png 08-test-widget-after-placement.xml \
-              08-widget-after-placement.png 08-widget-after-placement.xml; do
-    adb pull "/sdcard/$name" "$DIAG_DIR/$name" >/dev/null 2>&1 || true
-  done
+  # Pull the same external-files directory used by StoreScreenshotTest.
+  mkdir -p screenshots/test-captures
+  adb pull "/sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/." screenshots/test-captures/ > "$DIAG_DIR/screenshot-pull.txt" 2>&1 || true
+
+  # A successful instrumentation result is rejected unless both genuine
+  # screenshots were collected and are non-empty.
+  if [ "$status" -eq 0 ]; then
+    for required in 01-app-setup.png 02-home-screen-widget.png; do
+      if [ ! -s "screenshots/test-captures/$required" ]; then
+        echo "Required genuine screenshot missing: $required" >&2
+        status=1
+      fi
+    done
+  fi
+  printf '%s\\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
 
   adb devices -l > "$DIAG_DIR/adb-devices.txt" 2>&1 || true
   adb shell pm list packages > "$DIAG_DIR/installed-packages.txt" 2>&1 || true
