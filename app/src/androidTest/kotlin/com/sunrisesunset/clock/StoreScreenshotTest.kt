@@ -1,6 +1,7 @@
 package com.sunrisesunset.clock
 
 import android.content.Context
+import android.content.Intent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -21,21 +22,22 @@ class StoreScreenshotTest {
         val device = UiDevice.getInstance(instrumentation)
 
         device.wakeUp()
-        device.executeShellCommand("am start -W -n ${context.packageName}/.LocationSetupActivity")
-
-        val appVisible = device.wait(
-            Until.hasObject(By.pkg(context.packageName)),
-            20_000
+        context.startActivity(
+            Intent(context, LocationSetupActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
+
         val headingVisible = device.wait(
             Until.hasObject(By.textContains("Sunrise Sunset Clock")),
-            10_000
+            30_000
         )
-        if (!appVisible || !headingVisible) {
+        if (!headingVisible) {
+            println("Current activity: " + device.executeShellCommand(
+                "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'"
+            ))
             saveDiagnosticScreenshot(context, device, "01-app-launch-debug.png")
         }
-        assertTrue("Location setup activity did not become visible", appVisible)
-        assertTrue("App setup heading did not appear", headingVisible)
+        assertTrue("Location setup heading did not become visible", headingVisible)
 
         val screenshot = screenshotFile(context, "01-app-setup.png")
         assertTrue("Could not capture app screenshot", device.takeScreenshot(screenshot))
@@ -75,7 +77,10 @@ class StoreScreenshotTest {
             device.waitForIdle()
             widgetsButton = device.wait(
                 Until.findObject(By.textContains("Widgets")),
-                2_000
+                1_000
+            ) ?: device.wait(
+                Until.findObject(By.descContains("Widgets")),
+                1_000
             )
             if (widgetsButton != null) break
             device.pressBack()
@@ -83,6 +88,12 @@ class StoreScreenshotTest {
         }
 
         if (widgetsButton == null) {
+            println("Launcher activity: " + device.executeShellCommand(
+                "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'"
+            ))
+            println("Launcher UI hierarchy: " + device.executeShellCommand(
+                "uiautomator dump /sdcard/launcher-window.xml >/dev/null 2>&1; cat /sdcard/launcher-window.xml"
+            ))
             saveDiagnosticScreenshot(context, device, "02-launcher-menu-debug.png")
         }
         assertTrue(
@@ -159,7 +170,8 @@ class StoreScreenshotTest {
     }
 
     private fun screenshotFile(context: Context, name: String): File {
-        val directory = File(context.getExternalFilesDir(null), "screenshots")
+        val baseDirectory = context.getExternalFilesDir(null) ?: context.filesDir
+        val directory = File(baseDirectory, "screenshots")
         assertTrue(
             "Could not create screenshot directory",
             directory.mkdirs() || directory.isDirectory
