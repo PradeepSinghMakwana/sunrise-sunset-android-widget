@@ -179,8 +179,10 @@ class StoreScreenshotTest {
         runCatching { device.executeShellCommand(command) }.getOrElse { "COMMAND FAILED: $it" }
 
     private fun screenshotFile(context: Context, name: String): File {
-        // Keep files app-private so the workflow can retrieve them reliably with run-as.
-        val directory = File(context.filesDir, "screenshots")
+        // External app files are readable by adb pull without depending on run-as.
+        // Fall back to app-private storage only when external storage is unavailable.
+        val appFilesDirectory = context.getExternalFilesDir(null) ?: context.filesDir
+        val directory = File(appFilesDirectory, "screenshots")
         assertTrue("Could not create screenshot directory", directory.mkdirs() || directory.isDirectory)
         return File(directory, name)
     }
