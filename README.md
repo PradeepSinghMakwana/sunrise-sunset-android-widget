@@ -49,6 +49,37 @@ If the automation eventually saves 15–30 minutes per release, it would recover
 
 **Acceptance status at this assessment:** the required genuine app-setup and launcher-widget screenshots had not yet both been successfully captured and visually verified. Therefore, the automation's delivery ROI was not yet demonstrated. Do not treat the estimated future savings as realised benefits. Update this section when the screenshot tests pass reliably and actual CI usage or time savings can be measured.
 
+## Emulator CI architecture and review findings
+
+The emulator screenshot workflow is designed to validate the real app setup screen and the real home-screen widget on a Pixel 5 API 34 emulator, while preserving diagnostics when a test fails.
+
+### Workflow sequence
+
+1. GitHub Actions builds the debug APK and prepares the GitHub Actions artifact runtime.
+2. The emulator runner boots the Pixel 5 image, waits for Android to finish booting, verifies the user is unlocked, and dismisses the keyguard.
+3. The host-side script captures and uploads these early checkpoints as separate artifacts:
+   - `00-emulator-boot-screen.png`
+   - `00b-emulator-after-wake-and-dismiss-1s.png`
+   - `01-app-setup-after-1s.png`
+   - `02-home-screen-before-widget-after-1s.png`
+4. The connected UI tests capture the actual app setup screen and the actual launcher widget, and assert that the expected screen content is present.
+5. The exit handler collects test screenshots and UI hierarchies from the emulator, plus ADB/device, package, activity, window, logcat, and test-report diagnostics. The final emulator screen is diagnostic evidence only; it is not a substitute for either required app screenshot.
+6. The workflow uploads the collected screenshots/diagnostics and debug APK even when the emulator test step fails.
+
+### Screenshot evidence and failure handling
+
+- The required genuine UI captures are `01-app-setup.png` and `02-home-screen-widget.png`. A successful test run must produce both; a blank final emulator capture does not satisfy either requirement.
+- The four early checkpoints are uploaded live during the emulator run. Screenshots produced later by the UI tests are collected into the final workflow artifact after the test process exits; they are not currently streamed as individual live uploads.
+- A failure to upload an individual live checkpoint is logged but does not stop the UI test run. The final artifact collection remains the recovery path for diagnostics.
+- The UI tests use the app's external-files screenshot directory so the host can retrieve files with ADB. Keep the test output path and the host collection path in sync if either is changed.
+- Keep host-side ADB diagnostics separate from the active UI Automator session. Invoking a second `uiautomator dump` from inside an active UI Automator test can fail with `UiAutomationService already registered`.
+
+### Review scope
+
+The emulator-isolation branch history was reviewed across all 33 commits, including the workflow, emulator runner script, live artifact uploader, screenshot UI tests, app setup activity, build configuration, README, and emulator diagnostics guide. The history shows the progression from basic emulator execution to boot/unlock checks, Pixel 5 coverage, genuine launcher-widget capture, pre-assertion checkpoints, live artifact uploads, and end-of-run diagnostic collection.
+
+This section records the current implementation and its known boundaries; it is not a claim that every historical CI run passed. Keep the acceptance criteria in [Emulator UI test diagnostics](docs/EMULATOR_DIAGNOSTICS.md) authoritative when changing screenshot tests or collection behaviour.
+
 ## License
 
 This project is licensed under the MIT License.
