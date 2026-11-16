@@ -32,8 +32,6 @@ class StoreScreenshotTest {
         val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
         try {
             Thread.sleep(1_000)
-            captureSharedScreenshot(device, "03-test-app-setup.png")
-            captureSharedHierarchy(device, "03-test-app-setup.xml")
             assertTrue("Setup action did not become visible to UI Automator",
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
             onView(withText("Use approximate location")).check(matches(isDisplayed()))
@@ -67,8 +65,6 @@ class StoreScreenshotTest {
             device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000))
         device.waitForIdle()
         Thread.sleep(1_000)
-        captureSharedScreenshot(device, "04-test-launcher-before-widget.png")
-        captureSharedHierarchy(device, "04-test-launcher-before-widget.xml")
         device.takeScreenshot(File(output, "02-launcher-before.png"))
         device.dumpWindowHierarchy(File(output, "02-launcher-before.xml"))
 
@@ -109,8 +105,6 @@ class StoreScreenshotTest {
             1_000)
         device.waitForIdle()
         Thread.sleep(1_000)
-        captureSharedScreenshot(device, "08-test-widget-after-placement.png")
-        captureSharedHierarchy(device, "08-test-widget-after-placement.xml")
         captureCheckpoint(device, output, "08-widget-after-placement")
 
         val widgetVisible = device.wait(
@@ -127,20 +121,13 @@ class StoreScreenshotTest {
     private fun captureCheckpoint(device: UiDevice, output: File, name: String) {
         device.takeScreenshot(File(output, "$name.png"))
         device.dumpWindowHierarchy(File(output, "$name.xml"))
-        captureSharedScreenshot(device, "$name.png")
-        captureSharedHierarchy(device, "$name.xml")
-    }
-
-    private fun captureSharedScreenshot(device: UiDevice, name: String) {
-        device.executeShellCommand("screencap -p /sdcard/$name")
-    }
-
-    private fun captureSharedHierarchy(device: UiDevice, name: String) {
-        device.executeShellCommand("uiautomator dump /sdcard/$name")
     }
 
     private fun screenshotDirectory(context: Context): File {
-        val directory = File(context.filesDir, "screenshots")
+        val externalFilesDirectory = requireNotNull(context.getExternalFilesDir(null)) {
+            "App external-files directory is unavailable; CI cannot collect screenshots"
+        }
+        val directory = File(externalFilesDirectory, "screenshots")
         assertTrue(
             "Could not create app screenshot directory at ${directory.absolutePath}",
             directory.mkdirs() || directory.isDirectory
