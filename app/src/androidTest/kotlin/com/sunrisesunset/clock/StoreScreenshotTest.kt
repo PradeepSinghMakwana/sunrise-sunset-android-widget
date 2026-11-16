@@ -31,6 +31,9 @@ class StoreScreenshotTest {
         unlockDevice(device, context)
         val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
         try {
+            Thread.sleep(1_000)
+            captureSharedScreenshot(device, "03-test-app-setup.png")
+            captureSharedHierarchy(device, "03-test-app-setup.xml")
             assertTrue("Setup action did not become visible to UI Automator",
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
             onView(withText("Use approximate location")).check(matches(isDisplayed()))
@@ -62,6 +65,9 @@ class StoreScreenshotTest {
         assertTrue("Android launcher did not become visible",
             device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000))
         device.waitForIdle()
+        Thread.sleep(1_000)
+        captureSharedScreenshot(device, "04-test-launcher-before-widget.png")
+        captureSharedHierarchy(device, "04-test-launcher-before-widget.xml")
         device.takeScreenshot(File(output, "02-launcher-before.png"))
         device.dumpWindowHierarchy(File(output, "02-launcher-before.xml"))
 
@@ -98,6 +104,9 @@ class StoreScreenshotTest {
             android.graphics.Point(device.displayWidth / 2, (device.displayHeight * 0.48).toInt()),
             1_000)
         device.waitForIdle()
+        Thread.sleep(1_000)
+        captureSharedScreenshot(device, "05-test-widget-after-placement.png")
+        captureSharedHierarchy(device, "05-test-widget-after-placement.xml")
 
         val widgetVisible = device.wait(
             Until.hasObject(By.textContains("SUNRISE")), 12_000)
@@ -108,6 +117,14 @@ class StoreScreenshotTest {
         assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
         assertTrue("Widget screenshot is empty", screenshot.length() > 10_000)
         device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
+    }
+
+    private fun captureSharedScreenshot(device: UiDevice, name: String) {
+        device.executeShellCommand("screencap -p /sdcard/$name")
+    }
+
+    private fun captureSharedHierarchy(device: UiDevice, name: String) {
+        device.executeShellCommand("uiautomator dump /sdcard/$name")
     }
 
     private fun screenshotDirectory(context: Context): File {
