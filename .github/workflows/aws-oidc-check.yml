@@ -2,6 +2,9 @@ name: Verify AWS GitHub OIDC
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/emulator-ci-isolation
 
 permissions:
   contents: read
