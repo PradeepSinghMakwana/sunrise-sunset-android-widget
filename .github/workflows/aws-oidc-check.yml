@@ -1,0 +1,31 @@
+name: Verify AWS GitHub OIDC
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-oidc-verification
+  cancel-in-progress: false
+
+jobs:
+  verify-aws-identity:
+    name: Verify GitHub-to-AWS authentication
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::447001318269:role/GitHub-Sunrise-Sunset-EC2-Spot
+          aws-region: us-east-2
+
+      - name: Verify AWS identity and region
+        shell: bash
+        run: |
+          aws sts get-caller-identity
+          test "$(aws configure get region)" = "us-east-2"
+          echo "AWS authentication and region verification succeeded."
