@@ -32,16 +32,21 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            gradle :app:connectedDebugAndroidTest
+            test_status=0
+            gradle :app:connectedDebugAndroidTest || test_status=$?
             mkdir -p screenshots
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png screenshots/01-app-setup.png
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png screenshots/02-home-screen-widget.png
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. screenshots/ || true
+            adb exec-out screencap -p > screenshots/emulator-final-screen.png || true
+            exit "$test_status"
       - uses: actions/upload-artifact@v4
-        if: github.event_name != 'push'
+        if: always() && github.event_name != 'push'
         with:
           name: Sunrise-Sunset-Clock-genuine-screenshots
           path: screenshots/*.png
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: Sunrise-Sunset-Clock-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn
