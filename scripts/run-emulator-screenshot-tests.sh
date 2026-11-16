@@ -11,6 +11,7 @@ collect_diagnostics() {
   printf '%s\n' "$status" > "$DIAG_DIR/instrumentation-exit-code.txt"
 
   adb devices -l > "$DIAG_DIR/adb-devices.txt" 2>&1 || true
+  adb shell pm list packages > "$DIAG_DIR/installed-packages.txt" 2>&1 || true
   adb logcat -d -v threadtime > "$DIAG_DIR/logcat.txt" 2>&1 || true
   adb shell dumpsys activity activities > "$DIAG_DIR/activities.txt" 2>&1 || true
   adb shell dumpsys window > "$DIAG_DIR/windows.txt" 2>&1 || true
@@ -19,20 +20,24 @@ collect_diagnostics() {
   adb shell screencap -p /sdcard/ci-final-screen.png >/dev/null 2>&1 || true
   adb pull /sdcard/ci-final-screen.png "$DIAG_DIR/emulator-final-screen.png" >/dev/null 2>&1 || true
 
-  adb exec-out run-as com.sunrisesunset.clock tar -cf - files/screenshots > "$DIAG_DIR/app-private-files.tar" 2> "$DIAG_DIR/run-as-error.txt" || true
-  if [ -s "$DIAG_DIR/app-private-files.tar" ]; then
-    tar -xf "$DIAG_DIR/app-private-files.tar" -C "$DIAG_DIR" || true
+  # Screenshot files are written by the instrumentation APK, not the target APK.
+  # Validate the archive before extracting it; never publish an error message as a .tar.
+  if adb exec-out run-as com.sunrisesunset.clock.test tar -cf - -C files screenshots > "$DIAG_DIR/instrumentation-files.tar" 2> "$DIAG_DIR/run-as-error.txt"; then
+    if tar -tf "$DIAG_DIR/instrumentation-files.tar" > "$DIAG_DIR/instrumentation-files-list.txt" 2>/dev/null; then
+      mkdir -p "$DIAG_DIR/instrumentation-files"
+      tar -xf "$DIAG_DIR/instrumentation-files.tar" -C "$DIAG_DIR/instrumentation-files"
+    else
+      echo "Instrumentation archive was not a valid tar archive." >> "$DIAG_DIR/run-as-error.txt"
+      rm -f "$DIAG_DIR/instrumentation-files.tar"
+    fi
   fi
 
-  adb shell ls -la /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots > "$DIAG_DIR/external-files.txt" 2>&1 || true
   cp -R app/build/outputs/androidTest-results "$DIAG_DIR/" 2>/dev/null || true
   cp -R app/build/reports/androidTests "$DIAG_DIR/" 2>/dev/null || true
   exit "$status"
 }
 trap collect_diagnostics EXIT
 
-# android-emulator-runner starts the AVD and waits for boot before invoking this script.
-# Verify readiness once instead of adding a second polling window of up to five minutes.
 state=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
 if [ "$state" != "1" ]; then
   echo "Emulator action started the script before sys.boot_completed=1" >&2
