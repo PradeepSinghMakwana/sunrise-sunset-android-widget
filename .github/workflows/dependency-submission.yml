@@ -1,0 +1,32 @@
+name: Submit Gradle dependency graph
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dependency-graph-main
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v6
+        with:
+          gradle-version: "8.9"
+          dependency-graph: generate-and-submit
