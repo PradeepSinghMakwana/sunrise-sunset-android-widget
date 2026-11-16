@@ -51,6 +51,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
+      - name: Apply Detekt formatting corrections
+        run: gradle :app:detekt --auto-correct || true
+      - name: Upload corrected Kotlin sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-autocorrected-sources
+          path: app/src/
       - name: Run Detekt
         run: gradle :app:detekt
       - name: Upload Detekt reports
