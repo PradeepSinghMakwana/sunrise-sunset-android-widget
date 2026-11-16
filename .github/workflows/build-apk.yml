@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,7 +23,8 @@ jobs:
           gradle-version: 8.9
       - name: Build debug APK
         run: gradle assembleDebug
-      - name: Capture genuine app screenshot on Android emulator
+      - name: Capture genuine app and launcher widget screenshots on Android emulator
+        if: github.event_name != 'push'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -32,6 +37,7 @@ jobs:
             adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png screenshots/01-app-setup.png
             adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png screenshots/02-home-screen-widget.png
       - uses: actions/upload-artifact@v4
+        if: github.event_name != 'push'
         with:
           name: Sunrise-Sunset-Clock-genuine-screenshots
           path: screenshots/*.png
