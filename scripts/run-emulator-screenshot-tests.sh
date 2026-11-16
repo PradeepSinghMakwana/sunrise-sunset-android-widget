@@ -50,5 +50,18 @@ adb shell getprop > "$DIAG_DIR/emulator-properties.txt" 2>&1 || true
 adb shell wm size > "$DIAG_DIR/emulator-size.txt" 2>&1 || true
 adb shell wm density > "$DIAG_DIR/emulator-density.txt" 2>&1 || true
 
+# Follow the proven CI sequence used by attentive-mobile/attentive-android-sdk:
+# wake the emulator, ask WindowManager to dismiss the insecure test keyguard,
+# and close transient system dialogs before instrumentation starts.
+# Run this from the host-side ADB session, not from inside the instrumentation process.
+adb shell input keyevent KEYCODE_WAKEUP
+adb shell wm dismiss-keyguard
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS
+sleep 2
+
+# Preserve pre-test power/window state so a failed unlock is diagnosable.
+adb shell dumpsys power > "$DIAG_DIR/pretest-power.txt" 2>&1 || true
+adb shell dumpsys window > "$DIAG_DIR/pretest-windows.txt" 2>&1 || true
+
 gradle :app:connectedDebugAndroidTest
 exit $?
