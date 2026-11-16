@@ -53,7 +53,13 @@ adb shell getprop > "$DIAG_DIR/emulator-properties.txt" 2>&1 || true
 adb shell wm size > "$DIAG_DIR/emulator-size.txt" 2>&1 || true
 adb shell wm density > "$DIAG_DIR/emulator-density.txt" 2>&1 || true
 
-# Disable the emulator lock screen before launching the app or tests.
+# Always preserve visual evidence, even if emulator unlock fails.
+# Capture the booted screen before attempting keyguard dismissal.
+capture_host_screenshot "00-emulator-boot-screen.png"
+adb shell uiautomator dump /sdcard/ci-boot-screen.xml > "$DIAG_DIR/boot-hierarchy-command.txt" 2>&1 || true
+adb pull /sdcard/ci-boot-screen.xml "$DIAG_DIR/00-emulator-boot-screen.xml" >/dev/null 2>&1 || true
+
+# Disable and dismiss the emulator lock screen before launching the app or tests.
 adb shell locksettings set-disabled true
 locksettings_status=$(adb shell locksettings get-disabled 2>&1 | tr -d '\r')
 printf '%s\n' "$locksettings_status" > "$DIAG_DIR/pretest-locksettings.txt"
@@ -65,7 +71,10 @@ fi
 adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS
-sleep 2
+sleep 1
+capture_host_screenshot "00b-emulator-after-wake-and-dismiss-1s.png"
+adb shell uiautomator dump /sdcard/ci-after-wake.xml > "$DIAG_DIR/after-wake-hierarchy-command.txt" 2>&1 || true
+adb pull /sdcard/ci-after-wake.xml "$DIAG_DIR/00b-emulator-after-wake-and-dismiss-1s.xml" >/dev/null 2>&1 || true
 
 adb shell dumpsys power > "$DIAG_DIR/pretest-power.txt" 2>&1 || true
 adb shell dumpsys window > "$DIAG_DIR/pretest-windows.txt" 2>&1 || true
