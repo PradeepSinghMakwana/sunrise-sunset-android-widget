@@ -1,5 +1,4 @@
 package com.sunrisesunset.clock
-
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
