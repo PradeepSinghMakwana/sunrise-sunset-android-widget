@@ -21,7 +21,7 @@ upload_checkpoint() {
     return 0
   fi
   echo "Uploading live screenshot checkpoint: $name"
-  node scripts/upload-screenshot-artifact.cjs "$name" "${files[@]}" || {
+  timeout 45s node scripts/upload-screenshot-artifact.cjs "$name" "${files[@]}" || {
     echo "Live upload failed for $name; continuing emulator tests." >&2
   }
 }
@@ -136,5 +136,5 @@ capture_host_screenshot "02-home-screen-before-widget-after-1s.png"
 upload_checkpoint "02-home-screen-before-widget-after-1s.png"
 
 # Keep test failures as failures; the EXIT trap preserves every screenshot and log.
-gradle :app:connectedDebugAndroidTest
+timeout --signal=TERM --kill-after=30s 15m gradle :app:connectedDebugAndroidTest
 exit $?
