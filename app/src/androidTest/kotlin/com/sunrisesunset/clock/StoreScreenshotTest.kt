@@ -56,7 +56,7 @@ class StoreScreenshotTest {
             .putString(LocationSetupActivity.LONGITUDE, "-122.084")
             .commit()
 
-        unlockDevice(device)
+        unlockDevice(device, context)
         device.pressHome()
         assertTrue("Android launcher did not become visible",
             device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000))
