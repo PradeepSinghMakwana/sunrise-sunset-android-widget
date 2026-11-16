@@ -45,6 +45,7 @@ jobs:
             gradle :app:connectedDebugAndroidTest
             mkdir -p fastlane/metadata/android/en-US/images/phoneScreenshots
             adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png fastlane/metadata/android/en-US/images/phoneScreenshots/01-app-setup.png
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png
 
       - name: Build release APK
         run: gradle :app:assembleRelease
@@ -66,15 +67,19 @@ jobs:
       - name: Check store screenshots
         run: |
           mkdir -p release-reports
+          WIDGET_SCREENSHOT="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png"
           COUNT="$(find fastlane/metadata/android/en-US/images/phoneScreenshots -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.webp' \) | wc -l)"
           {
             echo "Genuine emulator screenshot count: $COUNT"
-            if [ "$COUNT" -eq 0 ]; then
-              echo "FAIL: no genuine store screenshots found. Add screenshots before tagging a release."
+            if [ ! -s "$WIDGET_SCREENSHOT" ]; then
+              echo "FAIL: genuine launcher widget screenshot is missing."
               exit 1
-            else
-              echo "PASS: $COUNT screenshot file(s) found; review them before store submission."
             fi
+            if [ "$COUNT" -lt 2 ]; then
+              echo "FAIL: expected both app and launcher widget screenshots."
+              exit 1
+            fi
+            echo "PASS: $COUNT genuine emulator screenshot(s), including the launcher widget. Review before store submission."
           } | tee release-reports/screenshots-status.txt
 
       - name: Package exact tagged source
