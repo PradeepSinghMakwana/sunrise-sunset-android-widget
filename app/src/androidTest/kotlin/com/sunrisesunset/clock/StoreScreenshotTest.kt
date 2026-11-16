@@ -18,8 +18,11 @@ class StoreScreenshotTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
 
-        device.executeShellCommand(
-            "am start -n com.sunrisesunset.clock/.LocationSetupActivity"
+        instrumentation.targetContext.startActivity(
+            android.content.Intent(
+                instrumentation.targetContext,
+                LocationSetupActivity::class.java
+            ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
         )
         assertTrue(
             "App setup screen did not appear",
@@ -102,13 +105,13 @@ class StoreScreenshotTest {
 
         val bounds = widgetEntry!!.visibleBounds
         assertTrue("Widget preview has no visible bounds: $bounds", !bounds.isEmpty)
-        widgetEntry.longClick()
-        device.waitForIdle()
-
-        // Drag the selected widget from the picker onto the launcher workspace.
-        device.swipe(
-            bounds.centerX(), bounds.centerY(),
-            display.first / 2, (display.second * 0.48).toInt(), 45
+        // Drag the selected widget preview onto the launcher workspace.
+        widgetEntry.drag(
+            android.graphics.Point(
+                display.first / 2,
+                (display.second * 0.48).toInt()
+            ),
+            1000
         )
         device.waitForIdle()
 
