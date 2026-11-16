@@ -1,0 +1,19 @@
+See your local time, sunrise, and sunset at a glance.
+
+Sunrise Sunset Clock is a lightweight Android home-screen widget that calculates daily sunrise and sunset times using your device's approximate location.
+
+Features
+• Live digital clock using your device's system time zone.
+• Daily sunrise and sunset times for your approximate location.
+• Approximate location permission only.
+• Offline solar-time calculation after location is available.
+• No account, API key, or external location service required.
+
+Privacy
+The app requests approximate location only. Location coordinates are stored locally on your device and used for the solar-time calculation. The app does not require precise location access.
+
+Add the widget
+Open the app and allow approximate location access. Then add Sunrise Sunset Clock from your Android launcher's Widgets screen.
+
+Accuracy
+Solar times use a NOAA-style approximation and may differ slightly from published almanacs. Results depend on the location available to Android.
