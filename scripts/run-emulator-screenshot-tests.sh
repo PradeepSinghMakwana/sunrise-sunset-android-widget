@@ -65,6 +65,11 @@ if [ "$state" != "1" ]; then
   exit 1
 fi
 
+# Capture the actual booted display before waiting for the unlock transition.
+# This uses ADB screencap only; no UI Automation connection is opened here.
+capture_host_screenshot "00-emulator-boot-screen.png"
+upload_checkpoint "00-emulator-boot-screen.png"
+
 # sys.boot_completed can become 1 while Android is still unlocking user 0.
 # Do not touch keyguard or start UI Automator until the user is RUNNING_UNLOCKED.
 unlocked=false
@@ -87,11 +92,6 @@ adb devices -l > "$DIAG_DIR/adb-devices-before-tests.txt" 2>&1
 adb shell getprop > "$DIAG_DIR/emulator-properties.txt" 2>&1 || true
 adb shell wm size > "$DIAG_DIR/emulator-size.txt" 2>&1 || true
 adb shell wm density > "$DIAG_DIR/emulator-density.txt" 2>&1 || true
-
-# Always preserve visual evidence, even if emulator unlock fails.
-# Capture the booted screen before attempting keyguard dismissal.
-capture_host_screenshot "00-emulator-boot-screen.png"
-upload_checkpoint "00-emulator-boot-screen.png"
 
 # Disable and dismiss the emulator lock screen before launching the app or tests.
 adb shell locksettings set-disabled true
