@@ -102,13 +102,14 @@ class SolarCalculatorEdgeCaseTest {
     }
 
     @Test
-    fun daylightSavingAutumnTransitionUsesCorrectOffsetForEachEvent() {
+    fun daylightSavingAutumnTransitionUsesPostTransitionOffsetForBothEvents() {
         val date = LocalDate.of(2026, 11, 1)
         val zone = ZoneId.of("America/New_York")
         val sunrise = SolarCalculator.calculate(date, 40.7128, -74.0060, true, zone)
         val sunset = SolarCalculator.calculate(date, 40.7128, -74.0060, false, zone)
 
-        assertEquals(ZoneOffset.ofHours(-4), sunrise?.offset)
+        // The autumn transition occurs at 02:00; both solar events are later.
+        assertEquals(ZoneOffset.ofHours(-5), sunrise?.offset)
         assertEquals(ZoneOffset.ofHours(-5), sunset?.offset)
         assertEquals(date, sunrise?.toLocalDate())
         assertEquals(date, sunset?.toLocalDate())
