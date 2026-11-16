@@ -32,12 +32,33 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            bash -c 'gradle :app:connectedDebugAndroidTest; test_status=$?; mkdir -p screenshots; adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. screenshots/ || true; adb exec-out screencap -p > screenshots/emulator-final-screen.png || true; exit "$test_status"'
+            set +e
+            mkdir -p screenshots/diagnostics
+            echo "=== Emulator boot state ===" > screenshots/diagnostics/emulator-state.txt
+            adb shell getprop >> screenshots/diagnostics/emulator-state.txt 2>&1
+            adb shell wm size >> screenshots/diagnostics/emulator-state.txt 2>&1
+            adb shell wm density >> screenshots/diagnostics/emulator-state.txt 2>&1
+            gradle :app:connectedDebugAndroidTest
+            test_status=$?
+            echo "$test_status" > screenshots/diagnostics/instrumentation-exit-code.txt
+            adb logcat -d -v threadtime > screenshots/diagnostics/logcat.txt 2>&1
+            adb shell dumpsys activity activities > screenshots/diagnostics/activities.txt 2>&1
+            adb shell dumpsys window > screenshots/diagnostics/windows.txt 2>&1
+            adb shell dumpsys package com.sunrisesunset.clock > screenshots/diagnostics/app-package.txt 2>&1
+            adb shell screencap -p /sdcard/ci-final-screen.png
+            adb pull /sdcard/ci-final-screen.png screenshots/diagnostics/emulator-final-screen.png
+            adb exec-out run-as com.sunrisesunset.clock tar -cf - files/screenshots > screenshots/diagnostics/app-private-files.tar 2> screenshots/diagnostics/run-as-error.txt
+            if [ -s screenshots/diagnostics/app-private-files.tar ]; then
+              tar -xf screenshots/diagnostics/app-private-files.tar -C screenshots/diagnostics
+            fi
+            adb shell ls -la /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots > screenshots/diagnostics/external-files.txt 2>&1
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. screenshots/ 2>/dev/null || true
+            exit "$test_status"
       - uses: actions/upload-artifact@v4
         if: always() && github.event_name != 'push'
         with:
-          name: Sunrise-Sunset-Clock-genuine-screenshots
-          path: screenshots/*.png
+          name: Sunrise-Sunset-Clock-genuine-screenshots-and-diagnostics
+          path: screenshots/
           if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always()
