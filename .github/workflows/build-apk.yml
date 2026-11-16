@@ -32,12 +32,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            test_status=0
-            gradle :app:connectedDebugAndroidTest || test_status=$?
-            mkdir -p screenshots
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. screenshots/ || true
-            adb exec-out screencap -p > screenshots/emulator-final-screen.png || true
-            exit "$test_status"
+            bash -c 'gradle :app:connectedDebugAndroidTest; test_status=$?; mkdir -p screenshots; adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. screenshots/ || true; adb exec-out screencap -p > screenshots/emulator-final-screen.png || true; exit "$test_status"'
       - uses: actions/upload-artifact@v4
         if: always() && github.event_name != 'push'
         with:
