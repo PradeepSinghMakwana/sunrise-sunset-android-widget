@@ -3,6 +3,10 @@ package com.sunrisesunset.clock
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -25,30 +29,28 @@ class StoreScreenshotTest {
 
         device.wakeUp()
         device.executeShellCommand("wm dismiss-keyguard")
-        device.executeShellCommand("input keyevent 82")
         val launchResult = device.executeShellCommand(
             "am start -W -n ${context.packageName}/.LocationSetupActivity"
         )
-        diagnostics.appendLine("=== am start -W ===\n$launchResult")
-        diagnostics.appendLine("=== resumed activity ===\n" + shell(device,
-            "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'"))
-        diagnostics.appendLine("=== focused window ===\n" + shell(device,
-            "dumpsys window | grep -E 'mCurrentFocus|mFocusedApp'"))
+        diagnostics.appendLine("=== am start -W ===\\n$launchResult")
 
-        val setupActionVisible = device.wait(
-            Until.hasObject(By.textContains("Use approximate location")),
-            30_000
-        )
-        if (!setupActionVisible) {
-            diagnostics.appendLine("=== UI hierarchy ===\n" + shell(device,
+        try {
+            // Espresso is used for the app's own view hierarchy. UI Automator remains
+            // reserved for launcher/system UI in the widget-placement test below.
+            onView(withText("Use approximate location")).check(matches(isDisplayed()))
+        } catch (failure: Throwable) {
+            diagnostics.appendLine("=== resumed activity ===\\n" + shell(device,
+                "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'"))
+            diagnostics.appendLine("=== focused window ===\\n" + shell(device,
+                "dumpsys window | grep -E 'mCurrentFocus|mFocusedApp'"))
+            diagnostics.appendLine("=== UI hierarchy ===\\n" + shell(device,
                 "uiautomator dump /sdcard/app-window.xml >/dev/null 2>&1; cat /sdcard/app-window.xml"))
             saveDiagnostics(context, device, "01-app-launch-debug.png", diagnostics.toString())
+            throw AssertionError(
+                "Espresso could not find the approximate-location setup action. See diagnostics artifact.",
+                failure
+            )
         }
-
-        assertTrue(
-            "Approximate-location setup action did not appear. See diagnostics artifact.",
-            setupActionVisible
-        )
 
         val screenshot = screenshotFile(context, "01-app-setup.png")
         assertTrue("Could not capture app screenshot", device.takeScreenshot(screenshot))
