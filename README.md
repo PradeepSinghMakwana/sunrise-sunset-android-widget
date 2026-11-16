@@ -59,3 +59,13 @@ See the [LICENSE](LICENSE) file for details.
 Tagged releases use the automated GitHub Actions pipeline. See [Release process](docs/RELEASE_PROCESS.md) for versioning, Gradle build instructions, dependency and permission audits, F-Droid metadata generation, source archives, and store screenshot requirements. See [Emulator UI test diagnostics](docs/EMULATOR_DIAGNOSTICS.md) for failure investigation, CI evidence, and the distinction between app permissions and test-only emulator access.
 
 Push a tag matching the app's `versionName` (for example, `v2.1`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports.
+## AWS Spot test infrastructure
+
+The repository has a separate, manually triggered **Verify AWS GitHub OIDC** workflow. It checks that GitHub Actions can assume the AWS IAM role without storing long-lived AWS access keys in GitHub, and confirms the configured region is **US East (Ohio) (`us-east-2`)**.
+
+- AWS account: `447001318269`
+- IAM role: `GitHub-Sunrise-Sunset-EC2-Spot`
+- GitHub branch allowed by the current IAM trust policy: `feature/emulator-ci-isolation`
+- Workflow: [Verify AWS GitHub OIDC](.github/workflows/aws-oidc-check.yml)
+
+To run it, open **Actions → Verify AWS GitHub OIDC → Run workflow** and select `feature/emulator-ci-isolation`. A successful run confirms authentication only; it does **not** launch an EC2 instance or incur EC2 compute charges. The Android build and emulator screenshot workflow remains separate.
