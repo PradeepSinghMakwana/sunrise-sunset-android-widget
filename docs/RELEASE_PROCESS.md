@@ -4,7 +4,7 @@
 
 1. Update `versionName` and increment `versionCode` in `app/build.gradle.kts`.
 2. Update store listing text under `fastlane/metadata/android/en-US/` if the app description or features changed.
-3. The release workflow runs an Android emulator UI test and captures the real app setup screen into `fastlane/metadata/android/en-US/images/phoneScreenshots/`. Review the generated image in the GitHub Release assets. A launcher home-screen widget screenshot is not yet automated.
+3. The release workflow runs Android emulator UI tests and captures both the app setup screen and the widget placed on the Android launcher home screen into `fastlane/metadata/android/en-US/images/phoneScreenshots/`. The release is blocked if the launcher widget screenshot is missing. Review both images in the GitHub Release assets.
 4. Commit and push the release-ready change to `main`.
 5. Create and push a matching version tag, for example `v2.1`:
    ```sh
@@ -43,4 +43,4 @@ The current application ID `com.sunrisesunset.clock` must also be checked for F-
 
 ## Screenshots
 
-Screenshots must be genuine captures of the running application. Add them to the Fastlane screenshots directory. The release workflow uses an Android emulator and UI Automator to capture the running app setup screen. The capture is a genuine screenshot, not a mockup. The home-screen widget itself is not yet captured automatically; do not treat the app setup screenshot as a widget screenshot.
+Screenshots must be genuine captures of the running application. Add them to the Fastlane screenshots directory. The release workflow uses an Android emulator and UI Automator to open the launcher widget picker, place the Sunrise Sunset Clock widget on the home screen, verify its SUNRISE and SUNSET labels, and capture the actual launcher screen. It also captures the app setup screen separately. Both captures are genuine emulator screenshots, not mockups. Demo coordinates are written only to the disposable emulator test profile.
