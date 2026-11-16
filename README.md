@@ -30,3 +30,9 @@ Sunrise and sunset use a NOAA-style approximation and may differ slightly from p
 
 This project is licensed under the MIT License.
 See the [LICENSE](LICENSE) file for details.
+
+## Releases
+
+Tagged releases use the automated GitHub Actions pipeline. See [Release process](docs/RELEASE_PROCESS.md) for versioning, Gradle build instructions, dependency and permission audits, F-Droid metadata generation, source archives, and store screenshot requirements.
+
+Push a tag matching the app's `versionName` (for example, `v2.1`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports.
