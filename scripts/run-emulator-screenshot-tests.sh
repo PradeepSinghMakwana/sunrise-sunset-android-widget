@@ -9,6 +9,23 @@ capture_host_screenshot() {
   adb exec-out screencap -p > "$DIAG_DIR/$name" 2> "$DIAG_DIR/$name.stderr" || true
 }
 
+upload_checkpoint() {
+  local name="$1"
+  local files=("$DIAG_DIR/$name")
+  local hierarchy="${name%.png}.xml"
+  if [ -s "$DIAG_DIR/$hierarchy" ]; then
+    files+=("$DIAG_DIR/$hierarchy")
+  fi
+  if [ ! -s "$DIAG_DIR/$name" ]; then
+    echo "Screenshot checkpoint missing; not uploading: $name" >&2
+    return 0
+  fi
+  echo "Uploading live screenshot checkpoint: $name"
+  node scripts/upload-screenshot-artifact.cjs "$name" "${files[@]}" || {
+    echo "Live upload failed for $name; continuing emulator tests." >&2
+  }
+}
+
 collect_diagnostics() {
   status=$?
   trap - EXIT
@@ -58,6 +75,7 @@ adb shell wm density > "$DIAG_DIR/emulator-density.txt" 2>&1 || true
 capture_host_screenshot "00-emulator-boot-screen.png"
 adb shell uiautomator dump /sdcard/ci-boot-screen.xml > "$DIAG_DIR/boot-hierarchy-command.txt" 2>&1 || true
 adb pull /sdcard/ci-boot-screen.xml "$DIAG_DIR/00-emulator-boot-screen.xml" >/dev/null 2>&1 || true
+upload_checkpoint "00-emulator-boot-screen.png"
 
 # Disable and dismiss the emulator lock screen before launching the app or tests.
 adb shell locksettings set-disabled true
@@ -75,6 +93,7 @@ sleep 1
 capture_host_screenshot "00b-emulator-after-wake-and-dismiss-1s.png"
 adb shell uiautomator dump /sdcard/ci-after-wake.xml > "$DIAG_DIR/after-wake-hierarchy-command.txt" 2>&1 || true
 adb pull /sdcard/ci-after-wake.xml "$DIAG_DIR/00b-emulator-after-wake-and-dismiss-1s.xml" >/dev/null 2>&1 || true
+upload_checkpoint "00b-emulator-after-wake-and-dismiss-1s.png"
 
 adb shell dumpsys power > "$DIAG_DIR/pretest-power.txt" 2>&1 || true
 adb shell dumpsys window > "$DIAG_DIR/pretest-windows.txt" 2>&1 || true
@@ -95,12 +114,14 @@ sleep 1
 capture_host_screenshot "01-app-setup-after-1s.png"
 adb shell uiautomator dump /sdcard/ci-pretest-app-setup.xml > "$DIAG_DIR/pretest-app-hierarchy-command.txt" 2>&1 || true
 adb pull /sdcard/ci-pretest-app-setup.xml "$DIAG_DIR/01-app-setup-after-1s.xml" >/dev/null 2>&1 || true
+upload_checkpoint "01-app-setup-after-1s.png"
 
 adb shell input keyevent KEYCODE_HOME
 sleep 1
 capture_host_screenshot "02-home-screen-before-widget-after-1s.png"
 adb shell uiautomator dump /sdcard/ci-pretest-home.xml > "$DIAG_DIR/pretest-home-hierarchy-command.txt" 2>&1 || true
 adb pull /sdcard/ci-pretest-home.xml "$DIAG_DIR/02-home-screen-before-widget-after-1s.xml" >/dev/null 2>&1 || true
+upload_checkpoint "02-home-screen-before-widget-after-1s.png"
 
 # Keep test failures as failures; the EXIT trap preserves every screenshot and log.
 gradle :app:connectedDebugAndroidTest
