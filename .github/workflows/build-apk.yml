@@ -25,7 +25,6 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
       - name: Capture genuine app and launcher widget screenshots on Android emulator
-        if: github.event_name != 'push'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -34,7 +33,7 @@ jobs:
           disable-animations: true
           script: bash scripts/run-emulator-screenshot-tests.sh
       - uses: actions/upload-artifact@v4
-        if: always() && github.event_name != 'push'
+        if: always()
         with:
           name: Sunrise-Sunset-Clock-genuine-screenshots-and-diagnostics
           path: screenshots/
