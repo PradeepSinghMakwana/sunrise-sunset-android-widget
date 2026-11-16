@@ -84,11 +84,15 @@ class SolarCalculatorTest {
         val losAngelesSunset = SolarCalculator.calculate(
             date, 34.0, -118.0, false, ZoneId.of("America/Los_Angeles")
         )
+        val newYorkSunset = SolarCalculator.calculate(
+            date, 40.7, -74.0, false, ZoneId.of("America/New_York")
+        )
         val sydneySunrise = SolarCalculator.calculate(
             date, -33.9, 151.2, true, ZoneId.of("Australia/Sydney")
         )
 
         assertEquals(date, losAngelesSunset!!.toLocalDate())
+        assertEquals(date, newYorkSunset!!.toLocalDate())
         assertEquals(date, sydneySunrise!!.toLocalDate())
     }
 
