@@ -142,3 +142,15 @@ The repository has a separate, manually triggered **Verify AWS GitHub OIDC** wor
 - Workflow: [Verify AWS GitHub OIDC](.github/workflows/aws-oidc-check.yml)
 
 To run it, open **Actions → Verify AWS GitHub OIDC → Run workflow** and select `feature/emulator-ci-isolation`. A successful run confirms authentication only; it does **not** launch an EC2 instance or incur EC2 compute charges. The Android build and emulator screenshot workflow remains separate.
+
+
+## Kotlin code-quality workflow
+
+For every Kotlin code change, **fix Detekt before working on Android lint**:
+
+1. Run `gradle :app:detekt`.
+2. Resolve every Detekt finding in source; do not weaken rules, add a baseline, or use blanket suppressions to hide findings.
+3. Rerun Detekt and repeat until it passes.
+4. Then run `gradle :app:lintDebug` and resolve any lint findings.
+
+Detekt, Android lint, JVM unit tests, APK compilation, and emulator instrumentation run as independent CI jobs. A failure in one job does not skip the others. The same checks run for pull requests targeting `main`, and Detekt runs again on pushes to `main`.
