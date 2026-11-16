@@ -65,6 +65,24 @@ if [ "$state" != "1" ]; then
   exit 1
 fi
 
+# sys.boot_completed can become 1 while Android is still unlocking user 0.
+# Do not touch keyguard or start UI Automator until the user is RUNNING_UNLOCKED.
+unlocked=false
+for attempt in $(seq 1 60); do
+  if adb shell dumpsys user 2>/dev/null | grep -q 'RUNNING_UNLOCKED'; then
+    unlocked=true
+    break
+  fi
+  sleep 2
+done
+if [ "$unlocked" != "true" ]; then
+  echo "Android user 0 did not reach RUNNING_UNLOCKED within 120 seconds." >&2
+  adb shell dumpsys user > "$DIAG_DIR/user-state-before-tests.txt" 2>&1 || true
+  exit 1
+fi
+# Let keyguard/SystemUI finish its unlock transition before interacting.
+sleep 10
+
 adb devices -l > "$DIAG_DIR/adb-devices-before-tests.txt" 2>&1
 adb shell getprop > "$DIAG_DIR/emulator-properties.txt" 2>&1 || true
 adb shell wm size > "$DIAG_DIR/emulator-size.txt" 2>&1 || true
@@ -73,8 +91,6 @@ adb shell wm density > "$DIAG_DIR/emulator-density.txt" 2>&1 || true
 # Always preserve visual evidence, even if emulator unlock fails.
 # Capture the booted screen before attempting keyguard dismissal.
 capture_host_screenshot "00-emulator-boot-screen.png"
-adb shell uiautomator dump /sdcard/ci-boot-screen.xml > "$DIAG_DIR/boot-hierarchy-command.txt" 2>&1 || true
-adb pull /sdcard/ci-boot-screen.xml "$DIAG_DIR/00-emulator-boot-screen.xml" >/dev/null 2>&1 || true
 upload_checkpoint "00-emulator-boot-screen.png"
 
 # Disable and dismiss the emulator lock screen before launching the app or tests.
@@ -91,8 +107,6 @@ adb shell wm dismiss-keyguard
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS
 sleep 1
 capture_host_screenshot "00b-emulator-after-wake-and-dismiss-1s.png"
-adb shell uiautomator dump /sdcard/ci-after-wake.xml > "$DIAG_DIR/after-wake-hierarchy-command.txt" 2>&1 || true
-adb pull /sdcard/ci-after-wake.xml "$DIAG_DIR/00b-emulator-after-wake-and-dismiss-1s.xml" >/dev/null 2>&1 || true
 upload_checkpoint "00b-emulator-after-wake-and-dismiss-1s.png"
 
 adb shell dumpsys power > "$DIAG_DIR/pretest-power.txt" 2>&1 || true
@@ -112,15 +126,11 @@ fi
 adb shell am start -W -n com.sunrisesunset.clock/.LocationSetupActivity > "$DIAG_DIR/pretest-app-launch.txt" 2>&1 || true
 sleep 1
 capture_host_screenshot "01-app-setup-after-1s.png"
-adb shell uiautomator dump /sdcard/ci-pretest-app-setup.xml > "$DIAG_DIR/pretest-app-hierarchy-command.txt" 2>&1 || true
-adb pull /sdcard/ci-pretest-app-setup.xml "$DIAG_DIR/01-app-setup-after-1s.xml" >/dev/null 2>&1 || true
 upload_checkpoint "01-app-setup-after-1s.png"
 
 adb shell input keyevent KEYCODE_HOME
 sleep 1
 capture_host_screenshot "02-home-screen-before-widget-after-1s.png"
-adb shell uiautomator dump /sdcard/ci-pretest-home.xml > "$DIAG_DIR/pretest-home-hierarchy-command.txt" 2>&1 || true
-adb pull /sdcard/ci-pretest-home.xml "$DIAG_DIR/02-home-screen-before-widget-after-1s.xml" >/dev/null 2>&1 || true
 upload_checkpoint "02-home-screen-before-widget-after-1s.png"
 
 # Keep test failures as failures; the EXIT trap preserves every screenshot and log.
