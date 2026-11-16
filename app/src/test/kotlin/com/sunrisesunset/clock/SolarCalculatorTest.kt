@@ -43,11 +43,7 @@ class SolarCalculatorTest {
 
     @Test
     fun juneSolsticeShowsExpectedSeasonInBothHemispheres() {
-        val date = LocalDate.of(
-            2026,
-            6,
-            21
-        )
+        val date = LocalDate.of(2026, 6, 21)
         val northernSunrise = SolarCalculator.calculate(
             date,
             40.7,
@@ -63,30 +59,24 @@ class SolarCalculatorTest {
             utc
         )
 
-        assertTimeNear(
-            "09:25",
-            northernSunrise
-        )
-        assertTimeNear(
-            "21:00",
-            southernSunrise
-        )
+        assertTimeNear("09:25", northernSunrise)
+        assertTimeNear("21:00", southernSunrise)
         assertNotNull(
             SolarCalculator.calculate(
-            date,
-            40.7,
-            -74.0,
-            false,
-            utc
+                date,
+                40.7,
+                -74.0,
+                false,
+                utc
             )
         )
         assertNotNull(
             SolarCalculator.calculate(
-            date,
-            -33.9,
-            151.2,
-            false,
-            utc
+                date,
+                -33.9,
+                151.2,
+                false,
+                utc
             )
         )
     }
@@ -125,117 +115,68 @@ class SolarCalculatorTest {
     fun polarDayAndPolarNightReturnNoEvent() {
         assertNull(
             SolarCalculator.calculate(
-                LocalDate.of(
-                    2026,
-                    6,
-                    21
-                ),
-            89.0,
-            0.0,
-            true,
-            utc
+                LocalDate.of(2026, 6, 21),
+                89.0,
+                0.0,
+                true,
+                utc
             )
         )
         assertNull(
             SolarCalculator.calculate(
-                LocalDate.of(
-                    2026,
-                    12,
-                    21
-                ),
-            89.0,
-            0.0,
-            true,
-            utc
+                LocalDate.of(2026, 12, 21),
+                89.0,
+                0.0,
+                true,
+                utc
             )
         )
         assertNull(
             SolarCalculator.calculate(
-                LocalDate.of(
-                    2026,
-                    12,
-                    21
-                ),
-            -89.0,
-            0.0,
-            false,
-            utc
+                LocalDate.of(2026, 12, 21),
+                -89.0,
+                0.0,
+                false,
+                utc
             )
         )
         assertNull(
             SolarCalculator.calculate(
-                LocalDate.of(
-                    2026,
-                    6,
-                    21
-                ),
-            -89.0,
-            0.0,
-            false,
-            utc
+                LocalDate.of(2026, 6, 21),
+                -89.0,
+                0.0,
+                false,
+                utc
             )
         )
     }
 
     @Test
     fun rejectsInvalidAndNonFiniteCoordinates() {
-        val date = LocalDate.of(
-            2026,
-            3,
-            20
+        val date = LocalDate.of(2026, 3, 20)
+
+        assertNull(
+            SolarCalculator.calculate(date, 90.1, 0.0, true, utc)
+        )
+        assertNull(
+            SolarCalculator.calculate(date, -90.1, 0.0, true, utc)
+        )
+        assertNull(
+            SolarCalculator.calculate(date, 0.0, 180.1, true, utc)
+        )
+        assertNull(
+            SolarCalculator.calculate(date, 0.0, -180.1, true, utc)
+        )
+        assertNull(
+            SolarCalculator.calculate(date, Double.NaN, 0.0, true, utc)
         )
         assertNull(
             SolarCalculator.calculate(
-            date,
-            90.1,
-            0.0,
-            true,
-            utc
-            )
-        )
-        assertNull(
-            SolarCalculator.calculate(
-            date,
-            -90.1,
-            0.0,
-            true,
-            utc
-            )
-        )
-        assertNull(
-            SolarCalculator.calculate(
-            date,
-            0.0,
-            180.1,
-            true,
-            utc
-            )
-        )
-        assertNull(
-            SolarCalculator.calculate(
-            date,
-            0.0,
-            -180.1,
-            true,
-            utc
-            )
-        )
-        assertNull(
-            SolarCalculator.calculate(
-            date,
-            Double.NaN,
-            0.0,
-            true,
-            utc
-            )
-        )
-        assertNull(
-            SolarCalculator.calculate(
-            date,
-            0.0,
-            Double.POSITIVE_INFINITY,
-            true,
-            utc
+                date,
+                0.0,
+                Double.POSITIVE_INFINITY,
+                true,
+                utc
             )
         )
     }
