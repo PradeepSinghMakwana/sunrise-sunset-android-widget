@@ -54,9 +54,9 @@ class StoreScreenshotTest {
         val device = UiDevice.getInstance(instrumentation)
         val output = screenshotDirectory(context)
 
-        context.getSharedPreferences(LocationSetupActivity.PREFS, Context.MODE_PRIVATE).edit()
-            .putString(LocationSetupActivity.LATITUDE, "37.4219983")
-            .putString(LocationSetupActivity.LONGITUDE, "-122.084")
+        context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE).edit()
+            .putString(LocationPreferences.LATITUDE, "37.4219983")
+            .putString(LocationPreferences.LONGITUDE, "-122.084")
             .commit()
 
         unlockDevice(device, context)
