@@ -47,6 +47,19 @@ class SunClockWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.sun_clock_widget)
             val zone = ZoneId.systemDefault()
             val today = LocalDate.now(zone)
+            val coordinates = readCoordinates(context)
+
+            if (coordinates == null) {
+                showLocationRequired(views)
+            } else {
+                showSolarEvents(views, today, coordinates, zone)
+            }
+
+            attachOpenAppAction(context, views)
+            manager.updateAppWidget(id, views)
+        }
+
+        private fun readCoordinates(context: Context): Pair<Double, Double>? {
             val prefs = context.getSharedPreferences(
                 LocationSetupActivity.PREFS,
                 Context.MODE_PRIVATE
@@ -54,49 +67,49 @@ class SunClockWidgetProvider : AppWidgetProvider() {
             val latitude = prefs.getString(
                 LocationSetupActivity.LATITUDE,
                 null
-            )?.toDoubleOrNull()
+            )?.toDoubleOrNull() ?: return null
             val longitude = prefs.getString(
                 LocationSetupActivity.LONGITUDE,
                 null
-            )?.toDoubleOrNull()
+            )?.toDoubleOrNull() ?: return null
 
+            return if (SolarCalculator.hasValidCoordinates(latitude, longitude)) {
+                latitude to longitude
+            } else {
+                null
+            }
+        }
+
+        private fun showSolarEvents(
+            views: RemoteViews,
+            date: LocalDate,
+            coordinates: Pair<Double, Double>,
+            zone: ZoneId
+        ) {
             val timeFormat = DateTimeFormatter.ofPattern(TIME_PATTERN, Locale.getDefault())
             val dateFormat = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.getDefault())
+            val (latitude, longitude) = coordinates
+            val sunrise = SolarCalculator.calculate(date, latitude, longitude, true, zone)
+            val sunset = SolarCalculator.calculate(date, latitude, longitude, false, zone)
 
-            if (
-                latitude != null &&
-                longitude != null &&
-                SolarCalculator.hasValidCoordinates(latitude, longitude)
-            ) {
-                val sunrise = SolarCalculator.calculate(
-                    today,
-                    latitude,
-                    longitude,
-                    isSunrise = true,
-                    zone = zone
-                )
-                val sunset = SolarCalculator.calculate(
-                    today,
-                    latitude,
-                    longitude,
-                    isSunrise = false,
-                    zone = zone
-                )
-                views.setTextViewText(
-                    R.id.sunrise_time,
-                    sunrise?.format(timeFormat) ?: NO_EVENT_TEXT
-                )
-                views.setTextViewText(
-                    R.id.sunset_time,
-                    sunset?.format(timeFormat) ?: NO_EVENT_TEXT
-                )
-                views.setTextViewText(R.id.date_text, today.format(dateFormat))
-            } else {
-                views.setTextViewText(R.id.sunrise_time, NO_EVENT_TEXT)
-                views.setTextViewText(R.id.sunset_time, NO_EVENT_TEXT)
-                views.setTextViewText(R.id.date_text, LOCATION_REQUIRED_TEXT)
-            }
+            views.setTextViewText(
+                R.id.sunrise_time,
+                sunrise?.format(timeFormat) ?: NO_EVENT_TEXT
+            )
+            views.setTextViewText(
+                R.id.sunset_time,
+                sunset?.format(timeFormat) ?: NO_EVENT_TEXT
+            )
+            views.setTextViewText(R.id.date_text, date.format(dateFormat))
+        }
 
+        private fun showLocationRequired(views: RemoteViews) {
+            views.setTextViewText(R.id.sunrise_time, NO_EVENT_TEXT)
+            views.setTextViewText(R.id.sunset_time, NO_EVENT_TEXT)
+            views.setTextViewText(R.id.date_text, LOCATION_REQUIRED_TEXT)
+        }
+
+        private fun attachOpenAppAction(context: Context, views: RemoteViews) {
             val openApp = PendingIntent.getActivity(
                 context,
                 OPEN_APP_REQUEST_CODE,
@@ -104,7 +117,6 @@ class SunClockWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_root, openApp)
-            manager.updateAppWidget(id, views)
         }
     }
 }

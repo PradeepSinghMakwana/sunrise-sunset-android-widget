@@ -61,73 +61,37 @@ class SolarCalculatorEdgeCaseTest {
 
     @Test
     fun sunrisePrecedesSunsetAtRepresentativeLocations() {
-        val date = LocalDate.of(
-            2026,
-            3,
-            20
-        )
+        val date = LocalDate.of(2026, 3, 20)
         val locations = listOf(
-            Triple(
-                0.0,
-                0.0,
-                ZoneOffset.UTC
-            ),
-            Triple(
-                34.0,
-                -118.0,
-                ZoneId.of("America/Los_Angeles")
-            ),
-            Triple(
-                40.7,
-                -74.0,
-                ZoneId.of("America/New_York")
-            ),
-            Triple(
-                -33.9,
-                151.2,
-                ZoneId.of("Australia/Sydney")
-            )
+            Triple(0.0, 0.0, ZoneOffset.UTC),
+            Triple(34.0, -118.0, ZoneId.of("America/Los_Angeles")),
+            Triple(40.7, -74.0, ZoneId.of("America/New_York")),
+            Triple(-33.9, 151.2, ZoneId.of("Australia/Sydney"))
         )
 
         locations.forEach { (latitude, longitude, zone) ->
-            val sunrise = SolarCalculator.calculate(
-                date,
-                latitude,
-                longitude,
-                true,
-                zone
-            )
-            val sunset = SolarCalculator.calculate(
-                date,
-                latitude,
-                longitude,
-                false,
-                zone
-            )
-
-            assertTrue(
-                "Missing sunrise at $latitude, $longitude",
-                sunrise != null
-            )
-            assertTrue(
-                "Missing sunset at $latitude, $longitude",
-                sunset != null
-            )
-            assertEquals(
-                date,
-                sunrise!!.toLocalDate()
-            )
-            assertEquals(
-                date,
-                sunset!!.toLocalDate()
-            )
-            assertTrue(
-                "Sunrise must precede sunset at $latitude, $longitude",
-                sunrise.toInstant().isBefore(sunset.toInstant())
-            )
+            assertSolarEventsAreOrdered(date, latitude, longitude, zone)
         }
     }
 
+    private fun assertSolarEventsAreOrdered(
+        date: LocalDate,
+        latitude: Double,
+        longitude: Double,
+        zone: ZoneId
+    ) {
+        val sunrise = SolarCalculator.calculate(date, latitude, longitude, true, zone)
+        val sunset = SolarCalculator.calculate(date, latitude, longitude, false, zone)
+
+        assertTrue("Missing sunrise at $latitude, $longitude", sunrise != null)
+        assertTrue("Missing sunset at $latitude, $longitude", sunset != null)
+        assertEquals(date, sunrise!!.toLocalDate())
+        assertEquals(date, sunset!!.toLocalDate())
+        assertTrue(
+            "Sunrise must precede sunset at $latitude, $longitude",
+            sunrise.toInstant().isBefore(sunset.toInstant())
+        )
+    }
     @Test
     fun movingEastByFifteenDegreesMovesSolarEventsEarlierInUtc() {
         val date = LocalDate.of(
