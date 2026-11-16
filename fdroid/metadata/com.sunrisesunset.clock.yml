@@ -1,0 +1,21 @@
+Categories:
+  - Time
+License: MIT
+AuthorName: Pradeep Singh
+SourceCode: https://github.com/PradeepSinghMakwana/sunrise-sunset-clock
+IssueTracker: https://github.com/PradeepSinghMakwana/sunrise-sunset-clock/issues
+Changelog: https://github.com/PradeepSinghMakwana/sunrise-sunset-clock/releases
+AutoName: Sunrise Sunset Clock
+Summary: A home-screen clock with local sunrise and sunset times
+Description: |-
+  A lightweight Android home-screen widget that displays the local time,
+  sunrise, and sunset using the device's approximate location.
+
+  Features include a live digital clock, daily sunrise and sunset
+  calculations, approximate location permission only, and offline
+  solar-time calculation.
+
+  Location coordinates are stored locally on the device. The app does
+  not require an account, API key, or external location service.
+RepoType: git
+Repo: https://github.com/PradeepSinghMakwana/sunrise-sunset-clock.git

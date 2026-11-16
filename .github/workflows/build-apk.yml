@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,7 +23,59 @@ jobs:
           gradle-version: 8.9
       - name: Build debug APK
         run: gradle assembleDebug
-      - uses: actions/upload-artifact@v4
+      - name: Capture genuine app and launcher widget screenshots on Android emulator
+        if: github.event_name != 'push'
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          name: Indore-Sun-Clock-debug
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            set +e
+            mkdir -p screenshots/diagnostics
+
+            # Collect evidence even when Gradle/instrumentation exits unsuccessfully.
+            # The emulator action otherwise tears the device down immediately on failure.
+            finish_diagnostics() {
+              test_status=$?
+              trap - EXIT
+              echo "$test_status" > screenshots/diagnostics/instrumentation-exit-code.txt
+              adb logcat -d -v threadtime > screenshots/diagnostics/logcat.txt 2>&1 || true
+              adb shell dumpsys activity activities > screenshots/diagnostics/activities.txt 2>&1 || true
+              adb shell dumpsys window > screenshots/diagnostics/windows.txt 2>&1 || true
+              adb shell dumpsys package com.sunrisesunset.clock > screenshots/diagnostics/app-package.txt 2>&1 || true
+              adb shell screencap -p /sdcard/ci-final-screen.png >/dev/null 2>&1 || true
+              adb pull /sdcard/ci-final-screen.png screenshots/diagnostics/emulator-final-screen.png >/dev/null 2>&1 || true
+              adb exec-out run-as com.sunrisesunset.clock tar -cf - files/screenshots > screenshots/diagnostics/app-private-files.tar 2> screenshots/diagnostics/run-as-error.txt || true
+              if [ -s screenshots/diagnostics/app-private-files.tar ]; then
+                tar -xf screenshots/diagnostics/app-private-files.tar -C screenshots/diagnostics || true
+              fi
+              adb shell ls -la /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots > screenshots/diagnostics/external-files.txt 2>&1 || true
+              cp -R app/build/outputs/androidTest-results screenshots/diagnostics/ 2>/dev/null || true
+              cp -R app/build/reports/androidTests screenshots/diagnostics/ 2>/dev/null || true
+              exit "$test_status"
+            }
+            trap finish_diagnostics EXIT
+
+            echo "=== Emulator boot state ===" > screenshots/diagnostics/emulator-state.txt
+            adb shell getprop >> screenshots/diagnostics/emulator-state.txt 2>&1 || true
+            adb shell wm size >> screenshots/diagnostics/emulator-state.txt 2>&1 || true
+            adb shell wm density >> screenshots/diagnostics/emulator-state.txt 2>&1 || true
+
+            # Keep the original Gradle exit code; the EXIT trap gathers all evidence first.
+            gradle :app:connectedDebugAndroidTest
+            test_status=$?
+            exit "$test_status"
+      - uses: actions/upload-artifact@v4
+        if: always() && github.event_name != 'push'
+        with:
+          name: Sunrise-Sunset-Clock-genuine-screenshots-and-diagnostics
+          path: screenshots/
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Sunrise-Sunset-Clock-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn

@@ -1,0 +1,105 @@
+name: Release Android app
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Audit, build, and publish release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out versioned source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Verify tag, version, and location permissions
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: bash scripts/release-audit.sh
+
+      - name: Capture genuine app screenshot on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            gradle :app:connectedDebugAndroidTest
+            mkdir -p fastlane/metadata/android/en-US/images/phoneScreenshots
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png fastlane/metadata/android/en-US/images/phoneScreenshots/01-app-setup.png
+            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png
+
+      - name: Build release APK
+        run: gradle :app:assembleRelease
+
+      - name: Audit resolved release dependencies
+        run: |
+          gradle :app:dependencies --configuration releaseRuntimeClasspath \
+            > release-reports/gradle-release-dependencies.txt
+          if grep -E 'FAILED|Could not resolve|Could not find' release-reports/gradle-release-dependencies.txt; then
+            echo "Dependency resolution failure detected" >&2
+            exit 1
+          fi
+
+      - name: Generate version-specific F-Droid metadata
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: bash scripts/generate-fdroid-metadata.sh
+
+      - name: Check store screenshots
+        run: |
+          mkdir -p release-reports
+          WIDGET_SCREENSHOT="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png"
+          COUNT="$(find fastlane/metadata/android/en-US/images/phoneScreenshots -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.webp' \) | wc -l)"
+          {
+            echo "Genuine emulator screenshot count: $COUNT"
+            if [ ! -s "$WIDGET_SCREENSHOT" ]; then
+              echo "FAIL: genuine launcher widget screenshot is missing."
+              exit 1
+            fi
+            if [ "$COUNT" -lt 2 ]; then
+              echo "FAIL: expected both app and launcher widget screenshots."
+              exit 1
+            fi
+            echo "PASS: $COUNT genuine emulator screenshot(s), including the launcher widget. Review before store submission."
+          } | tee release-reports/screenshots-status.txt
+
+      - name: Package exact tagged source
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          git archive --format=tar.gz \
+            --prefix="sunrise-sunset-clock-${GITHUB_REF_NAME}/" \
+            "refs/tags/${GITHUB_REF_NAME}" \
+            -o "release-reports/sunrise-sunset-clock-${GITHUB_REF_NAME}-source.tar.gz"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            app/build/outputs/apk/release/app-release-unsigned.apk
+            release-reports/sunrise-sunset-clock-${{ github.ref_name }}-source.tar.gz
+            release-reports/com.sunrisesunset.clock.yml
+            release-reports/permissions-and-version.txt
+            release-reports/gradle-release-dependencies.txt
+            release-reports/screenshots-status.txt
+            fastlane/metadata/android/en-US/images/phoneScreenshots/*.png

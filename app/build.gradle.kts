@@ -4,15 +4,16 @@ plugins {
 }
 
 android {
-    namespace = "in.adroit.indoresunclock"
+    namespace = "com.sunrisesunset.clock"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "in.adroit.indoresunclock"
+        applicationId = "com.sunrisesunset.clock"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -23,4 +24,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+dependencies {
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
 }
