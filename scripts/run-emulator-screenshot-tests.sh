@@ -31,18 +31,12 @@ collect_diagnostics() {
 }
 trap collect_diagnostics EXIT
 
-echo "Waiting for Android emulator..."
-adb wait-for-device
-for attempt in $(seq 1 60); do
-  state=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-  if [ "$state" = "1" ]; then
-    break
-  fi
-  sleep 5
-done
-
+# android-emulator-runner starts the AVD and waits for boot before invoking this script.
+# Verify readiness once instead of adding a second polling window of up to five minutes.
+state=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
 if [ "$state" != "1" ]; then
-  echo "Emulator did not report sys.boot_completed=1" >&2
+  echo "Emulator action started the script before sys.boot_completed=1" >&2
+  adb devices -l >&2 || true
   exit 1
 fi
 
