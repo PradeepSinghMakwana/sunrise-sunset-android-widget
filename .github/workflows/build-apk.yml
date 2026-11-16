@@ -23,14 +23,17 @@ jobs:
           gradle-version: 8.9
       - name: Run JVM unit tests
         run: gradle :app:testDebugUnitTest
+      - name: Run Detekt Kotlin static analysis
+        run: gradle :app:detekt
       - name: Run Android lint
         run: gradle :app:lintDebug
-      - name: Upload Android lint reports
+      - name: Upload code-quality reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Android-lint-reports
+          name: Android-code-quality-reports
           path: |
+            app/build/reports/detekt/
             app/build/reports/lint-results-debug.html
             app/build/reports/lint-results-debug.xml
           if-no-files-found: warn
