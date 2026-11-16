@@ -24,6 +24,8 @@ jobs:
           gradle-version: 8.9
       - name: Build debug APK
         run: gradle assembleDebug
+      - name: Install live artifact uploader
+        run: npm install --no-save --no-package-lock @actions/artifact@2.3.3
       - name: Capture genuine app and launcher widget screenshots on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
