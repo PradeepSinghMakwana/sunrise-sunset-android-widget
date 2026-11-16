@@ -1,13 +1,12 @@
 package com.sunrisesunset.clock
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
-
 class SolarCalculatorEdgeCaseTest {
     @Test
     fun dateLineSunsetAtWestLongitudeBoundaryStaysOnRequestedLocalDate() {
@@ -92,6 +91,7 @@ class SolarCalculatorEdgeCaseTest {
             sunrise.toInstant().isBefore(sunset.toInstant())
         )
     }
+
     @Test
     fun movingEastByFifteenDegreesMovesSolarEventsEarlierInUtc() {
         val date = LocalDate.of(
