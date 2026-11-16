@@ -33,7 +33,8 @@ fun locationSetupScreen(
             ) {
                 Text("Sunrise Sunset Clock", style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    "Use your approximate location to calculate local sunrise and sunset. Precise location is not requested.",
+                    "Use your approximate location to calculate local sunrise and sunset. " +
+                        "Precise location is not requested.",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(state.message, style = MaterialTheme.typography.bodyMedium)
