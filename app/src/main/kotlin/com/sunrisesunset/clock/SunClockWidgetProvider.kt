@@ -61,15 +61,15 @@ class SunClockWidgetProvider : AppWidgetProvider() {
 
         private fun readCoordinates(context: Context): Pair<Double, Double>? {
             val prefs = context.getSharedPreferences(
-                LocationSetupActivity.PREFS,
+                LocationPreferences.PREFS,
                 Context.MODE_PRIVATE
             )
             val latitude = prefs.getString(
-                LocationSetupActivity.LATITUDE,
+                LocationPreferences.LATITUDE,
                 null
             )?.toDoubleOrNull()
             val longitude = prefs.getString(
-                LocationSetupActivity.LONGITUDE,
+                LocationPreferences.LONGITUDE,
                 null
             )?.toDoubleOrNull()
 
