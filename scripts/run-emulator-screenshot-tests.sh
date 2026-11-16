@@ -20,15 +20,15 @@ collect_diagnostics() {
   adb shell screencap -p /sdcard/ci-final-screen.png >/dev/null 2>&1 || true
   adb pull /sdcard/ci-final-screen.png "$DIAG_DIR/emulator-final-screen.png" >/dev/null 2>&1 || true
 
-  # Screenshot files are written by the instrumentation APK, not the target APK.
-  # Validate the archive before extracting it; never publish an error message as a .tar.
-  if adb exec-out run-as com.sunrisesunset.clock.test tar -cf - -C files screenshots > "$DIAG_DIR/instrumentation-files.tar" 2> "$DIAG_DIR/run-as-error.txt"; then
-    if tar -tf "$DIAG_DIR/instrumentation-files.tar" > "$DIAG_DIR/instrumentation-files-list.txt" 2>/dev/null; then
-      mkdir -p "$DIAG_DIR/instrumentation-files"
-      tar -xf "$DIAG_DIR/instrumentation-files.tar" -C "$DIAG_DIR/instrumentation-files"
+  # Instrumentation writes screenshots into the target app's private files directory.
+  # Read from the same package and validate the archive before extracting it.
+  if adb exec-out run-as com.sunrisesunset.clock tar -cf - -C files screenshots > "$DIAG_DIR/app-screenshots.tar" 2> "$DIAG_DIR/run-as-error.txt"; then
+    if tar -tf "$DIAG_DIR/app-screenshots.tar" > "$DIAG_DIR/app-screenshots-list.txt" 2>/dev/null; then
+      mkdir -p "$DIAG_DIR/app-screenshots"
+      tar -xf "$DIAG_DIR/app-screenshots.tar" -C "$DIAG_DIR/app-screenshots"
     else
-      echo "Instrumentation archive was not a valid tar archive." >> "$DIAG_DIR/run-as-error.txt"
-      rm -f "$DIAG_DIR/instrumentation-files.tar"
+      echo "App screenshot archive was not a valid tar archive." >> "$DIAG_DIR/run-as-error.txt"
+      rm -f "$DIAG_DIR/app-screenshots.tar"
     fi
   fi
 

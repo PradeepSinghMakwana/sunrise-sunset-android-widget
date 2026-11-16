@@ -24,10 +24,11 @@ class StoreScreenshotTest {
     @Test
     fun captureRealAppSetupScreen() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
         val device = UiDevice.getInstance(instrumentation)
-        val output = screenshotDirectory(instrumentation.context)
+        val output = screenshotDirectory(context)
 
-        unlockDevice(device, instrumentation.context)
+        unlockDevice(device, context)
         val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
         try {
             assertTrue("Setup action did not become visible to UI Automator",
@@ -49,7 +50,7 @@ class StoreScreenshotTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val device = UiDevice.getInstance(instrumentation)
-        val output = screenshotDirectory(instrumentation.context)
+        val output = screenshotDirectory(context)
 
         context.getSharedPreferences(LocationSetupActivity.PREFS, Context.MODE_PRIVATE).edit()
             .putString(LocationSetupActivity.LATITUDE, "37.4219983")
@@ -111,7 +112,10 @@ class StoreScreenshotTest {
 
     private fun screenshotDirectory(context: Context): File {
         val directory = File(context.filesDir, "screenshots")
-        assertTrue("Could not create screenshot directory", directory.mkdirs() || directory.isDirectory)
+        assertTrue(
+            "Could not create app screenshot directory at ${directory.absolutePath}",
+            directory.mkdirs() || directory.isDirectory
+        )
         return directory
     }
 
