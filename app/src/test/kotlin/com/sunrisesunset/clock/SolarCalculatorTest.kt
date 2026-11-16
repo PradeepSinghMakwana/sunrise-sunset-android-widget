@@ -3,7 +3,6 @@ package com.sunrisesunset.clock
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
-
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
