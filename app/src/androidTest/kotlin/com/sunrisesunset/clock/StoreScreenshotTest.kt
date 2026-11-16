@@ -38,6 +38,7 @@ class StoreScreenshotTest {
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
             onView(withText("Use approximate location")).check(matches(isDisplayed()))
             device.waitForIdle()
+            captureCheckpoint(device, output, "04-app-setup-ready")
 
             val screenshot = File(output, "01-app-setup.png")
             assertTrue("Could not capture app setup screen", device.takeScreenshot(screenshot))
@@ -76,6 +77,7 @@ class StoreScreenshotTest {
         assertNotNull("Launcher3 workspace was not exposed; inspect 02-launcher-before.xml", workspace)
         workspace!!.longClick()
         device.waitForIdle()
+        captureCheckpoint(device, output, "05-launcher-edit-menu")
 
         val widgetsButton: UiObject2? = device.wait(
             Until.findObject(By.text("Widgets")), 5_000)
@@ -83,6 +85,7 @@ class StoreScreenshotTest {
         assertNotNull("Launcher edit menu did not expose Widgets", widgetsButton)
         widgetsButton!!.click()
         device.waitForIdle()
+        captureCheckpoint(device, output, "06-widget-picker-open")
 
         var appEntry = device.wait(
             Until.findObject(By.textContains("Sunrise Sunset Clock")), 15_000)
@@ -96,6 +99,7 @@ class StoreScreenshotTest {
         assertNotNull("Widget picker did not list Sunrise Sunset Clock", appEntry)
         appEntry!!.click()
         device.waitForIdle()
+        captureCheckpoint(device, output, "07-widget-preview")
 
         val widgetPreview = device.wait(
             Until.findObject(By.textContains("Sunrise Sunset Clock")), 8_000)
@@ -105,8 +109,9 @@ class StoreScreenshotTest {
             1_000)
         device.waitForIdle()
         Thread.sleep(1_000)
-        captureSharedScreenshot(device, "05-test-widget-after-placement.png")
-        captureSharedHierarchy(device, "05-test-widget-after-placement.xml")
+        captureSharedScreenshot(device, "08-test-widget-after-placement.png")
+        captureSharedHierarchy(device, "08-test-widget-after-placement.xml")
+        captureCheckpoint(device, output, "08-widget-after-placement")
 
         val widgetVisible = device.wait(
             Until.hasObject(By.textContains("SUNRISE")), 12_000)
@@ -117,6 +122,13 @@ class StoreScreenshotTest {
         assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
         assertTrue("Widget screenshot is empty", screenshot.length() > 10_000)
         device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
+    }
+
+    private fun captureCheckpoint(device: UiDevice, output: File, name: String) {
+        device.takeScreenshot(File(output, "$name.png"))
+        device.dumpWindowHierarchy(File(output, "$name.xml"))
+        captureSharedScreenshot(device, "$name.png")
+        captureSharedHierarchy(device, "$name.xml")
     }
 
     private fun captureSharedScreenshot(device: UiDevice, name: String) {
