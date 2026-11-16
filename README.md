@@ -6,6 +6,8 @@ A native Android widget featuring:
 - Approximate location permission only (`ACCESS_COARSE_LOCATION`).
 - Offline solar-time calculation; no API key or external location service required by the app.
 
+Built with ChatGPT, guided by the repository owner.
+
 ## Build with GitHub Actions
 1. Open the repository's **Actions** tab.
 2. Select **Build Android APK** and run the workflow.
