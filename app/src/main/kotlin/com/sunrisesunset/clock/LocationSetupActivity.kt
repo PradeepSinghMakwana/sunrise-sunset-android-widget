@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,11 +34,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
 
 object LocationPreferences {
     const val PREFS = "sunrise_location"
@@ -52,18 +58,68 @@ data class LocationSetupUiState(
 )
 
 class LocationRepository(private val context: Context) {
-    suspend fun findLastKnownLocation(): Location? = withContext(Dispatchers.IO) {
+    suspend fun hasSavedLocation(): Boolean = withContext(Dispatchers.IO) {
+        val prefs = context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE)
+        prefs.contains(LocationPreferences.LATITUDE) && prefs.contains(LocationPreferences.LONGITUDE)
+    }
+
+    suspend fun findLocation(): Location? {
         val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
-            .firstNotNullOfOrNull { provider ->
+        val cached = withContext(Dispatchers.IO) {
+            listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+                .firstNotNullOfOrNull { provider ->
+                    try {
+                        if (manager.isProviderEnabled(provider)) manager.getLastKnownLocation(provider) else null
+                    } catch (_: SecurityException) {
+                        null
+                    } catch (_: RuntimeException) {
+                        null
+                    }
+                }
+        }
+        if (cached != null) return cached
+
+        // A fresh network fix is needed on first launch when Android has no cached location.
+        return withContext(Dispatchers.Main.immediate) {
+            suspendCancellableCoroutine { continuation ->
+                val completed = AtomicBoolean(false)
+                lateinit var listener: LocationListener
+                fun finish(location: Location?) {
+                    if (completed.compareAndSet(false, true)) {
+                        try { manager.removeUpdates(listener) } catch (_: Exception) { }
+                        if (continuation.isActive) continuation.resume(location)
+                    }
+                }
+                listener = object : LocationListener {
+                    override fun onLocationChanged(location: Location) = finish(location)
+                    @Deprecated("Deprecated by Android")
+                    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
+                    override fun onProviderEnabled(provider: String) = Unit
+                    override fun onProviderDisabled(provider: String) = Unit
+                }
+                continuation.invokeOnCancellation {
+                    if (completed.compareAndSet(false, true)) {
+                        try { manager.removeUpdates(listener) } catch (_: Exception) { }
+                    }
+                }
                 try {
-                    if (manager.isProviderEnabled(provider)) manager.getLastKnownLocation(provider) else null
+                    if (!manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                        finish(null)
+                    } else {
+                        manager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER,
+                            0L,
+                            0f,
+                            listener
+                        )
+                    }
                 } catch (_: SecurityException) {
-                    null
+                    finish(null)
                 } catch (_: RuntimeException) {
-                    null
+                    finish(null)
                 }
             }
+        }
     }
 
     suspend fun save(location: Location) = withContext(Dispatchers.IO) {
@@ -80,17 +136,20 @@ class LocationSetupViewModel(application: Application) : AndroidViewModel(applic
     val uiState: StateFlow<LocationSetupUiState> = _uiState.asStateFlow()
 
     fun loadSavedLocation() {
-        val prefs = getApplication<Application>().getSharedPreferences(
-            LocationPreferences.PREFS, Context.MODE_PRIVATE
-        )
-        val hasLocation = prefs.contains(LocationPreferences.LATITUDE) &&
-            prefs.contains(LocationPreferences.LONGITUDE)
-        if (hasLocation) {
-            _uiState.value = LocationSetupUiState(
-                message = "Approximate location is saved. Your widget can show local sunrise and sunset.",
-                hasSavedLocation = true
-            )
+        viewModelScope.launch {
+            if (repository.hasSavedLocation()) {
+                _uiState.value = LocationSetupUiState(
+                    message = "Approximate location is saved. Your widget can show local sunrise and sunset.",
+                    hasSavedLocation = true
+                )
+            }
         }
+    }
+
+    fun permissionDenied() {
+        _uiState.value = _uiState.value.copy(
+            message = "Approximate location was not allowed. You can enable it in Android app permissions."
+        )
     }
 
     fun findLocation() {
@@ -101,10 +160,14 @@ class LocationSetupViewModel(application: Application) : AndroidViewModel(applic
         )
         viewModelScope.launch {
             try {
-                val location = repository.findLastKnownLocation()
+                val location = try {
+                    withTimeout(30_000L) { repository.findLocation() }
+                } catch (_: TimeoutCancellationException) {
+                    null
+                }
                 if (location == null) {
                     _uiState.value = LocationSetupUiState(
-                        message = "No recent location is available. Turn on Location services and try again."
+                        message = "No location fix was received. Turn on Location services and try again."
                     )
                 } else {
                     repository.save(location)
@@ -152,7 +215,7 @@ class LocationSetupActivity : ComponentActivity() {
     private val locationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) setupViewModel?.findLocation()
+        if (granted) setupViewModel?.findLocation() else setupViewModel?.permissionDenied()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
