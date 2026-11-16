@@ -14,6 +14,17 @@ Built with ChatGPT, guided by the repository owner.
 3. Download the `Sunrise-Sunset-Clock-debug` artifact.
 4. Extract and install `app-debug.apk`.
 
+## Kotlin code-quality workflow
+
+For every Kotlin code change, **fix Detekt before working on Android lint**:
+
+1. Run `gradle :app:detekt`.
+2. Resolve every Detekt finding in the source; do not hide findings by weakening rules, adding a baseline, or applying blanket suppressions.
+3. Rerun Detekt and repeat until it passes.
+4. Only then run `gradle :app:lintDebug` and resolve any lint findings.
+
+This is the required order for fixing code-quality issues. Keep the Detekt and Android lint CI jobs independent so both checks still run and report their results even when one fails.
+
 ## Setup
 1. Open Sunrise Sunset Clock.
 2. Allow approximate location when Android asks.
