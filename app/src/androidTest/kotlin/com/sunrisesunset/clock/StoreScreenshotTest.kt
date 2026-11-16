@@ -22,22 +22,29 @@ class StoreScreenshotTest {
         val device = UiDevice.getInstance(instrumentation)
 
         device.wakeUp()
+        device.executeShellCommand("wm dismiss-keyguard")
+        device.executeShellCommand("input keyevent 82")
         context.startActivity(
             Intent(context, LocationSetupActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
 
-        val headingVisible = device.wait(
-            Until.hasObject(By.textContains("Sunrise Sunset Clock")),
+        val appWindowVisible = device.wait(
+            Until.hasObject(By.pkg(context.packageName)),
             30_000
         )
-        if (!headingVisible) {
+        val setupActionVisible = device.wait(
+            Until.hasObject(By.textContains("Use approximate location")),
+            10_000
+        )
+        if (!appWindowVisible || !setupActionVisible) {
             println("Current activity: " + device.executeShellCommand(
                 "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'"
             ))
             saveDiagnosticScreenshot(context, device, "01-app-launch-debug.png")
         }
-        assertTrue("Location setup heading did not become visible", headingVisible)
+        assertTrue("Location setup activity window did not become visible", appWindowVisible)
+        assertTrue("Approximate-location setup action did not appear", setupActionVisible)
 
         val screenshot = screenshotFile(context, "01-app-setup.png")
         assertTrue("Could not capture app screenshot", device.takeScreenshot(screenshot))
@@ -61,6 +68,8 @@ class StoreScreenshotTest {
             .commit()
 
         device.wakeUp()
+        device.executeShellCommand("wm dismiss-keyguard")
+        device.executeShellCommand("input keyevent 82")
         device.pressHome()
         device.waitForIdle()
 
