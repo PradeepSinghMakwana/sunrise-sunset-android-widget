@@ -72,14 +72,14 @@ class StoreScreenshotTest {
         )
         if (appEntry == null) {
             // Some launcher builds put the widget list in a vertically scrolling panel.
-            repeat(5) {
+            for (attempt in 0 until 5) {
                 device.swipe(
                     display.first / 2, (display.second * 0.78).toInt(),
                     display.first / 2, (display.second * 0.30).toInt(), 35
                 )
                 device.waitForIdle()
                 appEntry = device.findObject(By.textContains("Sunrise Sunset Clock"))
-                if (appEntry != null) return@repeat
+                if (appEntry != null) break
             }
         }
         assertTrue(
