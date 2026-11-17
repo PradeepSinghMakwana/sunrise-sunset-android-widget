@@ -23,6 +23,7 @@ jobs:
       - name: Validate Bash syntax
         run: |
           bash -n scripts/run-emulator-screenshot-tests.sh
+          bash -n scripts/run-emulator-tests.sh
       - name: Validate artifact uploader JavaScript syntax
         run: node --check scripts/upload-screenshot-artifact.cjs
 
