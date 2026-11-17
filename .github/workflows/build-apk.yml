@@ -15,6 +15,14 @@ permissions:
   contents: read
 
 jobs:
+  shell-validation:
+    name: Validate Bash diagnostics script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Bash script syntax
+        run: bash -n scripts/run-emulator-tests.sh
+
   unit-tests:
     name: JVM unit tests
     runs-on: ubuntu-latest
