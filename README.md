@@ -14,6 +14,17 @@ Built with ChatGPT, guided by the repository owner.
 3. Download the `Sunrise-Sunset-Clock-debug` artifact.
 4. Extract and install `app-debug.apk`.
 
+## Kotlin code-quality workflow
+
+For every Kotlin code change, **fix Detekt before working on Android lint**:
+
+1. Run `gradle :app:detekt`.
+2. Resolve every Detekt finding in the source; do not hide findings by weakening rules, adding a baseline, or applying blanket suppressions.
+3. Rerun Detekt and repeat until it passes.
+4. Only then run `gradle :app:lintDebug` and resolve any lint findings.
+
+This is the required order for fixing code-quality issues. Keep the Detekt and Android lint CI jobs independent so both checks still run and report their results even when one fails.
+
 ## Setup
 1. Open Sunrise Sunset Clock.
 2. Allow approximate location when Android asks.
@@ -26,29 +37,7 @@ Tap the widget to reopen setup.
 The app requests approximate location only. It does not declare or request precise location permission. Coordinates are stored locally on the device and used for the sunrise/sunset calculation.
 
 ## Notes
-Sunrise and sunset are calculated using an approximation and may differ slightly from published almanacs. The clock follows the device's current time zone. The widget refreshes periodically and when Android reports date, time, or time-zone changes.
-
-## Sunrise and sunset calculation tests
-
-The following cases should be tested to check that sunrise and sunset are calculated correctly. This list describes what we expect to test; it does **not** mean that all these tests have already passed.
-
-- **Seasonal changes:** Test dates around the March and September equinoxes and the June and December solstices. Check that daylight changes in the expected direction in both hemispheres.
-- **Different places:** Test places near the equator and at middle and high latitudes. Include places east and west of the prime meridian. Check that location affects the calculated times and length of the day as expected.
-- **Both hemispheres:** Test places in the Northern and Southern Hemispheres. Check that their seasons have opposite patterns.
-- **Polar day and night:** Test places and dates where the Sun does not rise or does not set. Show this clearly instead of displaying a made-up sunrise or sunset time.
-- **Date changes:** Test events close to midnight. Check that sunrise and sunset appear on the correct date and are not moved to the day before or after.
-- **Incorrect location values:** Test missing location values and values outside the valid ranges: latitude from -90 to 90 degrees and longitude from -180 to 180 degrees. The app should handle these safely and must not use an invented location.
-- **Time zones:** Check that the same sunrise or sunset is shown at the correct local time. Include daylight-saving changes and cases where the local date is different from the date in UTC.
-
-### What counts as tested
-
-- Add automated tests for every case listed above.
-- Tests must check the expected result, not just run the calculation.
-- For normal locations, compare results with a trusted sunrise/sunset source. Allow for the small differences expected from an approximate calculation.
-- For polar locations, check that the app correctly reports when the Sun does not rise or does not set.
-- Show test results in GitHub Actions. Do not say a case has passed until its test has run successfully.
-- Measure how much of the calculation code is covered by tests, but remember that a high coverage number alone does not prove the results are correct.
-- Run the relevant tests again whenever the calculation, date handling, or time-zone handling changes.
+Sunrise and sunset use a NOAA-style approximation and may differ slightly from published almanacs. The clock follows the device's current time zone. The widget refreshes periodically and when Android reports date, time, or time-zone changes.
 
 ## Engineering effort and automation ROI
 
