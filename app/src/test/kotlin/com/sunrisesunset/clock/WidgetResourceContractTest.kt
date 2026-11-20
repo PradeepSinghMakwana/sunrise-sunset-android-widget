@@ -67,7 +67,7 @@ class WidgetResourceContractTest {
         )
         assertTrue(
             "Widget provider must submit its RemoteViews to AppWidgetManager",
-            source.contains("manager.updateAppWidget(id, views)")
+            source.contains("manager.updateAppWidget(id, buildRemoteViews(context))")
         )
     }
 
