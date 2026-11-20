@@ -14,7 +14,10 @@ import kotlin.coroutines.resume
 class LocationRepository(private val context: Context) {
     suspend fun hasSavedLocation(): Boolean = withContext(Dispatchers.IO) {
         val prefs = context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE)
-        prefs.contains(LocationPreferences.LATITUDE) && prefs.contains(LocationPreferences.LONGITUDE)
+        val latitude = prefs.getString(LocationPreferences.LATITUDE, null)?.toDoubleOrNull()
+        val longitude = prefs.getString(LocationPreferences.LONGITUDE, null)?.toDoubleOrNull()
+        latitude != null && longitude != null &&
+            SolarCalculator.hasValidCoordinates(latitude, longitude)
     }
 
     suspend fun findLocation(): Location? {
@@ -86,6 +89,9 @@ class LocationRepository(private val context: Context) {
     }
 
     suspend fun save(location: Location) = withContext(Dispatchers.IO) {
+        require(SolarCalculator.hasValidCoordinates(location.latitude, location.longitude)) {
+            "Cannot save an invalid latitude/longitude pair"
+        }
         context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE).edit()
             .putString(LocationPreferences.LATITUDE, location.latitude.toString())
             .putString(LocationPreferences.LONGITUDE, location.longitude.toString())
