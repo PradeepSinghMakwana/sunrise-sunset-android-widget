@@ -2,11 +2,16 @@ package com.sunrisesunset.clock
 
 import android.content.Context
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,4 +86,68 @@ class LocationRepositoryInstrumentedTest {
         val result = repository.findLocation()
         assertFalse("A denied permission must not produce an untrusted fix", result != null)
     }
+
+    @Test
+    fun cancellationRemovesTheOutstandingLocationListener() = runBlocking {
+        val gateway = FakeLocationGateway(providerEnabled = true)
+        val repository = LocationRepository(context, gateway)
+        try {
+            withTimeout(150) { repository.findLocation() }
+        } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+            // Expected: fake provider deliberately never emits a fix.
+        }
+        assertEquals(1, gateway.requestCount)
+        assertEquals(1, gateway.removeCount)
+    }
+
+    @Test
+    fun providerSecurityAndRuntimeFailuresReturnNull() = runBlocking {
+        val securityGateway = FakeLocationGateway(providerEnabled = true).apply {
+            throwOnProviderCheck = true
+        }
+        assertNull(LocationRepository(context, securityGateway).findLocation())
+
+        val runtimeGateway = FakeLocationGateway(providerEnabled = true).apply {
+            throwOnRequest = true
+        }
+        assertNull(LocationRepository(context, runtimeGateway).findLocation())
+    }
+
+    @Test
+    fun disabledNetworkProviderReturnsNullWithoutRegisteringListener() = runBlocking {
+        val gateway = FakeLocationGateway(providerEnabled = false)
+        assertNull(LocationRepository(context, gateway).findLocation())
+        assertEquals(0, gateway.requestCount)
+    }
+
+    private class FakeLocationGateway(
+        private val providerEnabled: Boolean
+    ) : LocationGateway {
+        var requestCount = 0
+        var removeCount = 0
+        var throwOnProviderCheck = false
+        var throwOnRequest = false
+        private var listener: LocationListener? = null
+
+        override fun isProviderEnabled(provider: String): Boolean {
+            if (throwOnProviderCheck) throw SecurityException("permission denied")
+            return providerEnabled && provider == LocationManager.NETWORK_PROVIDER
+        }
+
+        override fun getLastKnownLocation(provider: String): Location? = null
+
+        override fun requestLocationUpdates(provider: String, listener: LocationListener) {
+            requestCount++
+            if (throwOnRequest) throw IllegalStateException("provider unavailable")
+            this.listener = listener
+        }
+
+        override fun removeUpdates(listener: LocationListener) {
+            if (this.listener === listener) {
+                removeCount++
+                this.listener = null
+            }
+        }
+    }
+
 }
