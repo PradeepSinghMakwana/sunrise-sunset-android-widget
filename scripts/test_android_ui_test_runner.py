@@ -30,6 +30,8 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "#!/usr/bin/env bash\n"
                 "printf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\n"
                 "if [[ \"$*\" == \"shell date +%Z%z\" ]]; then echo \"$DEVICE_TIMEZONE\"; fi\n"
+                "if [[ \"$* \" == \"shell wm size\" ]]; then echo \"Override size: 1080x2400\"; fi\n"
+                "if [[ \"$* \" == \"shell wm density\" ]]; then echo \"Override density: 420\"; fi\n"
                 "exit 0\n",
                 encoding="utf-8",
             )
