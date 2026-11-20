@@ -6,6 +6,8 @@ import android.location.LocationListener
 import android.location.LocationManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -120,8 +122,36 @@ class LocationRepositoryInstrumentedTest {
         assertEquals(0, gateway.requestCount)
     }
 
+    @Test
+    fun invalidProviderFixIsIgnoredAndFirstValidFixCompletesOnlyOnce() = runBlocking {
+        val gateway = FakeLocationGateway(providerEnabled = true)
+        val repository = LocationRepository(context, gateway)
+        val pending = async { repository.findLocation() }
+        while (gateway.requestCount == 0) delay(10)
+
+        gateway.emit(Location("test").apply {
+            latitude = 91.0
+            longitude = 75.8
+        })
+        assertFalse(pending.isCompleted)
+
+        val expected = Location("test").apply {
+            latitude = 22.7196
+            longitude = 75.8577
+        }
+        gateway.emit(expected)
+        val actual = pending.await()
+        assertEquals(expected.latitude, actual?.latitude ?: Double.NaN, 0.000001)
+        gateway.emit(Location("test").apply {
+            latitude = 10.0
+            longitude = 10.0
+        })
+        assertEquals(1, gateway.removeCount)
+    }
+
     private class FakeLocationGateway(
-        private val providerEnabled: Boolean
+        private val providerEnabled: Boolean,
+        private val cachedLocation: Location? = null
     ) : LocationGateway {
         var requestCount = 0
         var removeCount = 0
@@ -134,12 +164,17 @@ class LocationRepositoryInstrumentedTest {
             return providerEnabled && provider == LocationManager.NETWORK_PROVIDER
         }
 
-        override fun getLastKnownLocation(provider: String): Location? = null
+        override fun getLastKnownLocation(provider: String): Location? =
+            if (provider == LocationManager.NETWORK_PROVIDER) cachedLocation else null
 
         override fun requestLocationUpdates(provider: String, listener: LocationListener) {
             requestCount++
             if (throwOnRequest) throw IllegalStateException("provider unavailable")
             this.listener = listener
+        }
+
+        fun emit(location: Location) {
+            listener?.onLocationChanged(location)
         }
 
         override fun removeUpdates(listener: LocationListener) {
