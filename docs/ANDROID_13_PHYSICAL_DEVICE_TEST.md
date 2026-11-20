@@ -1,76 +1,61 @@
-# Android 13 physical-device release validation
+# Android 13 (API 33) emulator release validation
 
-The release test device is a **Samsung Galaxy A51 running Android 13 (API level 33)**. Use this real phone for runtime checks and store screenshots. Do not start an Android emulator, Gradle Managed Device, or cloud emulator. AWS Device Farm is not required for this single-device release pass.
+The release UI test and store screenshot environment is an Android 13 emulator (API level 33), using the AOSP `default` x86_64 system image and a Pixel 2 profile. This deliberately avoids Google Play services and avoids paid AWS Device Farm sessions.
 
 ## SDK configuration
 
-The app intentionally keeps:
-- `minSdk = 26` (Android 8.0 and later)
+Keep the app SDK configuration:
+- `minSdk = 26`
 - `compileSdk = 35`
 - `targetSdk = 35`
 
-Do **not** set `targetSdk = 33` just because the test phone runs Android 13. `targetSdk` controls compatibility behavior and Play policy; it does not select the OS on the test device. A target-35 APK can be installed and tested on Android 13 (API 33). Testing it on API 33 exercises the Android 13 runtime behavior while preserving the newer target for distribution.
+The emulator's API level is the runtime under test. Do not lower `targetSdk` to 33: that setting controls compatibility behavior and distribution policy, not which Android version runs the app. A target-35 build is installable and testable on Android 13 / API 33.
 
-Use JDK 17 and Gradle 8.9 in CI. Build the candidate with `gradle :app:assembleDebug`; use the debug APK for device validation. Do not use the unsigned release APK as a consumer-installable package.
+Use JDK 17 and Gradle 8.9. The CI pipeline must run `gradle :app:testDebugUnitTest` successfully before starting the emulator job. The emulator job then runs `gradle :app:connectedDebugAndroidTest`.
 
-## Prepare the physical phone
+## CI emulator configuration
 
-1. Confirm **Settings → About phone → Software information → Android version** says Android 13.
-2. Ensure Location is enabled and Wi-Fi or mobile data is available.
-3. Remove any previous test installation if you want to test first-run permission behavior from a clean state. This also clears app-saved coordinates.
-4. Install the CI debug APK. If using a computer with Android Platform Tools:
-   ```sh
-   adb devices
-   adb install -r app-debug.apk
-   adb shell getprop ro.build.version.sdk
-   ```
-   The final command must print `33`.
-5. Launch Sunrise Sunset Clock.
+The workflows use:
+- `reactivecircus/android-emulator-runner@v2`
+- API level 33
+- AOSP `default` system image
+- x86_64 architecture
+- Pixel 2 profile
+- Headless rendering with SwiftShader
+- Animations disabled
+- No boot snapshots
 
-## Required Android 13 checks
+Do not use Google Play images or AWS Device Farm for this release pass. The AOSP image provides the Launcher3 package expected by the widget-placement UI test.
 
-Record pass/fail and capture genuine screenshots only after the relevant check succeeds.
+## Automated Android 13 checks
 
-| Check | Expected result |
-|---|---|
-| First launch | Setup screen opens without crash |
-| Permission disclosure | Says approximate location; does not claim precise location |
-| Permission prompt | Requests only approximate location; no precise-location option is requested by the app |
-| Deny permission | Clear denial message; app remains usable and does not crash |
-| Grant approximate location | Location lookup completes and reports saved location |
-| Location disabled | Clear retry guidance; no crash or indefinite spinner |
-| Widget picker | Sunrise Sunset Clock appears in the Samsung launcher widget picker |
-| Add widget | Widget can be placed and resized on the home screen |
-| Widget values | Date, sunrise and sunset appear for the device's local date and timezone |
-| Widget tap | Opens the app setup screen |
-| Refresh location | Updates saved approximate coordinates and refreshes widget |
-| Reboot | Existing widget remains and can update after boot/unlock |
-| Date/time/timezone change | Widget refreshes for the new local date/timezone |
-| Offline calculation | With saved coordinates, sunrise/sunset calculation does not require a network request |
+The instrumentation suite:
+1. Unlocks the emulator and launches the actual setup Activity.
+2. Waits for the “Use approximate location” action and captures the actual app screen.
+3. Seeds a test-only approximate coordinate in app preferences.
+4. Opens the Android Launcher3 home screen and widget picker.
+5. Places the actual app widget on the launcher.
+6. Verifies both SUNRISE and SUNSET labels are visible.
+7. Captures the actual launcher home screen with the widget.
 
-The manifest currently declares only `ACCESS_COARSE_LOCATION`. Android 13's approximate-location permission flow is therefore the expected permission flow. Do not add `ACCESS_FINE_LOCATION` merely to make the test pass.
+The test writes screenshots to:
+`/sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/`
 
-## Store screenshots
+CI pulls the two final PNGs into:
+`fastlane/metadata/android/en-US/images/phoneScreenshots/`
 
-Use the Samsung phone's native screenshot function (Power + Volume Down). Do not edit, composite, generate, or emulate the captures.
+Intermediate PNGs and UI hierarchy XML files are retained as CI artifacts for diagnosis. If a UI test fails, inspect these artifacts before changing coordinates, timings, or launcher selectors.
 
-1. Complete setup and capture the real app screen as `01-app-setup.png`.
-2. Add the widget to the actual Samsung launcher home screen. Ensure both SUNRISE and SUNSET labels and their values are visible, then capture `02-home-screen-widget.png`.
-3. Ensure the status bar and screenshot do not expose private notifications, personal messages, or account information.
-4. Copy the original PNGs to:
-   `fastlane/metadata/android/en-US/images/phoneScreenshots/`
-5. Open both PNGs and visually confirm they are legible and accurately represent the app before committing.
+## Screenshot acceptance
 
-The automated release gate checks PNG signature, dimensions, file size, and that the two files differ. Those checks do not prove device provenance or visual quality; human review on the physical phone is mandatory.
+Required store files:
+- `01-app-setup.png`: the real app setup screen with the approximate-location action visible.
+- `02-home-screen-widget.png`: the real Android 13 launcher home screen with the app widget placed and both SUNRISE and SUNSET labels visible.
 
-## Evidence to record
+The release workflow validates PNG signatures, dimensions, file size, and distinct content. These structural checks do not prove visual quality. Review the downloaded artifact images visually before accepting the release.
 
-Record:
-- Device: Samsung Galaxy A51 (SM-A515F)
-- Android version: 13
-- API level: 33
-- App version name/code from the candidate APK
-- Pass/fail for every check above
-- Original screenshot files
+The emulator is used for repeatable UI testing and screenshot generation; it is not a substitute for broader testing on OEM launchers and physical devices. If launcher behavior differs on a physical device, treat that as separate device-compatibility testing, not as a reason to use a paid cloud device for this release.
 
-If a check fails, record the exact screen/message and stop before creating the release tag. Do not fall back to an emulator.
+## Permissions
+
+The manifest declares only `ACCESS_COARSE_LOCATION`. Do not add `ACCESS_FINE_LOCATION` just to satisfy tests. The widget-placement test seeds coordinates in test app preferences and must not request the user's location permission.
