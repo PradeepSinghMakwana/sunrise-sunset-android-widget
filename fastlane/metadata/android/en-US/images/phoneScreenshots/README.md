@@ -1,8 +1,10 @@
 # Store screenshots
 
-The CI release workflow captures these screenshots using the Android 13 (API 33) AOSP emulator and the actual running app:
+Release screenshots must be genuine captures from a physical Android phone. The Android 13 emulator artifact is for CI diagnostics only and must never be copied into store metadata or represented as a physical-device capture.
 
-- `01-app-setup.png`: the app setup screen with the approximate-location action visible.
-- `02-home-screen-widget.png`: the Android Launcher3 home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET labels visible.
+Commit these reviewed physical-device images before tagging a release:
 
-The images are captured by UI Automator from the running application and launcher, not generated or composited. Intermediate screenshots and UI hierarchy XML files are uploaded as a separate CI artifact for diagnosis. Visually review the final PNGs before publishing a release.
+- `01-app-setup.png`: the actual app setup screen with the approximate-location action visible.
+- `02-home-screen-widget.png`: the actual launcher home screen with the widget placed, placement handles dismissed, and both local sunrise/sunset times visible.
+
+Review the images visually on the target device. CI emulator screenshots and generated/composited images are not acceptable substitutes.
