@@ -451,7 +451,11 @@ class SolarCalculatorEdgeCaseTest {
             for (date in dates) {
                 for (sunrise in listOf(true, false)) {
                     val result = SolarCalculator.calculate(
-                        date, latitude, 0.0, sunrise, ZoneOffset.UTC
+                        date,
+                        latitude,
+                        0.0,
+                        sunrise,
+                        ZoneOffset.UTC
                     )
                     assertEquals(
                         "The geographic pole has no standard sunrise/sunset crossing on $date",
@@ -485,7 +489,11 @@ class SolarCalculatorEdgeCaseTest {
             Triple(LocalDate.of(2027, 1, 1), 0.0, -180.0)
         )
         for ((date, latitude, longitude) in cases) {
-            val zone = if (longitude >= 0) ZoneOffset.ofHours(12) else ZoneOffset.ofHours(-12)
+            val zone = if (longitude >= 0) {
+                ZoneOffset.ofHours(12)
+            } else {
+                ZoneOffset.ofHours(-12)
+            }
             val sunrise = SolarCalculator.calculate(date, latitude, longitude, true, zone)
             val sunset = SolarCalculator.calculate(date, latitude, longitude, false, zone)
             if (sunrise != null && sunset != null) {
@@ -499,12 +507,26 @@ class SolarCalculatorEdgeCaseTest {
     @Test
     fun changingDisplayZonePreservesTheUnderlyingSolarInstant() {
         val date = LocalDate.of(2026, 9, 22)
-        val utc = SolarCalculator.calculate(date, 22.7196, 75.8577, true, ZoneOffset.UTC)
+        val utc = SolarCalculator.calculate(
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneOffset.UTC
+        )
         val kolkata = SolarCalculator.calculate(
-            date, 22.7196, 75.8577, true, ZoneId.of("Asia/Kolkata")
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneId.of("Asia/Kolkata")
         )
         val losAngeles = SolarCalculator.calculate(
-            date, 22.7196, 75.8577, true, ZoneId.of("America/Los_Angeles")
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneId.of("America/Los_Angeles")
         )
         assertEquals(utc?.toInstant(), kolkata?.toInstant())
         assertEquals(utc?.toInstant(), losAngeles?.toInstant())
@@ -516,7 +538,11 @@ class SolarCalculatorEdgeCaseTest {
         for (latitude in listOf(65.0, 66.0, 66.5, 67.0, 67.5, 68.0, 69.0)) {
             for (sunrise in listOf(true, false)) {
                 val result = SolarCalculator.calculate(
-                    date, latitude, 0.0, sunrise, ZoneOffset.UTC
+                    date,
+                    latitude,
+                    0.0,
+                    sunrise,
+                    ZoneOffset.UTC
                 )
                 if (result != null) {
                     assertTrue(result.toInstant().epochSecond > 0)
