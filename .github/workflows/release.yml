@@ -34,7 +34,28 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: bash scripts/release-audit.sh
 
-      - name: Validate genuine physical-device store screenshots
+      - name: Run JVM unit tests before Android 13 UI tests
+        run: gradle :app:testDebugUnitTest
+
+      - name: Run instrumented UI tests on Android 13 (API 33)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          disable-animations: true
+          emulator-boot-timeout: 600
+          script: gradle :app:connectedDebugAndroidTest
+
+      - name: Collect Android 13 store screenshots
+        run: |
+          mkdir -p fastlane/metadata/android/en-US/images/phoneScreenshots
+          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png fastlane/metadata/android/en-US/images/phoneScreenshots/
+          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png fastlane/metadata/android/en-US/images/phoneScreenshots/
+
+      - name: Validate Android 13 screenshots
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -43,32 +64,23 @@ jobs:
           import sys
 
           directory = Path("fastlane/metadata/android/en-US/images/phoneScreenshots")
-          required = {
-              "01-app-setup.png": "the real app setup screen",
-              "02-home-screen-widget.png": "the real launcher home screen with the widget",
-          }
+          required = ["01-app-setup.png", "02-home-screen-widget.png"]
           hashes = set()
-
-          for filename, description in required.items():
+          for filename in required:
               path = directory / filename
               if not path.is_file():
-                  sys.exit(f"FAIL: missing {description}: {path}")
+                  sys.exit(f"FAIL: missing Android 13 screenshot: {path}")
               data = path.read_bytes()
-              if len(data) < 10_000:
-                  sys.exit(f"FAIL: screenshot is too small to be a credible full-screen capture: {path}")
-              if data[:8].hex() != "89504e470d0a1a0a" or data[12:16] != b"IHDR":
-                  sys.exit(f"FAIL: {path} is not a valid PNG image")
+              if len(data) < 10_000 or data[:8].hex() != "89504e470d0a1a0a" or data[12:16] != b"IHDR":
+                  sys.exit(f"FAIL: invalid or incomplete PNG: {path}")
               width, height = struct.unpack(">II", data[16:24])
               if not (320 <= width <= 3840 and 320 <= height <= 3840):
-                  sys.exit(f"FAIL: unexpected screenshot dimensions {width}x{height}: {path}")
+                  sys.exit(f"FAIL: unexpected dimensions {width}x{height}: {path}")
               digest = hashlib.sha256(data).hexdigest()
               if digest in hashes:
                   sys.exit("FAIL: setup and widget screenshots are identical")
               hashes.add(digest)
-              print(f"PASS: {filename}: {width}x{height}, {len(data)} bytes ({description})")
-
-          print("PASS: both required physical-device screenshots are present and structurally valid.")
-          print("A human must visually review the images before creating the release tag.")
+              print(f"PASS: {filename}: {width}x{height}, {len(data)} bytes")
           PY
 
       - name: Build release APK
