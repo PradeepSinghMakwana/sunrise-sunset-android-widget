@@ -40,15 +40,18 @@ class AvdProfileValidationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, r"\(none found\)"):
             require_profile_exists("Pixel_2", "No device definitions found")
 
-    def test_release_workflow_uses_committed_phone_screenshots_without_emulator(self):
+    def test_release_workflow_captures_and_publishes_android_13_emulator_screenshots(self):
         root = Path(__file__).resolve().parents[1]
         workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
-        self.assertNotIn("reactivecircus/android-emulator-runner", workflow)
-        self.assertNotRegex(workflow, r"(?m)^\s*adb\s")
-        self.assertNotIn("Enable KVM", workflow)
-        self.assertIn("Validate committed physical-device store screenshots", workflow)
-        self.assertIn("01-app-setup.png", workflow)
-        self.assertIn("02-home-screen-widget.png", workflow)
+        self.assertIn("reactivecircus/android-emulator-runner@v2", workflow)
+        self.assertIn("api-level: 33", workflow)
+        self.assertIn("Enable KVM", workflow)
+        self.assertIn("script: bash scripts/run-android-ui-tests.sh", workflow)
+        self.assertIn("Validate Android 13 emulator screenshots", workflow)
+        self.assertIn("android-13-screenshots/01-app-setup.png", workflow)
+        self.assertIn("android-13-screenshots/02-home-screen-widget.png", workflow)
+        self.assertIn("Android-13-emulator-release-screenshots-and-diagnostics", workflow)
+        self.assertNotIn("physical-device", workflow.lower())
 
     def test_ci_workflows_do_not_pin_unverified_hardware_profiles(self):
         root = Path(__file__).resolve().parents[1]
