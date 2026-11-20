@@ -4,18 +4,19 @@
 
 1. Update `versionName` and increment `versionCode` in `app/build.gradle.kts`.
 2. Update store listing text under `fastlane/metadata/android/en-US/` if the app description or features changed.
-3. Install the candidate build on a **physical Android phone**. Do not use an emulator for release screenshots. Capture:
-   - `01-app-setup.png`: the real app setup screen, with the setup action visible.
-   - `02-home-screen-widget.png`: the real Android launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
-4. Save both original PNG captures in `fastlane/metadata/android/en-US/images/phoneScreenshots/`. Review them visually before committing. Do not substitute mockups, generated images, or emulator captures.
-5. Commit and push the release-ready change to `main`.
-6. Create and push a matching version tag, for example `v2.0`:
+3. Run JVM unit tests and the Android 13 (API 33) emulator UI test. The release workflow does this automatically on the tagged source.
+4. The Android 13 UI test captures:
+   - `01-app-setup.png`: the actual app setup screen, with the setup action visible.
+   - `02-home-screen-widget.png`: the actual Android 13 emulator launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
+5. Inspect the two PNGs in the release workflow artifact. The images are genuine emulator screenshots, not physical-device captures or generated mockups.
+6. Commit and push the release-ready change to `main`.
+7. Create and push a matching version tag, for example `v2.0`:
    ```sh
    git tag v2.0
    git push origin v2.0
    ```
 
-The tag must exactly match `versionName`. The release workflow validates the two physical-device screenshots, audits the version and Android permissions, builds the release APK, records the resolved Gradle dependency tree, generates version-specific F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. **The release workflow does not start an emulator or run Android emulator UI tests.**
+The tag must exactly match `versionName`. The release workflow validates the version/tag and Android permissions, runs JVM tests and the Android 13 emulator UI test, validates the captured screenshot files, builds the release APK, records the resolved Gradle dependency tree, generates F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. Emulator screenshots are explicitly identified as emulator captures; they do not prove compatibility with every physical device or OEM launcher.
 
 ## Gradle build
 
@@ -46,19 +47,16 @@ For a first-time app, F-Droid recommends opening a Request for Packaging (RFP). 
 
 Before submission, confirm the application ID `com.sunrisesunset.clock` is acceptable under F-Droid's package-name policy and that the reverse-domain namespace is appropriate for the developer.
 
-## Screenshots
+## Screenshot evidence
 
-Screenshots must be genuine captures from the running app on a physical Android device. Use the phone's native screenshot function. The setup image must show the actual setup screen; the widget image must show the widget placed on the real launcher with its sunrise and sunset values. Keep both images unaltered and free of private notifications or unrelated personal information.
+The two screenshot assets are captured by the real Android UI on an Android 13 (API 33) emulator. The tests must verify that the setup action is visible and that the launcher widget is actually placed, settled, unclipped, and displaying both sunrise and sunset values before screenshots are accepted. Blank screens, placement placeholders, resize handles, and generated/composited images are not acceptable.
 
-The release workflow performs structural PNG checks (file signature, dimensions, file size, and distinct images). These checks cannot establish visual correctness or prove which device captured the image; a human must review both images before the release tag is pushed.
+The release workflow also checks PNG signatures, dimensions, file size, and distinct hashes. These structural checks supplement, but do not replace, the UI assertions. Review the screenshots visually from the release run artifact. Clearly identify the images as Android 13 emulator screenshots wherever their origin is described.
+
+Emulator screenshots are suitable for this project's automated release evidence under this policy, but they do not establish compatibility with all physical devices, launchers, screen sizes, or OEM customizations. Physical-device testing remains useful additional coverage, not a release prerequisite.
 
 The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. Test-only instrumentation permissions are not requested from installed app users.
 
-## Legacy emulator diagnostics
+## Android 13 emulator validation
 
-`StoreScreenshotTest.kt` and `docs/EMULATOR_DIAGNOSTICS.md` describe the earlier emulator-based screenshot investigation. They are not part of the release workflow and must not be used to produce release screenshots.
-
-
-## Android 13 physical-device validation
-
-Before publishing store screenshots or creating a release tag, follow [Android 13 physical-device release validation](ANDROID_13_PHYSICAL_DEVICE_TEST.md) on a Samsung Galaxy A51 running Android 13 (API 33). The app keeps `targetSdk = 35`; this does not prevent installation or testing on Android 13. Do not use an emulator or AWS Device Farm for this release pass. Build and install the CI debug APK on the physical phone, complete the checklist, and capture the two original store screenshots using the phone's native screenshot function.
+See [Android 13 emulator validation](ANDROID_13_PHYSICAL_DEVICE_TEST.md) for the API 33 AOSP image, runner configuration, deterministic test timezone, screenshot checkpoints, and evidence requirements.
