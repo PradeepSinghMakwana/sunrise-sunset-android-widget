@@ -453,10 +453,11 @@ class SolarCalculatorEdgeCaseTest {
                     val result = SolarCalculator.calculate(
                         date, latitude, 0.0, sunrise, ZoneOffset.UTC
                     )
-                    if (result != null) {
-                        assertTrue(result.toInstant().nano in 0..999_999_999)
-                        assertEquals(date, result.toLocalDate())
-                    }
+                    assertEquals(
+                        "The geographic pole has no standard sunrise/sunset crossing on $date",
+                        null,
+                        result
+                    )
                 }
             }
         }
