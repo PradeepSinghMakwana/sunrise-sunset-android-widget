@@ -8,8 +8,8 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * Guards the widget's resource-name contract used by StoreScreenshotTest.
- * Host-side tests catch missing or misspelled IDs without booting an emulator.
+ * Guards the Android launcher widget registration and resource contract.
+ * These host-side tests catch broken manifest/resource wiring before emulator UI tests run.
  */
 class WidgetResourceContractTest {
     @Test
@@ -24,17 +24,65 @@ class WidgetResourceContractTest {
     }
 
     @Test
-    fun launcherScreenshotTestUsesTheSameStableLabelIds() {
-        val screenshotTest = File(
-            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
-        ).readText()
-        assertTrue(
-            "Screenshot test must query the sunrise_label resource ID",
-            screenshotTest.contains("By.res(context.packageName, \"sunrise_label\")")
+    fun manifestRegistersTheWidgetReceiverAndProviderMetadata() {
+        val manifest = parseXml(File("src/main/AndroidManifest.xml"))
+        val receivers = manifest.getElementsByTagName("receiver")
+        val matchingReceivers = (0 until receivers.length)
+            .map { receivers.item(it) as Element }
+            .filter { it.getAttribute("android:name") == ".SunClockWidgetProvider" }
+
+        assertEquals("Manifest must register exactly one widget receiver", 1, matchingReceivers.size)
+        val metadata = matchingReceivers.single().getElementsByTagName("meta-data")
+        assertEquals("Widget receiver must declare exactly one provider metadata entry", 1, metadata.length)
+        val providerMetadata = metadata.item(0) as Element
+        assertEquals(
+            "Widget receiver must reference the expected provider XML",
+            "@xml/sun_clock_widget_info",
+            providerMetadata.getAttribute("android:resource")
+        )
+    }
+
+    @Test
+    fun widgetProviderMetadataReferencesTheActualWidgetLayout() {
+        val provider = parseXml(File("src/main/res/xml/sun_clock_widget_info.xml"))
+        assertEquals(
+            "Launcher provider must inflate the layout containing the solar labels",
+            "@layout/sun_clock_widget",
+            provider.documentElement.getAttribute("android:initialLayout")
         )
         assertTrue(
-            "Screenshot test must query the sunset_label resource ID",
-            screenshotTest.contains("By.res(context.packageName, \"sunset_label\")")
+            "Widget must be eligible for the home screen",
+            provider.documentElement.getAttribute("android:widgetCategory").contains("home_screen")
+        )
+    }
+
+    @Test
+    fun providerBuildsRemoteViewsFromTheRegisteredWidgetLayout() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget provider must create RemoteViews from sun_clock_widget",
+            source.contains("RemoteViews(context.packageName, R.layout.sun_clock_widget)")
+        )
+        assertTrue(
+            "Widget provider must submit its RemoteViews to AppWidgetManager",
+            source.contains("manager.updateAppWidget(id, views)")
+        )
+    }
+
+    @Test
+    fun screenshotUiTestChecksWidgetRegistrationBeforeCheckingVisibleLabels() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        val registrationCheck = source.indexOf("getAppWidgetIds(")
+        val labelCheck = source.indexOf("By.res(context.packageName, \"sunrise_label\")")
+        assertTrue("UI test must verify launcher registered a widget instance", registrationCheck >= 0)
+        assertTrue("UI test must verify labels only after widget registration", labelCheck > registrationCheck)
+        assertTrue(
+            "UI test must preserve the post-placement hierarchy for diagnosis",
+            source.contains("captureCheckpoint(device, output, \"08-widget-after-placement\")")
         )
     }
 
