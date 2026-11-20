@@ -113,6 +113,11 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
             adb_calls,
         )
 
+    def test_accepts_california_daylight_saving_offset(self):
+        result, _ = self._run_with_stubs(0, evidence_mode="complete", timezone="PDT-0700")
+        self.assertEqual(0, result.returncode)
+        self.assertNotIn("expected a California PST/PDT offset", result.stdout)
+
     def test_fails_when_gradle_succeeds_but_evidence_is_missing(self):
         result, _ = self._run_with_stubs(0)
         self.assertEqual(1, result.returncode)
@@ -154,7 +159,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         runner = RUNNER.read_text(encoding="utf-8")
         self.assertIn("cmd alarm set-timezone America/Los_Angeles", runner)
         self.assertIn("date +%Z%z", runner)
-        self.assertIn('expected PST-0800', runner)
+        self.assertIn('expected a California PST/PDT offset', runner)
         self.assertIn("TIMEZONE_CHANGED", runner)
         self.assertNotIn("test_status=$?", workflow)
 
