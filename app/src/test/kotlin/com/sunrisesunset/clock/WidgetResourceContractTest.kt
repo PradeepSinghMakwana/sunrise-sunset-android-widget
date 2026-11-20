@@ -161,6 +161,21 @@ class WidgetResourceContractTest {
         assertTrue(names.contains("android.intent.action.TIMEZONE_CHANGED"))
     }
 
+    @Test
+    fun mainScreenKeepsOnlyLocationSetupAndRealSolarTimePlaceholders() {
+        val source = File("src/main/kotlin/com/sunrisesunset/clock/LocationSetupScreen.kt").readText()
+        assertTrue(source.contains("Set your location to see sunrise and sunset times."))
+        assertTrue(source.contains("Use approximate location"))
+        assertTrue(source.contains("Refresh approximate location"))
+        assertTrue(source.contains('SolarTimeItem(icon = "☀", label = "SUNRISE")'))
+        assertTrue(source.contains('SolarTimeItem(icon = "☼", label = "SUNSET")'))
+        assertTrue(source.contains('text = "--:--"'))
+        assertTrue(!source.contains("Calendar"))
+        assertTrue(!source.contains("History"))
+        assertTrue(!source.contains("Moon phase"))
+        assertTrue(!source.contains("Day length"))
+    }
+
     private fun assertWidgetLabel(layout: org.w3c.dom.Document, viewId: String, stringName: String) {
         val nodes = layout.getElementsByTagName("TextView")
         val matches = (0 until nodes.length).map { nodes.item(it) as Element }
