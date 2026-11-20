@@ -85,7 +85,12 @@ class WidgetResourceContractTest {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
         assertTrue(source.contains("/data/local/tmp/sunrise-sunset-ci") && source.contains("screencap -p"))
         assertTrue(source.contains("uiautomator dump --compressed"))
-        assertTrue(source.contains("test -s ${'
+        assertTrue(source.contains("test -s \$hierarchyPath && echo HIERARCHY_DUMP_OK"))
+        assertTrue(source.contains("verification.contains(\"HIERARCHY_DUMP_OK\")"))
+        val evidenceFunction = source.substringAfter("private fun captureShellEvidence").substringBefore("private fun hierarchyFile")
+        assertTrue(!evidenceFunction.contains("getExternalFilesDir"))
+    }
+
     @Test
     fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
@@ -254,6 +259,12 @@ class WidgetResourceContractTest {
         factory.isExpandEntityReferences = false
         return factory.newDocumentBuilder().parse(file)
     }
+}
+}{hierarchy.absolutePath}"))
+        val evidenceFunction = source.substringAfter("private fun captureShellEvidence").substringBefore("private fun hierarchyFile")
+        assertTrue(!evidenceFunction.contains("getExternalFilesDir"))
+    }
+
     @Test
     fun everyRequiredUiCheckpointRequestsShellOwnedHierarchyEvidence() {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
