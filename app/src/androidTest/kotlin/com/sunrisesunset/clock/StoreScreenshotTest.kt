@@ -153,7 +153,9 @@ class StoreScreenshotTest {
             )
         }
 
-        // The launcher host must exist after leaving resize mode. A preview tile or
+        // Android 13 Launcher3 accessibility represents RemoteViews children as one
+        // AppWidgetHostView node; individual TextViews aren't queryable via UiAutomator.
+        // The launcher host must exist after leaving resize mode: a preview tile or
         // placement outline is not an acceptable substitute for a bound host view.
         val widgetHost = device.wait(
             Until.findObject(By.clazz("com.android.launcher3.widget.LauncherAppWidgetHostView")),
