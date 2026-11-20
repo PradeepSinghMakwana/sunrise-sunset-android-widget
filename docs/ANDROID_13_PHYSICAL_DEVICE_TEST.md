@@ -1,6 +1,8 @@
-# Android 13 (API 33) emulator release validation
+# Android 13 (API 33) emulator validation
 
-The release UI test and screenshot environment is an Android 13 emulator (API level 33), using the AOSP `default` x86_64 system image. The Android Emulator Runner action creates the AVD without a named hardware profile: its `profile` input is optional, and the action documentation explicitly says to use `avdmanager list device` to enumerate profile IDs before specifying one. We omit it rather than assuming a Pixel profile exists on the hosted runner.
+The project's automated UI validation and release screenshot environment is an Android 13 emulator (API level 33), using the AOSP `default` x86_64 system image. This is an explicit emulator-based release evidence policy; screenshots must not be described as physical-device captures.
+
+The Android Emulator Runner action creates the AVD without a named hardware profile: its `profile` input is optional, and the action documentation explicitly says to use `avdmanager list device` to enumerate profile IDs before specifying one. We omit it rather than assuming a Pixel profile exists on the hosted runner.
 
 The previous CI failure was not an Android 13 image availability problem. The runner successfully downloaded `system-images;android-33;default;x86_64`, then `avdmanager` rejected the unverified `Pixel_2` device ID with `No device found matching --device Pixel_2`. That prevented AVD creation and the emulator never started.
 
@@ -46,28 +48,19 @@ The instrumentation suite:
 6. Verifies both SUNRISE and SUNSET labels are visible.
 7. Captures the actual launcher home screen with the widget.
 
-The test writes screenshots to:
-`/sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/`
-
-CI pulls the two final PNGs into:
-`fastlane/metadata/android/en-US/images/phoneScreenshots/`
-
-Intermediate PNGs and UI hierarchy XML files are retained as CI artifacts for diagnosis. If a UI test fails after the emulator boots, inspect these artifacts before changing coordinates, timings, or launcher selectors.
+The test captures checkpoint PNGs and UI hierarchy XML into shell-owned emulator storage. `scripts/run-android-ui-tests.sh` pulls them into `android-13-screenshots/` and fails if any required PNG or hierarchy XML is missing or empty.
 
 ## Screenshot acceptance
 
-Required store files:
-- `01-app-setup.png`: the real app setup screen with the approximate-location action visible.
-- `02-home-screen-widget.png`: the real Android 13 launcher home screen with the app widget placed and both SUNRISE and SUNSET labels visible.
+The release workflow publishes:
+- `01-app-setup.png`: the app setup screen with the approximate-location action visible.
+- `02-home-screen-widget.png`: the Android 13 emulator launcher home screen with the app widget placed and both SUNRISE and SUNSET labels visible.
 
-The release workflow validates PNG signatures, dimensions, file size, and distinct content. These structural checks do not prove visual quality. Review the downloaded artifact images visually before accepting the release.
-
-The emulator is used for repeatable UI testing and screenshot generation; it is not a substitute for broader testing on OEM launchers and physical devices.
+These are actual emulator UI captures, not mockups or physical-device screenshots. UI assertions and PNG/evidence checks are mandatory. Review the images visually from the release workflow artifact. The emulator is repeatable release evidence for this configured AOSP Android 13 environment; it does not establish behavior on all OEM launchers or physical devices.
 
 ## Permissions
 
 The manifest declares only `ACCESS_COARSE_LOCATION`. Do not add `ACCESS_FINE_LOCATION` just to satisfy tests. The widget-placement test seeds coordinates in test app preferences and must not request the user's location permission.
-
 
 ## AVD profile regression tests
 
