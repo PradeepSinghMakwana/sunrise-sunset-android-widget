@@ -4,8 +4,8 @@
 # through AlarmManager (setprop is blocked on modern emulator builds), then verify
 # the effective zone before launching instrumentation.
 adb shell settings put global auto_time_zone 0
+adb shell cmd alarm set-timezone America/Los_Angeles
 device_timezone="$(adb shell date +%Z%z | tr -d '\r')"
-device_timezone="$(adb shell date +%Z%z | tr -d '\\r')"
 if [[ "$device_timezone" != "PST-0800" ]]; then
     echo "Android 13 emulator timezone is '$device_timezone'; expected PST-0800"
     exit 1
