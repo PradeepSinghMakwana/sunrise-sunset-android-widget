@@ -91,20 +91,32 @@ class StoreScreenshotTest {
         device.waitForIdle()
         captureCheckpoint(device, output, "06-widget-picker-open")
 
-        var appEntry = device.wait(
-            Until.findObject(By.textContains("Sunrise Sunset Clock")), 15_000)
-        for (attempt in 0 until 5) {
-            if (appEntry != null) break
+        val widgetEntrySelector = By.textContains("Sunrise Sunset Clock")
+        var appEntry: UiObject2? = null
+        val pickerViewportTop = (device.displayHeight * 0.18).toInt()
+        val pickerViewportBottom = (device.displayHeight * 0.88).toInt()
+        // Launcher3 can expose a partially clipped row to UiAutomator. Keep
+        // scrolling until the title is actually inside the picker viewport; a
+        // click on a clipped row can hit another app/category or empty space.
+        for (attempt in 0 until 12) {
+            appEntry = device.findObject(widgetEntrySelector)
+            val bounds = appEntry?.visibleBounds
+            val fullyVisible = bounds != null && bounds.width() > 0 && bounds.height() > 0 &&
+                bounds.top >= pickerViewportTop && bounds.bottom <= pickerViewportBottom
+            if (fullyVisible) break
             device.swipe(device.displayWidth / 2, (device.displayHeight * 0.78).toInt(),
                 device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
             device.waitForIdle()
-            appEntry = device.findObject(By.textContains("Sunrise Sunset Clock"))
         }
         assertNotNull("Widget picker did not list Sunrise Sunset Clock", appEntry)
-        // The app title is a non-clickable TextView inside the clickable widget row.
-        // UiObject2.click() on that child only logs a warning and can leave the
-        // previously selected provider (often Gallery) active. Tap the row itself.
         val appEntryBounds = appEntry!!.visibleBounds
+        assertTrue(
+            "Widget picker row must be fully visible before selection: $appEntryBounds",
+            appEntryBounds.height() > 0 && appEntryBounds.top >= pickerViewportTop &&
+                appEntryBounds.bottom <= pickerViewportBottom
+        )
+        // Tap the center of the fully visible widget row, not an off-screen
+        // accessibility node whose bounds may be clipped to a neighboring item.
         device.click(appEntryBounds.centerX(), appEntryBounds.centerY())
         device.waitForIdle()
 
