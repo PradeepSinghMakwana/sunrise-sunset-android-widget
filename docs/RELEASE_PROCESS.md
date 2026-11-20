@@ -4,15 +4,18 @@
 
 1. Update `versionName` and increment `versionCode` in `app/build.gradle.kts`.
 2. Update store listing text under `fastlane/metadata/android/en-US/` if the app description or features changed.
-3. The release workflow runs Android emulator UI tests and captures both the app setup screen and the widget placed on the Android launcher home screen into `fastlane/metadata/android/en-US/images/phoneScreenshots/`. The release is blocked if the launcher widget screenshot is missing. Review both images in the GitHub Release assets.
-4. Commit and push the release-ready change to `main`.
-5. Create and push a matching version tag, for example `v2.1`:
+3. Install the candidate build on a **physical Android phone**. Do not use an emulator for release screenshots. Capture:
+   - `01-app-setup.png`: the real app setup screen, with the setup action visible.
+   - `02-home-screen-widget.png`: the real Android launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
+4. Save both original PNG captures in `fastlane/metadata/android/en-US/images/phoneScreenshots/`. Review them visually before committing. Do not substitute mockups, generated images, or emulator captures.
+5. Commit and push the release-ready change to `main`.
+6. Create and push a matching version tag, for example `v2.0`:
    ```sh
-   git tag v2.1
-   git push origin v2.1
+   git tag v2.0
+   git push origin v2.0
    ```
 
-The tag must exactly match `versionName`. The release workflow then audits the version and Android permissions, builds the release APK, records the resolved Gradle dependency tree, generates version-specific F-Droid metadata, packages the exact tagged source, checks for store screenshots, and publishes the assets as a GitHub Release.
+The tag must exactly match `versionName`. The release workflow validates the two physical-device screenshots, audits the version and Android permissions, builds the release APK, records the resolved Gradle dependency tree, generates version-specific F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. **The release workflow does not start an emulator or run Android emulator UI tests.**
 
 ## Gradle build
 
@@ -27,7 +30,7 @@ gradle :app:assembleRelease
 gradle :app:dependencies --configuration releaseRuntimeClasspath
 ```
 
-The GitHub Actions workflows install JDK 17 and Gradle 8.9 automatically. The debug workflow is for installable test builds. The release workflow produces an unsigned release APK because no signing key is stored in the repository.
+The GitHub Actions workflows install JDK 17 and Gradle 8.9 automatically. The debug workflow is for installable test builds. The release workflow currently produces an unsigned release APK because no signing key is stored in the repository. F-Droid performs its own build and signing after accepting the metadata submission; do not distribute the unsigned APK as an installable consumer release.
 
 ## Dependency and permission audit
 
@@ -37,17 +40,20 @@ Review the dependency report for new libraries and their licenses before every p
 
 ## F-Droid
 
-The release workflow generates a version-specific metadata file as a release asset. Official F-Droid inclusion still requires a submission/merge in the separate `fdroiddata` repository and a successful F-Droid build. The metadata template in `fdroid/metadata/` is a starting point and must be validated against the current F-Droid metadata schema before submission.
+The release workflow generates a version-specific metadata file as a release asset. Official F-Droid inclusion requires a separate submission to the F-Droid Data project on GitLab, successful metadata CI, review/acceptance by F-Droid maintainers, and a successful F-Droid build. Publishing a GitHub Release or generating YAML does not publish the app on F-Droid.
 
-The current application ID `com.sunrisesunset.clock` must also be checked for F-Droid package-name policy and developer domain ownership before submission.
+For a first-time app, F-Droid recommends opening a Request for Packaging (RFP). Otherwise, prepare `metadata/com.sunrisesunset.clock.yml` in a fork of `fdroiddata`, validate it with the F-Droid CI pipeline, and open a merge request. The GitHub mirror of fdroiddata is read-only; submissions are made through GitLab.
+
+Before submission, confirm the application ID `com.sunrisesunset.clock` is acceptable under F-Droid's package-name policy and that the reverse-domain namespace is appropriate for the developer.
 
 ## Screenshots
 
-Screenshots must be genuine captures of the running application. Add them to the Fastlane screenshots directory. The release workflow uses an Android emulator and UI Automator to open the launcher widget picker, place the Sunrise Sunset Clock widget on the home screen, verify its SUNRISE and SUNSET labels, and capture the actual launcher screen. It also captures the app setup screen separately. Both captures are genuine emulator screenshots, not mockups. Demo coordinates are written only to the disposable emulator test profile.
+Screenshots must be genuine captures from the running app on a physical Android device. Use the phone's native screenshot function. The setup image must show the actual setup screen; the widget image must show the widget placed on the real launcher with its sunrise and sunset values. Keep both images unaltered and free of private notifications or unrelated personal information.
 
+The release workflow performs structural PNG checks (file signature, dimensions, file size, and distinct images). These checks cannot establish visual correctness or prove which device captured the image; a human must review both images before the release tag is pushed.
 
-## Emulator diagnostics and test permissions
+The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. Test-only instrumentation permissions are not requested from installed app users.
 
-The UI screenshot suite is also a release-readiness check. Keep the failure-evidence collection and genuine screenshot requirements described in [Emulator UI test diagnostics](EMULATOR_DIAGNOSTICS.md). On failure, inspect the uploaded diagnostics artifact before changing app code or relaxing assertions. The app setup screenshot and actual launcher widget screenshot must both be verified; an APK build or a black final-emulator capture is not a substitute.
+## Legacy emulator diagnostics
 
-The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. The emulator test harness uses instrumentation/ADB to inspect and capture its disposable test device; those test capabilities are not requested from installed app users. Deterministic coordinates are seeded only in the emulator test profile. See the diagnostics guide for the complete permission and privacy explanation.
+`StoreScreenshotTest.kt` and `docs/EMULATOR_DIAGNOSTICS.md` describe the earlier emulator-based screenshot investigation. They are not part of the release workflow and must not be used to produce release screenshots.
