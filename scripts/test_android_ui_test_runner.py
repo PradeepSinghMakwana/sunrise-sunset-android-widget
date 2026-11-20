@@ -54,7 +54,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         self.assertEqual(7, result.returncode)
         self.assertEqual(
             [
-                "pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/",
+                "pull /storage/emulated/0/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/",
                 "shell dumpsys appwidget",
                 "logcat -d",
                 "exec-out screencap -p",
@@ -65,6 +65,23 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
     def test_returns_success_when_gradle_succeeds(self):
         result, _ = self._run_with_stubs(0)
         self.assertEqual(0, result.returncode)
+
+    def test_uses_canonical_external_storage_path(self):
+        script = RUNNER.read_text(encoding="utf-8")
+        self.assertIn(
+            "/storage/emulated/0/Android/data/com.sunrisesunset.clock/files/screenshots/.",
+            script,
+        )
+        self.assertNotIn(
+            "adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/.",
+            script,
+        )
+
+    def test_workflow_does_not_pull_after_emulator_runner_stops(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("script: bash scripts/run-android-ui-tests.sh", workflow)
+        self.assertNotIn("Collect Android 13 screenshot evidence", workflow)
+        self.assertNotIn("adb pull", workflow)
 
     def test_workflow_invokes_runner_as_one_process(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
