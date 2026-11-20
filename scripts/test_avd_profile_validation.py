@@ -44,7 +44,7 @@ class AvdProfileValidationTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
         self.assertNotIn("reactivecircus/android-emulator-runner", workflow)
-        self.assertNotRegex(workflow, r"(?m)^\\s*adb\\s")
+        self.assertNotRegex(workflow, r"(?m)^\s*adb\s")
         self.assertNotIn("Enable KVM", workflow)
         self.assertIn("Validate committed physical-device store screenshots", workflow)
         self.assertIn("01-app-setup.png", workflow)
