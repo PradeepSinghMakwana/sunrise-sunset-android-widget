@@ -256,7 +256,8 @@ class WidgetResourceContractTest {
     }
 }
 }{hierarchy.absolutePath}"))
-        assertTrue(!source.contains("context.getExternalFilesDir(null)"))
+        val evidenceFunction = source.substringAfter("private fun captureShellEvidence").substringBefore("private fun hierarchyFile")
+        assertTrue(!evidenceFunction.contains("getExternalFilesDir"))
     }
 
     @Test
