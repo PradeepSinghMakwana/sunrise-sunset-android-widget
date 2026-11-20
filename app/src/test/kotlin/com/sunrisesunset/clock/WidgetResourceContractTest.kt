@@ -233,7 +233,6 @@ class WidgetResourceContractTest {
         )
     }
 
-
     @Test
     fun savingLocationTriggersRefreshOfEveryExistingWidget() {
         val source = File(
