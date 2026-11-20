@@ -72,17 +72,31 @@ class WidgetResourceContractTest {
     }
 
     @Test
-    fun screenshotUiTestChecksWidgetRegistrationBeforeCheckingVisibleLabels() {
+    fun screenshotUiTestVerifiesWidgetRegistrationWithoutQueryingRemoteViewsChildren() {
         val source = File(
             "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
         ).readText()
         val registrationCheck = source.indexOf("getAppWidgetIds(")
-        val labelCheck = source.indexOf("By.res(context.packageName, \"sunrise_label\")")
+        val screenshotCapture = source.indexOf(
+            'val screenshot = File(output, "02-home-screen-widget.png")'
+        )
         assertTrue("UI test must verify launcher registered a widget instance", registrationCheck >= 0)
-        assertTrue("UI test must verify labels only after widget registration", labelCheck > registrationCheck)
         assertTrue(
-            "UI test must preserve the post-placement hierarchy for diagnosis",
-            source.contains("captureCheckpoint(device, output, \"08-widget-after-placement\")")
+            "UI test must capture the launcher screenshot only after widget registration",
+            screenshotCapture > registrationCheck
+        )
+        assertTrue(
+            "UI test must not query RemoteViews child IDs through UiAutomator",
+            !source.contains('By.res(context.packageName, "sunrise_label")') &&
+                !source.contains('By.res(context.packageName, "sunset_label")')
+        )
+        assertTrue(
+            "UI test must explain why RemoteViews children are not queried",
+            source.contains("RemoteViews child TextViews are not individually queryable")
+        )
+        assertTrue(
+            "Solar label IDs and strings must remain covered by the resource contract test",
+            source.contains("WidgetResourceContractTest")
         )
     }
 
