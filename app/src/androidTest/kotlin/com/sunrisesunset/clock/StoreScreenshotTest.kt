@@ -3,6 +3,7 @@ package com.sunrisesunset.clock
 import android.appwidget.AppWidgetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
@@ -59,6 +60,13 @@ class StoreScreenshotTest {
             .putString(LocationPreferences.LONGITUDE, "-122.084")
             .commit()
 
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val expectedProvider = ComponentName(context, SunClockWidgetProvider::class.java)
+        assertTrue(
+            "Sunrise Sunset Clock is missing from Android's installed widget providers",
+            appWidgetManager.installedProviders.any { it.provider == expectedProvider }
+        )
+
         unlockDevice(device, context)
         device.pressHome()
         assertTrue("Android launcher did not become visible",
@@ -111,9 +119,13 @@ class StoreScreenshotTest {
         Thread.sleep(1_000)
         captureCheckpoint(device, output, "08-widget-after-placement")
 
-        val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(
-            ComponentName(context, SunClockWidgetProvider::class.java)
-        )
+        // Android 13 keeps the widget selected after the drag, with resize handles
+        // visible. Dismiss that mode before treating the home screen as final.
+        device.pressBack()
+        device.waitForIdle()
+        Thread.sleep(1_000)
+
+        val widgetIds = appWidgetManager.getAppWidgetIds(expectedProvider)
         assertTrue(
             "Launcher drag did not register a Sunrise Sunset Clock widget instance; " +
                 "inspect 08-widget-after-placement.xml",
@@ -128,10 +140,24 @@ class StoreScreenshotTest {
             )
         }
 
-        // Launcher3 exposes AppWidgetHostView as a single accessibility node on Android 13.
-        // RemoteViews child TextViews are not individually queryable through UiAutomator.
-        // Their IDs and text are verified by WidgetResourceContractTest; here verify
-        // launcher registration and capture the actual rendered home-screen widget.
+        // The launcher host must exist after leaving resize mode. A preview tile or
+        // placement outline is not an acceptable substitute for a bound host view.
+        val widgetHost = device.wait(
+            Until.findObject(By.clazz("com.android.launcher3.widget.LauncherAppWidgetHostView")),
+            8_000
+        )
+        assertNotNull(
+            "Placed widget host is not present after dismissing placement mode; " +
+                "inspect 08-widget-after-placement.xml",
+            widgetHost
+        )
+        val widgetBounds = widgetHost!!.visibleBounds
+        assertTrue("Widget host is clipped or has zero size: $widgetBounds",
+            widgetBounds.width() >= 250 && widgetBounds.height() >= 130)
+        assertTrue("Widget host extends beyond the display: $widgetBounds",
+            widgetBounds.left >= 0 && widgetBounds.top >= 0 &&
+                widgetBounds.right <= device.displayWidth &&
+                widgetBounds.bottom <= device.displayHeight)
 
         val screenshot = File(output, "02-home-screen-widget.png")
         assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
@@ -152,15 +178,19 @@ class StoreScreenshotTest {
             "Home-screen screenshot is visually unchanged after widget placement",
             changedPixels > 500
         )
-        val sunriseAccentPixels = countPixelsNear(after, 0xFFFFD27A.toInt(), tolerance = 72)
-        val sunsetAccentPixels = countPixelsNear(after, 0xFFFFB28A.toInt(), tolerance = 72)
+        val sunriseAccentPixels = countPixelsNear(
+            after, widgetBounds, 0xFFFFD27A.toInt(), tolerance = 38
+        )
+        val sunsetAccentPixels = countPixelsNear(
+            after, widgetBounds, 0xFFFFB28A.toInt(), tolerance = 38
+        )
         assertTrue(
             "Screenshot does not visibly contain the widget's sunrise label accent",
-            sunriseAccentPixels > 12
+            sunriseAccentPixels > 3
         )
         assertTrue(
             "Screenshot does not visibly contain the widget's sunset label accent",
-            sunsetAccentPixels > 12
+            sunsetAccentPixels > 3
         )
         before.recycle()
         after.recycle()
@@ -168,13 +198,22 @@ class StoreScreenshotTest {
     }
 
 
-    private fun countPixelsNear(bitmap: Bitmap, target: Int, tolerance: Int): Int {
+    private fun countPixelsNear(
+        bitmap: Bitmap,
+        bounds: Rect,
+        target: Int,
+        tolerance: Int
+    ): Int {
         val targetRed = (target shr 16) and 0xFF
         val targetGreen = (target shr 8) and 0xFF
         val targetBlue = target and 0xFF
         var matches = 0
-        for (y in 0 until bitmap.height step 2) {
-            for (x in 0 until bitmap.width step 2) {
+        val left = bounds.left.coerceIn(0, bitmap.width)
+        val top = bounds.top.coerceIn(0, bitmap.height)
+        val right = bounds.right.coerceIn(0, bitmap.width)
+        val bottom = bounds.bottom.coerceIn(0, bitmap.height)
+        for (y in top until bottom) {
+            for (x in left until right) {
                 val pixel = bitmap.getPixel(x, y)
                 val red = (pixel shr 16) and 0xFF
                 val green = (pixel shr 8) and 0xFF
