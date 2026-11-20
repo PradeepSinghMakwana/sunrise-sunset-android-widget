@@ -40,48 +40,36 @@ jobs:
       - name: Run JVM unit tests before Android 13 UI tests
         run: gradle :app:testDebugUnitTest
 
-      - name: Enable KVM for hardware-accelerated emulator
+      - name: Validate committed physical-device store screenshots
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import struct
+          import sys
 
-      - name: Run instrumented UI tests on Android 13 (API 33)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: default
-          arch: x86_64
-          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
-          disable-animations: true
-          emulator-boot-timeout: 600
-          script: |
-            set +e
-            gradle :app:connectedDebugAndroidTest
-            test_status=$?
-            mkdir -p android-13-screenshots
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/ || true
-            adb shell dumpsys appwidget > android-13-screenshots/appwidget-dump.txt 2>&1 || true
-            adb logcat -d > android-13-screenshots/logcat.txt 2>&1 || true
-            adb exec-out screencap -p > android-13-screenshots/emulator-final.png 2>/dev/null || true
-            exit "$test_status"
-
-      - name: Upload Android 13 UI test diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: Android-13-API-33-release-test-diagnostics
-          path: |
-            android-13-screenshots/
-            app/build/reports/androidTests/connected/debug/
-            app/build/outputs/androidTest-results/connected/debug/
-          if-no-files-found: warn
-
-      - name: Collect Android 13 store screenshots
-        run: |
-          mkdir -p fastlane/metadata/android/en-US/images/phoneScreenshots
-          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png fastlane/metadata/android/en-US/images/phoneScreenshots/
-          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png fastlane/metadata/android/en-US/images/phoneScreenshots/
+          directory = Path("fastlane/metadata/android/en-US/images/phoneScreenshots")
+          required = ["01-app-setup.png", "02-home-screen-widget.png"]
+          hashes = set()
+          for filename in required:
+              path = directory / filename
+              if not path.is_file():
+                  sys.exit(
+                      f"FAIL: missing reviewed physical-device screenshot: {path}. "
+                      "Capture it on a real Android phone, visually review it, and commit it before tagging."
+                  )
+              data = path.read_bytes()
+              if len(data) < 10_000 or data[:8].hex() != "89504e470d0a1a0a" or data[12:16] != b"IHDR":
+                  sys.exit(f"FAIL: invalid or incomplete PNG: {path}")
+              width, height = struct.unpack(">II", data[16:24])
+              if not (320 <= width <= 3840 and 320 <= height <= 3840):
+                  sys.exit(f"FAIL: unexpected dimensions {width}x{height}: {path}")
+              digest = hashlib.sha256(data).hexdigest()
+              if digest in hashes:
+                  sys.exit("FAIL: setup and widget screenshots are identical")
+              hashes.add(digest)
+              print(f"PASS: {filename}: {width}x{height}, {len(data)} bytes")
+          PY
 
       - name: Validate Android 13 screenshots
         run: |
