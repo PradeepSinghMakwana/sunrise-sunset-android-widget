@@ -76,6 +76,7 @@ class StoreScreenshotTest {
         Thread.sleep(1_000)
         device.takeScreenshot(File(output, "02-launcher-before.png"))
         device.dumpWindowHierarchy(File(output, "02-launcher-before.xml"))
+        captureShellEvidence(device, "02-launcher-before")
 
         val workspace = device.wait(
             Until.findObject(By.res("com.android.launcher3", "workspace")), 10_000)
@@ -264,9 +265,23 @@ class StoreScreenshotTest {
     // it after Gradle finishes, instead of losing the app's external files.
     private fun captureShellEvidence(device: UiDevice, name: String) {
         val evidenceDirectory = "/data/local/tmp/sunrise-sunset-ci"
+        val screenshotsDirectory = File(
+            requireNotNull(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)),
+            "screenshots"
+        )
+        val hierarchy = File(screenshotsDirectory, "$name.xml")
+        assertTrue("Window hierarchy was not written for $name: $hierarchy", hierarchy.exists() && hierarchy.length() > 0)
         device.executeShellCommand("mkdir -p $evidenceDirectory")
         device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
-        device.executeShellCommand("uiautomator dump $evidenceDirectory/$name.xml")
+        // The instrumentation UiAutomation is already registered, so launching the
+        // standalone uiautomator dump CLI fails on API 33. Copy the hierarchy
+        // captured through UiDevice.dumpWindowHierarchy instead.
+        val copyResult = device.executeShellCommand(
+            "cp '${hierarchy.absolutePath}' '$evidenceDirectory/$name.xml' && " +
+                "test -s '$evidenceDirectory/$name.xml' && echo HIERARCHY_COPY_OK"
+        )
+        assertTrue("Could not copy $name hierarchy to CI evidence: $copyResult",
+            copyResult.contains("HIERARCHY_COPY_OK"))
         device.executeShellCommand("dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt")
     }
 
