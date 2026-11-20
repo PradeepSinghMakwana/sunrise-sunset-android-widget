@@ -113,3 +113,41 @@ jobs:
           name: Sunrise-Sunset-Clock-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+  android-13-ui-tests:
+    name: Android 13 API 33 emulator UI and screenshot tests
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 8.9
+      - name: Run instrumented UI tests on Android 13
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          disable-animations: true
+          emulator-boot-timeout: 600
+          script: gradle :app:connectedDebugAndroidTest
+      - name: Collect Android 13 screenshot evidence
+        if: always()
+        run: |
+          mkdir -p android-13-screenshots
+          adb devices
+          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/ || true
+      - name: Upload Android 13 UI test screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Android-13-API-33-UI-test-evidence
+          path: android-13-screenshots/
+          if-no-files-found: warn
