@@ -99,19 +99,19 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         result, _ = self._run_with_stubs(0)
         self.assertEqual(1, result.returncode)
         self.assertIn("Missing or empty Android 13 screenshot:", result.stdout)
-        self.assertIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
+        self.assertIn("WARNING: Missing optional Android 13 UI hierarchy:", result.stdout)
 
-    def test_fails_when_screenshots_exist_but_hierarchies_are_missing(self):
+    def test_optional_hierarchy_export_does_not_fail_when_screenshots_exist(self):
         result, _ = self._run_with_stubs(0, evidence_mode="screenshots")
-        self.assertEqual(1, result.returncode)
+        self.assertEqual(0, result.returncode)
         self.assertNotIn("Missing or empty Android 13 screenshot:", result.stdout)
-        self.assertIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
+        self.assertIn("WARNING: Missing optional Android 13 UI hierarchy:", result.stdout)
 
     def test_returns_success_when_gradle_and_evidence_succeed(self):
         result, _ = self._run_with_stubs(0, evidence_mode="complete")
         self.assertEqual(0, result.returncode)
         self.assertNotIn("Missing or empty Android 13 screenshot:", result.stdout)
-        self.assertNotIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
+        self.assertNotIn("WARNING: Missing optional Android 13 UI hierarchy:", result.stdout)
 
     def test_collects_shell_owned_screenshots_after_gradle_cleanup(self):
         script = RUNNER.read_text(encoding="utf-8")
