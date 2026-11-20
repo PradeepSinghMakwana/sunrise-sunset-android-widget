@@ -54,7 +54,7 @@ Pull requests and pushes to `main` run independent checks:
 - **Debug APK build:** assembles and uploads the `app-debug.apk` artifact.
 - **Android 13 (API 33) UI tests:** runs instrumented tests on an emulator after JVM unit tests pass. The runner sets the test time zone to `America/Los_Angeles` and collects screenshots, UI hierarchy XML, app-widget dumps, and logcat diagnostics as artifacts.
 
-The UI-test emulator evidence is for debugging and regression testing. It is not accepted as a substitute for store screenshots captured on a physical Android phone.
+The same Android 13 emulator UI test runs during release creation. The two published app screenshots are genuine captures of the running emulator UI, explicitly identified as emulator screenshots. They are not physical-device captures and do not prove behavior on every OEM launcher or physical device.
 
 ## Kotlin code-quality workflow
 
@@ -67,18 +67,18 @@ For Kotlin code changes, run Detekt before Android lint:
 
 Keep Detekt and Android lint CI jobs independent so both report results even when one fails.
 
-## Releases and store screenshots
+## Releases and screenshots
 
 Tagged releases use the automated GitHub Actions pipeline. See [Release process](docs/RELEASE_PROCESS.md) for versioning, Gradle build instructions, dependency and permission audits, F-Droid metadata generation, source archives, and screenshot requirements. See [Emulator UI test diagnostics](docs/EMULATOR_DIAGNOSTICS.md) for investigation steps and the distinction between app permissions and test-only emulator access.
 
-Every release requires two **genuine physical-device** screenshots, captured and visually reviewed before tagging:
+Every release requires two genuine Android 13 emulator UI screenshots:
 
 - `01-app-setup.png` — the actual app setup screen.
 - `02-home-screen-widget.png` — the actual launcher home screen with the widget and sunrise/sunset values visible.
 
-The release workflow validates the screenshot files' basic structure and dimensions, but those automated checks cannot establish visual correctness or verify which device captured them. Do not push a release tag until both screenshots have been reviewed and committed.
+The release workflow captures these from the emulator during the tagged run, checks their basic PNG structure, and publishes each PNG as a separate release asset. Their origin is documented as emulator captures, never as physical-device screenshots. Do not push a release tag until the Android 13 UI test and screenshot validation pass.
 
-Push a tag matching the app's `versionName` (for example, `v2.0`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports. F-Droid publication still requires its official submission and maintainer review; generated metadata alone does not mean the app is published.
+Push a tag matching the app's `versionName` (for example, `v2.0`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, screenshots, and audit reports. F-Droid publication still requires its official submission and maintainer review; generated metadata alone does not mean the app is published.
 
 ## Branch integration policy
 
