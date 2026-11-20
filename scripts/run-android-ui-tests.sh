@@ -50,7 +50,8 @@ for file in "${required_screenshots[@]}"; do
 done
 for file in "${required_hierarchies[@]}"; do
     if [[ ! -s "android-13-screenshots/$file" ]]; then
-        echo "WARNING: Missing optional Android 13 UI hierarchy: $file"
+        echo "Missing or empty Android 13 UI hierarchy: $file"
+        evidence_status=1
     fi
 done
 if [[ "$test_status" -eq 0 && "$evidence_status" -ne 0 ]]; then
