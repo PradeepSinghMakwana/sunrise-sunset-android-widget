@@ -1,11 +1,11 @@
 package com.sunrisesunset.clock
 
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.w3c.dom.Element
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Guards the widget's resource-name contract used by StoreScreenshotTest.
