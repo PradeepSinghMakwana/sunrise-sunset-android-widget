@@ -39,26 +39,23 @@ The app requests approximate location only. It does not declare or request preci
 ## Notes
 Sunrise and sunset use a NOAA-style approximation and may differ slightly from published almanacs. The clock follows the device's current time zone. The widget refreshes periodically and when Android reports date, time, or time-zone changes.
 
-## Engineering effort and automation ROI
+## Engineering effort and release acceptance
 
-**Assessment snapshot: 16 November 2026.** The emulator screenshot automation and its diagnostics required a concentrated troubleshooting effort. The relevant work spanned approximately 3 hours 11 minutes of elapsed clock time (about 04:25–07:36 UTC). This is a wall-clock window across multiple work and CI events, **not a measured timesheet or 3 hours 11 minutes of continuous hands-on work**.
+**Historical assessment snapshot: 16 November 2026.** The emulator screenshot automation and its diagnostics required a concentrated troubleshooting effort. The relevant work spanned approximately 3 hours 11 minutes of elapsed clock time (about 04:25–07:36 UTC). This is a wall-clock window across multiple work and CI events, **not a measured timesheet or 3 hours 11 minutes of continuous hands-on work**.
 
-The troubleshooting included approximately 14 technical commits focused on emulator tests, launcher-widget screenshot capture, CI behaviour, and diagnostics. Several manual emulator workflow attempts failed or were cancelled while the tests were being developed. Ordinary push builds were configured to skip the emulator tests; emulator testing is reserved for pull requests and manual workflow runs.
+The troubleshooting included approximately 14 technical commits focused on emulator tests, launcher-widget screenshot capture, CI behaviour, and diagnostics. Several emulator workflow attempts failed or were cancelled. The emulator-based screenshot path has now been retired from the release workflow; tagged releases do not launch emulators.
 
-### Cost assumptions
+### Current screenshot policy
 
-- No paid cloud VM or physical test device was used for the GitHub Actions emulator runs described in this assessment.
-- GitHub Actions usage for this public repository was treated as **₹0 direct runner cost**, assuming standard public-repository hosted-runner eligibility and no separately billed services.
-- Mobile data usage and any other indirect costs were not measured.
-- Labour has no recorded cash payment. For opportunity-cost illustration only, valuing the 3.18-hour elapsed window at ₹300, ₹500, or ₹1,000 per hour gives approximately ₹955, ₹1,590, or ₹3,180 respectively. These are hypothetical valuations, not actual expenditure.
+Every release requires two genuine screenshots captured on a physical Android phone:
+- `01-app-setup.png`: the real app setup screen.
+- `02-home-screen-widget.png`: the real launcher home screen with the widget and both sunrise/sunset values visible.
 
-### Expected return
+The release workflow checks PNG structure, dimensions, file size, and that the two images differ. These checks do not establish visual correctness or prove which device captured the images. A human must inspect both screenshots before the release tag is pushed.
 
-The intended return is repeatable, automated evidence that the app setup screen and the real home-screen widget render correctly, reducing manual release checks and helping catch regressions.
+**Acceptance status as of 20 November 2026:** no physical-device screenshots have been committed yet. The release gate is intentionally unsatisfied until both images are captured, visually reviewed, and committed. Do not push a release tag before that happens.
 
-If the automation eventually saves 15–30 minutes per release, it would recover an estimated 3.18-hour effort after roughly 7–13 releases. This is a planning scenario, not a measured saving. The calculation excludes the additional value of catching defects before release.
-
-**Acceptance status at this assessment:** the required genuine app-setup and launcher-widget screenshots had not yet both been successfully captured and visually verified. Therefore, the automation's delivery ROI was not yet demonstrated. Do not treat the estimated future savings as realised benefits. Update this section when the screenshot tests pass reliably and actual CI usage or time savings can be measured.
+The earlier emulator automation's expected time savings were not demonstrated, so no realised ROI is claimed.
 
 ## License
 
