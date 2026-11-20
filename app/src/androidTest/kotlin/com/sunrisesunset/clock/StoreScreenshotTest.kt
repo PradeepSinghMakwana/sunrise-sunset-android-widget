@@ -277,7 +277,8 @@ class StoreScreenshotTest {
         // standalone uiautomator dump CLI fails on API 33. Copy the hierarchy
         // captured through UiDevice.dumpWindowHierarchy instead.
         val copyResult = device.executeShellCommand(
-            "cp '${hierarchy.absolutePath}' '$evidenceDirectory/$name.xml' && " +
+            "run-as ${InstrumentationRegistry.getInstrumentation().targetContext.packageName} " +
+                "cat '${hierarchy.absolutePath}' > '$evidenceDirectory/$name.xml' && " +
                 "test -s '$evidenceDirectory/$name.xml' && echo HIERARCHY_COPY_OK"
         )
         assertTrue("Could not copy $name hierarchy to CI evidence: $copyResult",
