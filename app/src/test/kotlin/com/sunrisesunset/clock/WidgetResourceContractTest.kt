@@ -23,6 +23,21 @@ class WidgetResourceContractTest {
         assertStringResource(strings, "sunset_label", "SUNSET")
     }
 
+    @Test
+    fun launcherScreenshotTestUsesTheSameStableLabelIds() {
+        val screenshotTest = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "Screenshot test must query the sunrise_label resource ID",
+            screenshotTest.contains("By.res(context.packageName, \"sunrise_label\")")
+        )
+        assertTrue(
+            "Screenshot test must query the sunset_label resource ID",
+            screenshotTest.contains("By.res(context.packageName, \"sunset_label\")")
+        )
+    }
+
     private fun assertWidgetLabel(
         layout: org.w3c.dom.Document,
         viewId: String,
