@@ -13,7 +13,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "build-apk.yml"
 
 
 class AndroidUiTestRunnerTest(unittest.TestCase):
-    def _run_with_stubs(self, gradle_status):
+    def _run_with_stubs(self, gradle_status, evidence_mode="missing"):
         with tempfile.TemporaryDirectory() as directory:
             temp = Path(directory)
             calls = temp / "adb-calls.txt"
@@ -22,16 +22,46 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
 
             gradle = bin_dir / "gradle"
             gradle.write_text(
-                "#!/usr/bin/env bash\nexit \"$GRADLE_TEST_EXIT\"\n",
+                "#!/usr/bin/env bash\\nexit \\"$GRADLE_TEST_EXIT\\"\\n",
                 encoding="utf-8",
             )
             adb = bin_dir / "adb"
             adb.write_text(
-                "#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\nexit 0\n",
+                "#!/usr/bin/env bash\\nprintf '%s\\\\n' \\"$*\\" >> \\"$ADB_CALLS\\"\\nexit 0\\n",
                 encoding="utf-8",
             )
             gradle.chmod(0o755)
             adb.chmod(0o755)
+
+            screenshots = [
+                "01-app-setup.png",
+                "02-launcher-before.png",
+                "02-home-screen-widget.png",
+                "04-app-setup-ready.png",
+                "05-launcher-edit-menu.png",
+                "06-widget-picker-open.png",
+                "07-widget-row-selected.png",
+                "08-widget-after-placement.png",
+            ]
+            hierarchies = [
+                "01-app-setup.xml",
+                "02-launcher-before.xml",
+                "02-home-screen-widget.xml",
+                "04-app-setup-ready.xml",
+                "05-launcher-edit-menu.xml",
+                "06-widget-picker-open.xml",
+                "07-widget-row-selected.xml",
+                "08-widget-after-placement.xml",
+            ]
+            if evidence_mode in ("screenshots", "complete"):
+                evidence_dir = temp / "android-13-screenshots"
+                evidence_dir.mkdir()
+                for name in screenshots:
+                    (evidence_dir / name).write_text("screenshot", encoding="utf-8")
+            if evidence_mode == "complete":
+                evidence_dir = temp / "android-13-screenshots"
+                for name in hierarchies:
+                    (evidence_dir / name).write_text("hierarchy", encoding="utf-8")
 
             env = os.environ.copy()
             env.update({
@@ -50,7 +80,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
             return result, calls.read_text(encoding="utf-8").splitlines()
 
     def test_preserves_gradle_failure_after_collecting_all_diagnostics(self):
-        result, adb_calls = self._run_with_stubs(7)
+        result, adb_calls = self._run_with_stubs(7, evidence_mode="complete")
         self.assertEqual(7, result.returncode)
         self.assertEqual(
             [
@@ -62,9 +92,23 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
             adb_calls,
         )
 
-    def test_returns_success_when_gradle_succeeds(self):
+    def test_fails_when_gradle_succeeds_but_evidence_is_missing(self):
         result, _ = self._run_with_stubs(0)
+        self.assertEqual(1, result.returncode)
+        self.assertIn("Missing or empty Android 13 screenshot:", result.stdout)
+        self.assertIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
+
+    def test_fails_when_screenshots_exist_but_hierarchies_are_missing(self):
+        result, _ = self._run_with_stubs(0, evidence_mode="screenshots")
+        self.assertEqual(1, result.returncode)
+        self.assertNotIn("Missing or empty Android 13 screenshot:", result.stdout)
+        self.assertIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
+
+    def test_returns_success_when_gradle_and_evidence_succeed(self):
+        result, _ = self._run_with_stubs(0, evidence_mode="complete")
         self.assertEqual(0, result.returncode)
+        self.assertNotIn("Missing or empty Android 13 screenshot:", result.stdout)
+        self.assertNotIn("Missing or empty Android 13 UI hierarchy:", result.stdout)
 
     def test_collects_shell_owned_screenshots_after_gradle_cleanup(self):
         script = RUNNER.read_text(encoding="utf-8")
