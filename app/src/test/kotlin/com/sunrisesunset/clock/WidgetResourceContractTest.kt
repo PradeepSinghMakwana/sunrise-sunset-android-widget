@@ -274,5 +274,4 @@ class WidgetResourceContractTest {
         assertTrue(actionNames.contains("android.intent.action.TIME_SET"))
         assertTrue(actionNames.contains("android.intent.action.TIMEZONE_CHANGED"))
     }
-
 }
