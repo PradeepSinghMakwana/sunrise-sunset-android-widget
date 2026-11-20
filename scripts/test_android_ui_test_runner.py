@@ -166,7 +166,8 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         for name in ("build-apk.yml", "release.yml"):
             workflow = (root / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertIn("target: default", workflow)
-            self.assertNotRegex(workflow, r"(?im)^\\s*profile\\s*:")
+            self.assertIn("profile: Nexus 5X", workflow)
+            self.assertIn("avd_profile_validation.py 'Nexus 5X'", workflow)
             self.assertNotIn("pixel_2", workflow.lower())
             self.assertNotIn("pixel_7", workflow.lower())
 
