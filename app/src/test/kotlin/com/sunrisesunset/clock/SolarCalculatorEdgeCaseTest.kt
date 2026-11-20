@@ -454,7 +454,7 @@ class SolarCalculatorEdgeCaseTest {
                         date, latitude, 0.0, sunrise, ZoneOffset.UTC
                     )
                     if (result != null) {
-                        assertTrue(result.toInstant().epochSecond.isFinite())
+                        assertTrue(result.toInstant().nano in 0..999_999_999)
                         assertEquals(date, result.toLocalDate())
                     }
                 }
