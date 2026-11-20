@@ -143,16 +143,7 @@ jobs:
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
           emulator-boot-timeout: 600
-          script: |
-            set +e
-            gradle :app:connectedDebugAndroidTest
-            test_status=$?
-            mkdir -p android-13-screenshots
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/ || true
-            adb shell dumpsys appwidget > android-13-screenshots/appwidget-dump.txt 2>&1 || true
-            adb logcat -d > android-13-screenshots/logcat.txt 2>&1 || true
-            adb exec-out screencap -p > android-13-screenshots/emulator-final.png 2>/dev/null || true
-            exit "$test_status"
+          script: bash scripts/run-android-ui-tests.sh
       - name: Collect Android 13 screenshot evidence
         if: always()
         run: |
