@@ -124,14 +124,17 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
 
     def test_workflow_does_not_pull_after_emulator_runner_stops(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("bash scripts/run-android-ui-tests.sh", workflow)
-        self.assertIn("time_zone America/Los_Angeles", workflow)
+        self.assertIn("script: bash scripts/run-android-ui-tests.sh", workflow)
         self.assertNotIn("Collect Android 13 screenshot evidence", workflow)
         self.assertNotIn("adb pull", workflow)
 
     def test_workflow_invokes_runner_as_one_process(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("bash scripts/run-android-ui-tests.sh", workflow)
+        self.assertIn("script: bash scripts/run-android-ui-tests.sh", workflow)
+        runner = RUNNER.read_text(encoding="utf-8")
+        self.assertIn("settings put global time_zone America/Los_Angeles", runner)
+        self.assertIn("setprop persist.sys.timezone America/Los_Angeles", runner)
+        self.assertIn("TIMEZONE_CHANGED", runner)
         self.assertNotIn("test_status=$?", workflow)
 
 
