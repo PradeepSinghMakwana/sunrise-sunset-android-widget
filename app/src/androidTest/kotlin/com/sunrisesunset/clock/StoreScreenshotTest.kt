@@ -1,6 +1,8 @@
 package com.sunrisesunset.clock
 
+import android.app.AppWidgetManager
 import android.app.KeyguardManager
+import android.content.ComponentName
 import android.content.Context
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -101,6 +103,15 @@ class StoreScreenshotTest {
         device.waitForIdle()
         Thread.sleep(1_000)
         captureCheckpoint(device, output, "08-widget-after-placement")
+
+        val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(
+            ComponentName(context, SunClockWidgetProvider::class.java)
+        )
+        assertTrue(
+            "Launcher drag did not register a Sunrise Sunset Clock widget instance; " +
+                "inspect 08-widget-after-placement.xml",
+            widgetIds.isNotEmpty()
+        )
 
         val sunriseLabel = device.wait(
             Until.findObject(By.res(context.packageName, "sunrise_label")), 12_000)
