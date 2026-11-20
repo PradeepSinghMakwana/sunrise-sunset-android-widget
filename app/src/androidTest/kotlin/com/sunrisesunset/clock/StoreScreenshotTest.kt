@@ -53,6 +53,7 @@ class StoreScreenshotTest {
 
     @Test
     fun placeWidgetOnLauncherAndCaptureHomeScreen() {
+        assertCiTimezone()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val device = UiDevice.getInstance(instrumentation)
