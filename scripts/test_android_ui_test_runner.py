@@ -27,9 +27,10 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
             )
             adb = bin_dir / "adb"
             adb.write_text(
-                "#!/usr/bin/env bash\\nprintf '%s\\\\n' \\"$*\\" >> \\"$ADB_CALLS\\"\\n"
-                "if [[ \\"$*\\" == \\"shell date +%Z%z\\" ]]; then echo \\"$DEVICE_TIMEZONE\\"; fi\\n"
-                "exit 0\\n",
+                "#!/usr/bin/env bash\n"
+                "printf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\n"
+                "if [[ \"$*\" == \"shell date +%Z%z\" ]]; then echo \"$DEVICE_TIMEZONE\"; fi\n"
+                "exit 0\n",
                 encoding="utf-8",
             )
             gradle.chmod(0o755)
