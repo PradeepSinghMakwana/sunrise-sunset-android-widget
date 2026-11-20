@@ -273,13 +273,11 @@ class StoreScreenshotTest {
         assertTrue("Window hierarchy was not written for $name: $hierarchy", hierarchy.exists() && hierarchy.length() > 0)
         device.executeShellCommand("mkdir -p $evidenceDirectory")
         device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
-        // The instrumentation UiAutomation is already registered, so launching the
-        // standalone uiautomator dump CLI fails on API 33. Copy the hierarchy
-        // captured through UiDevice.dumpWindowHierarchy instead.
+        // Copy from app-specific external storage, readable by the shell UID.
+        // This survives until Gradle uninstalls the target app after instrumentation.
         val copyResult = device.executeShellCommand(
-            "run-as ${InstrumentationRegistry.getInstrumentation().targetContext.packageName} " +
-                "cat '${hierarchy.absolutePath}' > '$evidenceDirectory/$name.xml' && " +
-                "test -s '$evidenceDirectory/$name.xml' && echo HIERARCHY_COPY_OK"
+            "cp ${hierarchy.absolutePath} $evidenceDirectory/$name.xml && " +
+                "test -s $evidenceDirectory/$name.xml && echo HIERARCHY_COPY_OK"
         )
         if (!copyResult.contains("HIERARCHY_COPY_OK")) {
             android.util.Log.w(
@@ -292,9 +290,12 @@ class StoreScreenshotTest {
     }
 
     private fun hierarchyFile(context: Context, name: String): File {
-        val directory = File(context.filesDir, "screenshots")
+        val externalFilesDirectory = requireNotNull(context.getExternalFilesDir(null)) {
+            "App external-files directory is unavailable; CI cannot collect hierarchy evidence"
+        }
+        val directory = File(externalFilesDirectory, "screenshots")
         assertTrue(
-            "Could not create internal hierarchy directory at ${directory.absolutePath}",
+            "Could not create hierarchy directory at ${directory.absolutePath}",
             directory.mkdirs() || directory.isDirectory
         )
         return File(directory, "$name.xml")
