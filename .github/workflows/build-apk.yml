@@ -16,12 +16,12 @@ permissions:
 
 jobs:
   shell-validation:
-    name: Validate Bash diagnostics script
+    name: Validate release scripts (no emulator)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Bash script syntax
-        run: bash -n scripts/run-emulator-tests.sh
+      - name: Validate release script syntax
+        run: bash -n scripts/release-audit.sh scripts/generate-fdroid-metadata.sh
 
   unit-tests:
     name: JVM unit tests
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 8
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: 8.9
@@ -94,7 +94,7 @@ jobs:
           if-no-files-found: warn
 
   apk-build:
-    name: Build debug APK
+    name: Build debug APK for physical-device validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -106,11 +106,10 @@ jobs:
         with:
           gradle-version: 8.9
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle :app:assembleDebug
       - name: Upload debug APK
-        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: Sunrise-Sunset-Clock-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: warn
+          if-no-files-found: error
