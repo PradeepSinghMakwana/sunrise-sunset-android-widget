@@ -1,6 +1,7 @@
 package com.sunrisesunset.clock
 
 import android.appwidget.AppWidgetManager
+import android.graphics.BitmapFactory
 import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
@@ -116,6 +117,14 @@ class StoreScreenshotTest {
                 "inspect 08-widget-after-placement.xml",
             widgetIds.isNotEmpty()
         )
+        widgetIds.forEach { widgetId ->
+            val info = AppWidgetManager.getInstance(context).getAppWidgetInfo(widgetId)
+            assertNotNull("Registered widget $widgetId has no provider metadata", info)
+            assertTrue(
+                "Registered widget $widgetId belongs to an unexpected provider",
+                info!!.provider == ComponentName(context, SunClockWidgetProvider::class.java)
+            )
+        }
 
         // Launcher3 exposes AppWidgetHostView as a single accessibility node on Android 13.
         // RemoteViews child TextViews are not individually queryable through UiAutomator.
@@ -125,6 +134,24 @@ class StoreScreenshotTest {
         val screenshot = File(output, "02-home-screen-widget.png")
         assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
         assertTrue("Widget screenshot is empty", screenshot.length() > 10_000)
+        val before = BitmapFactory.decodeFile(File(output, "02-launcher-before.png").absolutePath)
+        val after = BitmapFactory.decodeFile(screenshot.absolutePath)
+        assertNotNull("Pre-placement launcher screenshot is not a valid PNG", before)
+        assertNotNull("Widget screenshot is not a valid PNG", after)
+        assertEquals("Launcher screenshot width changed unexpectedly", before!!.width, after!!.width)
+        assertEquals("Launcher screenshot height changed unexpectedly", before.height, after.height)
+        var changedPixels = 0
+        for (y in 0 until after.height step 4) {
+            for (x in 0 until after.width step 4) {
+                if (before.getPixel(x, y) != after.getPixel(x, y)) changedPixels++
+            }
+        }
+        assertTrue(
+            "Home-screen screenshot is visually unchanged after widget placement",
+            changedPixels > 500
+        )
+        before.recycle()
+        after.recycle()
         device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
     }
 
