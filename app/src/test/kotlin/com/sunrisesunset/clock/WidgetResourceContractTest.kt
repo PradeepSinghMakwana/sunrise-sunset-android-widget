@@ -86,6 +86,33 @@ class WidgetResourceContractTest {
         )
     }
 
+
+    @Test
+    fun screenshotUiTestDragsTheWidgetPreviewInsteadOfTheAppName() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        val previewSelector = source.indexOf(
+            "By.res(\"com.android.launcher3\", \"widget_preview\")"
+        )
+        val dragCall = source.indexOf("widgetPreview!!.drag(")
+        val oldTextSelector = source.indexOf(
+            "Until.findObject(By.textContains(\"Sunrise Sunset Clock\")), 8_000)"
+        )
+        assertTrue(
+            "Screenshot UI test must locate Launcher3's actual widget_preview view",
+            previewSelector >= 0
+        )
+        assertTrue(
+            "Screenshot UI test must drag the widget preview after locating it",
+            dragCall > previewSelector
+        )
+        assertTrue(
+            "The app-name text selector must not be used as the draggable widget preview",
+            oldTextSelector < 0
+        )
+    }
+
     @Test
     fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
         val source = File(
