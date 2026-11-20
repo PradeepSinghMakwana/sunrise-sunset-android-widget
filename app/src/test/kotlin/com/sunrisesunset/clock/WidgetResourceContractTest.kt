@@ -136,6 +136,30 @@ class WidgetResourceContractTest {
     }
 
     @Test
+    fun screenshotUiTestReacquiresWidgetPickerRowAfterScrolling() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "UI test must reacquire the widget row after scrolling to avoid stale bounds",
+            source.contains("appEntry = device.findObject(widgetEntrySelector)")
+        )
+    }
+
+    @Test
+    fun screenshotUiTestWritesCheckpointEvidenceOutsideAppSandbox() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "UI test must save screenshots and launcher hierarchy in shell-owned tmp",
+            source.contains("/data/local/tmp/sunrise-sunset-ci") &&
+                source.contains("screencap -p") &&
+                source.contains("uiautomator dump")
+        )
+    }
+
+    @Test
     fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
         val source = File(
             "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
