@@ -92,6 +92,10 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "shell cmd alarm set-timezone America/Los_Angeles",
                 "shell date +%Z%z",
                 "shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles",
+                "shell wm size 1080x2400",
+                "shell wm density 420",
+                "shell wm size",
+                "shell wm density",
                 "pull /data/local/tmp/sunrise-sunset-ci/. android-13-screenshots/",
                 "shell dumpsys appwidget",
                 "logcat -d",
@@ -146,6 +150,23 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         self.assertIn("android-13-screenshots/appwidget-dump-after-test-cleanup.txt", script)
         self.assertIn("required_hierarchies=(", script)
         self.assertIn("Missing or empty Android 13 UI hierarchy:", script)
+
+    def test_runner_applies_and_verifies_generic_tall_phone_display(self):
+        script = RUNNER.read_text(encoding="utf-8")
+        self.assertIn("wm size 1080x2400", script)
+        self.assertIn("wm density 420", script)
+        self.assertIn("Override size: 1080x2400", script)
+        self.assertIn("Override density: 420", script)
+        self.assertIn("not a Pixel hardware profile or OEM skin", script)
+
+    def test_both_workflows_use_generic_aosp_without_named_pixel_profile(self):
+        root = Path(__file__).resolve().parents[1]
+        for name in ("build-apk.yml", "release.yml"):
+            workflow = (root / ".github/workflows" / name).read_text(encoding="utf-8")
+            self.assertIn("target: default", workflow)
+            self.assertNotRegex(workflow, r"(?im)^\\s*profile\\s*:")
+            self.assertNotIn("pixel_2", workflow.lower())
+            self.assertNotIn("pixel_7", workflow.lower())
 
     def test_workflow_does_not_pull_after_emulator_runner_stops(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
