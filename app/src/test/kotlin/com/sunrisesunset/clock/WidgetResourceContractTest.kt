@@ -86,7 +86,6 @@ class WidgetResourceContractTest {
         )
     }
 
-
     @Test
     fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
         val source = File(
