@@ -124,6 +124,18 @@ class WidgetResourceContractTest {
     }
 
     @Test
+    fun screenshotUiTestScrollsWidgetRowIntoViewportBeforeTapping() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "Screenshot test must reject partially clipped widget-picker rows",
+            source.contains("bounds.bottom <= pickerViewportBottom") &&
+                source.contains("Widget picker row must be fully visible before selection")
+        )
+    }
+
+    @Test
     fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
         val source = File(
             "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
