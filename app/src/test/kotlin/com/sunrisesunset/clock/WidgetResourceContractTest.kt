@@ -85,7 +85,7 @@ class WidgetResourceContractTest {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
         assertTrue(source.contains("/data/local/tmp/sunrise-sunset-ci") && source.contains("screencap -p"))
         assertTrue(source.contains("device.dumpWindowHierarchy(File(output,"))
-        assertTrue(source.contains("run-as ${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"))
+        assertTrue(source.contains("run-as \${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"))
         assertTrue(source.contains("HIERARCHY_COPY_OK"))
     }
 
