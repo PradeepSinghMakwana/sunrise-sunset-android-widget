@@ -147,15 +147,24 @@ class WidgetResourceContractTest {
     }
 
     @Test
-    fun screenshotUiTestWritesCheckpointEvidenceOutsideAppSandbox() {
+    fun screenshotUiTestCopiesHierarchyXmlIntoShellOwnedEvidence() {
         val source = File(
             "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
         ).readText()
         assertTrue(
-            "UI test must save screenshots and launcher hierarchy in shell-owned tmp",
+            "UI test must save screenshots in shell-owned tmp",
             source.contains("/data/local/tmp/sunrise-sunset-ci") &&
-                source.contains("screencap -p") &&
-                source.contains("uiautomator dump")
+                source.contains("screencap -p")
+        )
+        assertTrue(
+            "UI test must use UiDevice's hierarchy dump instead of the unsupported standalone dump CLI",
+            source.contains("device.dumpWindowHierarchy(File(output,") &&
+                !source.contains("uiautomator dump $evidenceDirectory")
+        )
+        assertTrue(
+            "Hierarchy export must read app-owned files through run-as and verify the copied XML",
+            source.contains("run-as ${InstrumentationRegistry.getInstrumentation().targetContext.packageName}") &&
+                source.contains("HIERARCHY_COPY_OK")
         )
     }
 
