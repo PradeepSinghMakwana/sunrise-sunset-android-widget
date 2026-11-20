@@ -99,7 +99,10 @@ class WidgetRenderingTest {
     @Test
     fun widgetContainsClockAndBothSolarLabels() {
         val root = renderWidget()
-        assertNotNull(root.findViewById<android.widget.TextClock>(R.id.digital_clock))
+        val clock = root.findViewById<android.widget.TextClock>(R.id.digital_clock)
+        assertNotNull(clock)
+        assertEquals("hh:mm:ss a", clock.format12Hour.toString())
+        assertEquals("HH:mm:ss", clock.format24Hour.toString())
         assertEquals("☀  SUNRISE", text(root, R.id.sunrise_label))
         assertEquals("☾  SUNSET", text(root, R.id.sunset_label))
     }
