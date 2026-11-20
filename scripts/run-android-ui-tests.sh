@@ -16,8 +16,8 @@ adb shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone 
 # Apply before launching the app so UI layout and screenshot evidence use it.
 adb shell wm size 1080x2400
 adb shell wm density 420
-display_size="$(adb shell wm size | tr -d '\\r')"
-display_density="$(adb shell wm density | tr -d '\\r')"
+display_size="$(adb shell wm size | tr -d '\r')"
+display_density="$(adb shell wm density | tr -d '\r')"
 if [[ "$display_size" != *"Override size: 1080x2400"* ]]; then
     echo "Emulator display size was not applied: $display_size"
     exit 1
