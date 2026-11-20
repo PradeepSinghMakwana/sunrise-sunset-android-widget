@@ -54,7 +54,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         self.assertEqual(7, result.returncode)
         self.assertEqual(
             [
-                "pull /storage/emulated/0/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/",
+                "pull /data/local/tmp/sunrise-sunset-ci/. android-13-screenshots/",
                 "shell dumpsys appwidget",
                 "logcat -d",
                 "exec-out screencap -p",
@@ -66,16 +66,14 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         result, _ = self._run_with_stubs(0)
         self.assertEqual(0, result.returncode)
 
-    def test_uses_canonical_external_storage_path(self):
+    def test_collects_shell_owned_screenshots_after_gradle_cleanup(self):
         script = RUNNER.read_text(encoding="utf-8")
         self.assertIn(
-            "/storage/emulated/0/Android/data/com.sunrisesunset.clock/files/screenshots/.",
+            "adb pull /data/local/tmp/sunrise-sunset-ci/. android-13-screenshots/",
             script,
         )
-        self.assertNotIn(
-            "adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/.",
-            script,
-        )
+        self.assertIn("Gradle connected-test task uninstalls the target app", script)
+        self.assertIn("android-13-screenshots/appwidget-dump-after-test-cleanup.txt", script)
 
     def test_workflow_does_not_pull_after_emulator_runner_stops(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
