@@ -269,23 +269,22 @@ class StoreScreenshotTest {
     // it after Gradle finishes, instead of losing the app's external files.
     private fun captureShellEvidence(device: UiDevice, context: Context, name: String) {
         val evidenceDirectory = "/data/local/tmp/sunrise-sunset-ci"
-        val hierarchy = hierarchyFile(context, name)
-        assertTrue("Window hierarchy was not written for $name: $hierarchy", hierarchy.exists() && hierarchy.length() > 0)
+        val hierarchyPath = "$evidenceDirectory/$name.xml"
         device.executeShellCommand("mkdir -p $evidenceDirectory")
         device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
-        // Copy from app-specific external storage, readable by the shell UID.
-        // This survives until Gradle uninstalls the target app after instrumentation.
-        val copyResult = device.executeShellCommand(
-            "cp ${hierarchy.absolutePath} $evidenceDirectory/$name.xml && " +
-                "test -s $evidenceDirectory/$name.xml && echo HIERARCHY_COPY_OK"
+        // Run uiautomator dump as the shell UID directly into shell-owned storage.
+        // App-specific external storage is not reliably readable by shell on Android 13.
+        val dumpResult = device.executeShellCommand(
+            "uiautomator dump --compressed $hierarchyPath"
         )
-        if (!copyResult.contains("HIERARCHY_COPY_OK")) {
-            android.util.Log.w(
-                "StoreScreenshotTest",
-                "Hierarchy export unavailable for $name; app-side hierarchy remains in $hierarchy. " +
-                    "Shell copy output: $copyResult"
-            )
-        }
+        val verification = device.executeShellCommand(
+            "test -s $hierarchyPath && echo HIERARCHY_DUMP_OK"
+        )
+        assertTrue(
+            "Could not export non-empty hierarchy for $name. " +
+                "uiautomator output: $dumpResult; verification: $verification",
+            verification.contains("HIERARCHY_DUMP_OK")
+        )
         device.executeShellCommand("dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt")
     }
 
