@@ -51,7 +51,7 @@ class AvdProfileValidationTest(unittest.TestCase):
                 content = workflow.read_text(encoding="utf-8")
                 self.assertNotRegex(
                     content,
-                    r"(?m)^\\s*profile\\s*:",
+                    r"(?m)^\s*profile\s*:",
                     "Do not add an AVD profile without a preflight existence check",
                 )
 
