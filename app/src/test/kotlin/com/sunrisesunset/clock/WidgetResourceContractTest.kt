@@ -56,8 +56,10 @@ class WidgetResourceContractTest {
         assertTrue("Home-screen screenshot must follow widget registration", screenshot > registration)
         assertTrue(!source.contains("By.res(context.packageName, \"sunrise_label\")"))
         assertTrue(!source.contains("By.res(context.packageName, \"sunset_label\")"))
-        assertTrue(source.contains("RemoteViews children as one") &&
-            source.contains("individual TextViews aren't queryable"))
+        assertTrue(
+            source.contains("RemoteViews children as one") &&
+                source.contains("individual TextViews aren't queryable")
+        )
     }
 
     @Test
