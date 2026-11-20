@@ -1,31 +1,29 @@
 # Sunrise Sunset Clock — Android home-screen widget
 
-A native Android widget featuring:
-- A live digital clock using the device's local time zone.
-- Daily sunrise and sunset calculated for the device's approximate location.
+A native Android home-screen widget featuring:
+
+- A live digital clock that follows the device's local time zone.
+- Daily sunrise and sunset calculated from the device's approximate location.
 - Approximate location permission only (`ACCESS_COARSE_LOCATION`).
-- Offline solar-time calculation; no API key or external location service required by the app.
+- Offline solar-time calculation; no API key or external location service is required.
 
 Built with ChatGPT, guided by the repository owner.
 
-## Build with GitHub Actions
+## Build a debug APK
+
 1. Open the repository's **Actions** tab.
-2. Select **Build Android APK** and run the workflow.
+2. Select **Build Android APK** and run the workflow (or download the artifact from a completed run).
 3. Download the `Sunrise-Sunset-Clock-debug` artifact.
 4. Extract and install `app-debug.apk`.
 
-## Kotlin code-quality workflow
+You can also build locally with Java 17 and Gradle 8.9:
 
-For every Kotlin code change, **fix Detekt before working on Android lint**:
-
-1. Run `gradle :app:detekt`.
-2. Resolve every Detekt finding in the source; do not hide findings by weakening rules, adding a baseline, or applying blanket suppressions.
-3. Rerun Detekt and repeat until it passes.
-4. Only then run `gradle :app:lintDebug` and resolve any lint findings.
-
-This is the required order for fixing code-quality issues. Keep the Detekt and Android lint CI jobs independent so both checks still run and report their results even when one fails.
+```bash
+gradle :app:assembleDebug
+```
 
 ## Setup
+
 1. Open Sunrise Sunset Clock.
 2. Allow approximate location when Android asks.
 3. Keep the app open briefly while it obtains a location fix.
@@ -34,66 +32,58 @@ This is the required order for fixing code-quality issues. Keep the Detekt and A
 Tap the widget to reopen setup.
 
 ## Privacy
-The app requests approximate location only. It does not declare or request precise location permission. Coordinates are stored locally on the device and used for the sunrise/sunset calculation.
 
-## Notes
-Sunrise and sunset use a NOAA-style approximation and may differ slightly from published almanacs. The clock follows the device's current time zone. The widget refreshes periodically and when Android reports date, time, or time-zone changes.
+The app requests approximate location only. It does not declare or request precise location permission. Coordinates are stored locally on the device and used for sunrise/sunset calculations.
 
-## Engineering effort and release acceptance
+## Solar times and time zones
 
-**Historical assessment snapshot: 16 November 2026.** The emulator screenshot automation and its diagnostics required a concentrated troubleshooting effort. The relevant work spanned approximately 3 hours 11 minutes of elapsed clock time (about 04:25–07:36 UTC). This is a wall-clock window across multiple work and CI events, **not a measured timesheet or 3 hours 11 minutes of continuous hands-on work**.
+Sunrise and sunset are calculated offline using a NOAA-style approximation. Results can differ slightly from published almanacs.
 
-The troubleshooting included approximately 14 technical commits focused on emulator tests, launcher-widget screenshot capture, CI behaviour, and diagnostics. Several emulator workflow attempts failed or were cancelled. The emulator-based screenshot path has now been retired from the release workflow; tagged releases do not launch emulators.
+The widget displays solar times in the device's current time zone. The location coordinates determine the solar events; the device time zone determines how those events are displayed as local clock times. The Android 13 CI UI-test emulator uses the `America/Los_Angeles` time zone for its California test coordinates, configured before tests run. **Those CI test coordinates and times are test fixtures, not the user's live location or a guarantee of local accuracy.**
 
-### Current screenshot policy
+The widget refreshes periodically and when Android reports date, time, or time-zone changes.
 
-Every release requires two genuine screenshots captured on a physical Android phone:
-- `01-app-setup.png`: the real app setup screen.
-- `02-home-screen-widget.png`: the real launcher home screen with the widget and both sunrise/sunset values visible.
+## CI checks
 
-The release workflow checks PNG structure, dimensions, file size, and that the two images differ. These checks do not establish visual correctness or prove which device captured the images. A human must inspect both screenshots before the release tag is pushed.
+Pull requests and pushes to `main` run independent checks:
 
-**Acceptance status as of 20 November 2026:** no physical-device screenshots have been committed yet. The release gate is intentionally unsatisfied until both images are captured, visually reviewed, and committed. Do not push a release tag before that happens.
+- **Shell validation:** release-script syntax and script regression tests.
+- **JVM unit tests:** solar calculations, location validation, and other app logic.
+- **Detekt:** Kotlin static analysis.
+- **Android lint:** Android-specific static checks.
+- **Debug APK build:** assembles and uploads the `app-debug.apk` artifact.
+- **Android 13 (API 33) UI tests:** runs instrumented tests on an emulator after JVM unit tests pass. The runner sets the test time zone to `America/Los_Angeles` and collects screenshots, UI hierarchy XML, app-widget dumps, and logcat diagnostics as artifacts.
 
-The earlier emulator automation's expected time savings were not demonstrated, so no realised ROI is claimed.
+The UI-test emulator evidence is for debugging and regression testing. It is not accepted as a substitute for store screenshots captured on a physical Android phone.
+
+## Kotlin code-quality workflow
+
+For Kotlin code changes, run Detekt before Android lint:
+
+1. Run `gradle :app:detekt`.
+2. Fix every finding without weakening rules, adding a baseline, or applying blanket suppressions.
+3. Rerun Detekt until it passes.
+4. Then run `gradle :app:lintDebug` and fix lint findings.
+
+Keep Detekt and Android lint CI jobs independent so both report results even when one fails.
+
+## Releases and store screenshots
+
+Tagged releases use the automated GitHub Actions pipeline. See [Release process](docs/RELEASE_PROCESS.md) for versioning, Gradle build instructions, dependency and permission audits, F-Droid metadata generation, source archives, and screenshot requirements. See [Emulator UI test diagnostics](docs/EMULATOR_DIAGNOSTICS.md) for investigation steps and the distinction between app permissions and test-only emulator access.
+
+Every release requires two **genuine physical-device** screenshots, captured and visually reviewed before tagging:
+
+- `01-app-setup.png` — the actual app setup screen.
+- `02-home-screen-widget.png` — the actual launcher home screen with the widget and sunrise/sunset values visible.
+
+The release workflow validates the screenshot files' basic structure and dimensions, but those automated checks cannot establish visual correctness or verify which device captured them. Do not push a release tag until both screenshots have been reviewed and committed.
+
+Push a tag matching the app's `versionName` (for example, `v2.1`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports. F-Droid publication still requires its official submission and maintainer review; generated metadata alone does not mean the app is published.
+
+## Branch integration policy
+
+`main` is the source of truth. Before integrating a feature branch, bring it up to date with `main`, resolve conflicts while preserving the intent of both changes, run applicable CI checks, review the diff, and merge only after verification. After each merge, use the updated `main` as the base for the next branch. Check live branch/PR status rather than relying on a dated queue snapshot.
 
 ## License
 
-This project is licensed under the MIT License.
-See the [LICENSE](LICENSE) file for details.
-
-## Releases
-
-Tagged releases use the automated GitHub Actions pipeline. See [Release process](docs/RELEASE_PROCESS.md) for versioning, Gradle build instructions, dependency and permission audits, F-Droid metadata generation, source archives, and store screenshot requirements. See [Emulator UI test diagnostics](docs/EMULATOR_DIAGNOSTICS.md) for failure investigation, CI evidence, and the distinction between app permissions and test-only emulator access.
-
-Push a tag matching the app's `versionName` (for example, `v2.1`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports.
-
-## Branch synchronization and integration policy
-
-**`main` is the source of truth.** Feature branches are short-lived workspaces, not independent long-term lines of development. They may differ while work is in progress, but they must be brought back into alignment regularly.
-
-### Required workflow for every feature branch
-
-1. **Start from current `main`.** Before integrating or continuing substantial feature work, merge the latest `main` into that feature branch.
-2. **Preserve both sides.** Resolve merge conflicts by understanding the intent of each change. Do not blindly choose `main` or the feature branch, discard working behaviour, or replace one implementation with another merely to silence a conflict. Keep both intended changes and add or update tests where their interaction requires it.
-3. **Run that branch's independent CI checks.** Run all checks assigned to that branch and let them report independently. A failure in one job must not prevent unrelated jobs from running or hide their results. Fix real failures; do not weaken assertions, disable checks, add broad suppressions, or create baselines to obtain a green result.
-4. **Verify before integration.** Review the diff, confirm the intended behaviour is retained, and require the relevant CI checks to pass. Do not merge an unverified feature branch into `main`.
-5. **Merge feature branch into `main`.** Once verified, integrate it and confirm the resulting `main` build/checks.
-6. **Repeat from the newly updated `main`.** Before integrating the next feature branch, merge that latest `main` back into it, resolve conflicts while preserving intent, run its checks, and only then integrate it.
-
-Keep branches synchronized frequently. Do not allow a branch to accumulate a large behind-count or drift for weeks. If two branches touch the same code, coordinate their order and reconcile them early. Branch-specific CI scope may differ where intentional (for example, a unit-test branch need not run emulator UI tests), but the checks that do apply must remain independent.
-
-### Integration queue snapshot — 17 November 2026
-
-The counts below compare each named branch with `main` at the time this section was written. They are a snapshot, not a substitute for checking the live branch state before each merge.
-
-| Branch / PR | Difference from `main` | Known work / action |
-|---|---:|---|
-| `feature/emulator-ci-isolation` (#8) | 54 ahead, 0 behind | Contains the MVVM/Compose location-setup refactor and emulator screenshot automation. Detekt had a maximum-line-length failure; emulator CI stopped because the emulator remained locked. Fix both and rerun the independent checks before integration. |
-| `feature/unit-tests` (#10) | 55 ahead, 0 behind | Contains JVM solar-calculation tests and four independent CI jobs. It does not yet contain the MVVM location-setup refactor. Keep emulator UI testing out of this branch's CI. Reconcile the MVVM implementation with this branch before it is integrated so `main` does not regress. |
-| `docs/solar-calculation-acceptance` (#9) | 2 ahead, 0 behind | Documentation-only changes. Review the documentation diff and resolve its reported CI failure before integration. |
-| `feature/widget-runtime-fix` (#6) | 1 ahead, 44 behind | Diverged substantially. Do not merge as-is. First merge current `main` into this branch, resolve conflicts while preserving the widget-runtime fix, and run its relevant checks. |
-| `feature/solar-ui-test-parity` (no open PR at snapshot) | 11 ahead, 0 behind | Review the branch's UI-test changes, bring it up to date with `main`, run the relevant checks, and open or update a PR before integration. |
-
-**Important:** The queue is not a statement that any branch is already approved to merge. The current PR head, live comparison, conflict state, and latest CI results must be rechecked immediately before every integration. Merge one verified branch at a time, then use the resulting `main` as the base for the next branch.
-
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
