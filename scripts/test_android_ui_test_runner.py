@@ -103,7 +103,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
     def test_fails_before_gradle_when_effective_timezone_is_not_california(self):
         result, adb_calls = self._run_with_stubs(0, timezone="UTC+0000")
         self.assertEqual(1, result.returncode)
-        self.assertIn("expected PST-0800", result.stdout)
+        self.assertIn("expected a California PST/PDT offset", result.stdout)
         self.assertEqual(
             [
                 "shell settings put global auto_time_zone 0",
