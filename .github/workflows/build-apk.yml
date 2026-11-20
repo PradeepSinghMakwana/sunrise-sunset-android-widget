@@ -94,7 +94,7 @@ jobs:
           if-no-files-found: warn
 
   apk-build:
-    name: Build debug APK for physical-device validation
+    name: Build debug APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,13 +127,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: 8.9
+      - name: Enable KVM for hardware-accelerated emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Run instrumented UI tests on Android 13
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
           target: default
           arch: x86_64
-          profile: Pixel_2
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
           emulator-boot-timeout: 600
