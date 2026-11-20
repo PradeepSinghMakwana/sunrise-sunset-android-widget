@@ -159,11 +159,323 @@ class WidgetResourceContractTest {
         assertTrue(
             "UI test must use UiDevice's hierarchy dump instead of the unsupported standalone dump CLI",
             source.contains("device.dumpWindowHierarchy(File(output,") &&
-                !source.contains("uiautomator dump $evidenceDirectory")
+                !source.contains("uiautomator dump ${'
+    }
+
+    @Test
+    fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "AppWidgetManager must be imported from android.appwidget, not android.app",
+            source.contains("import android.appwidget.AppWidgetManager")
+        )
+        assertTrue(
+            "Incorrect android.app.AppWidgetManager import must not return",
+            !source.contains("import android.app.AppWidgetManager")
+        )
+    }
+
+    private fun assertWidgetLabel(
+        layout: org.w3c.dom.Document,
+        viewId: String,
+        stringName: String
+    ) {
+        val nodes = layout.getElementsByTagName("TextView")
+        val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+            .filter { it.getAttribute("android:id") == "@+id/" + viewId }
+
+        assertEquals("Expected exactly one TextView with id " + viewId, 1, matches.size)
+        assertEquals(
+            "TextView " + viewId + " must reference @string/" + stringName,
+            "@string/" + stringName,
+            matches.single().getAttribute("android:text")
+        )
+    }
+
+    private fun assertStringResource(
+        strings: org.w3c.dom.Document,
+        name: String,
+        expectedText: String
+    ) {
+        val nodes = strings.getElementsByTagName("string")
+        val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+            .filter { it.getAttribute("name") == name }
+
+        assertEquals("Expected exactly one string resource named " + name, 1, matches.size)
+        assertTrue(
+            "String resource " + name + " must contain " + expectedText,
+            matches.single().textContent.contains(expectedText, ignoreCase = true)
+        )
+    }
+
+    private fun parseXml(file: File): org.w3c.dom.Document {
+        assertTrue("Expected Android resource file at " + file.path, file.isFile)
+        val factory = DocumentBuilderFactory.newInstance()
+        factory.isExpandEntityReferences = false
+        return factory.newDocumentBuilder().parse(file)
+    }
+
+    @Test
+    fun widgetProviderRefreshesEveryInstanceAndHandlesSystemTimeBroadcasts() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget onUpdate must update every supplied widget instance",
+            source.contains("appWidgetIds.forEach { updateWidget(context, manager, it) }")
+        )
+        assertTrue(
+            "Date changes must refresh the widget",
+            source.contains("Intent.ACTION_DATE_CHANGED")
+        )
+        assertTrue(
+            "Manual time changes must refresh the widget",
+            source.contains("Intent.ACTION_TIME_CHANGED")
+        )
+        assertTrue(
+            "Time-zone changes must refresh the widget",
+            source.contains("Intent.ACTION_TIMEZONE_CHANGED")
+        )
+    }
+
+    @Test
+    fun widgetProviderDeclaresResizeAndPeriodicRefreshConfiguration() {
+        val provider = parseXml(File("src/main/res/xml/sun_clock_widget_info.xml"))
+        val root = provider.documentElement
+        assertEquals("250dp", root.getAttribute("android:minWidth"))
+        assertEquals("130dp", root.getAttribute("android:minHeight"))
+        assertEquals("horizontal|vertical", root.getAttribute("android:resizeMode"))
+        assertEquals("1800000", root.getAttribute("android:updatePeriodMillis"))
+        assertTrue(
+            "Widget must remain eligible for the home screen",
+            root.getAttribute("android:widgetCategory").contains("home_screen")
+        )
+    }
+
+    @Test
+    fun locationRepositoryRejectsMalformedAndOutOfRangeSavedCoordinates() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationRepository.kt"
+        ).readText()
+        assertTrue(
+            "Saved coordinates must be parsed as numbers",
+            source.contains("?.toDoubleOrNull()")
+        )
+        assertTrue(
+            "Saved coordinates must pass SolarCalculator range validation",
+            source.contains("SolarCalculator.hasValidCoordinates(latitude, longitude)")
+        )
+        assertTrue(
+            "Invalid coordinates must not be persisted",
+            source.contains("Cannot save an invalid latitude/longitude pair")
+        )
+    }
+
+    @Test
+    fun savingLocationTriggersRefreshOfEveryExistingWidget() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationSetupViewModel.kt"
+        ).readText()
+        val save = source.indexOf("repository.save(location)")
+        val refresh = source.indexOf("refreshWidgets()", save)
+        assertTrue("A successful location save must refresh existing widgets", save >= 0 && refresh > save)
+        assertTrue(
+            "Widget refresh must enumerate all registered widget instances",
+            source.contains("manager.getAppWidgetIds(")
+        )
+        assertTrue(
+            "Widget refresh must update every registered instance",
+            source.contains("ids.forEach { SunClockWidgetProvider.updateWidget(context, manager, it) }")
+        )
+    }
+
+    @Test
+    fun widgetRootOpensTheLocationSetupActivityAndManifestDeclaresTimeEvents() {
+        val provider = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget root must open the setup activity when tapped",
+            provider.contains("Intent(context, LocationSetupActivity::class.java)") &&
+                provider.contains("setOnClickPendingIntent(R.id.widget_root, openApp)")
+        )
+
+        val manifest = parseXml(File("src/main/AndroidManifest.xml"))
+        val receivers = manifest.getElementsByTagName("receiver")
+        val widgetReceiver = (0 until receivers.length)
+            .map { receivers.item(it) as Element }
+            .single { it.getAttribute("android:name") == ".SunClockWidgetProvider" }
+        val actions = widgetReceiver.getElementsByTagName("action")
+        val actionNames = (0 until actions.length)
+            .map { (actions.item(it) as Element).getAttribute("android:name") }
+        assertTrue(actionNames.contains("android.intent.action.DATE_CHANGED"))
+        assertTrue(actionNames.contains("android.intent.action.TIME_SET"))
+        assertTrue(actionNames.contains("android.intent.action.TIMEZONE_CHANGED"))
+    }
+}
+}evidenceDirectory")
         )
         assertTrue(
             "Hierarchy export must read app-owned files through run-as and verify the copied XML",
-            source.contains("run-as ${InstrumentationRegistry.getInstrumentation().targetContext.packageName}") &&
+            source.contains("run-as ${'
+    }
+
+    @Test
+    fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "AppWidgetManager must be imported from android.appwidget, not android.app",
+            source.contains("import android.appwidget.AppWidgetManager")
+        )
+        assertTrue(
+            "Incorrect android.app.AppWidgetManager import must not return",
+            !source.contains("import android.app.AppWidgetManager")
+        )
+    }
+
+    private fun assertWidgetLabel(
+        layout: org.w3c.dom.Document,
+        viewId: String,
+        stringName: String
+    ) {
+        val nodes = layout.getElementsByTagName("TextView")
+        val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+            .filter { it.getAttribute("android:id") == "@+id/" + viewId }
+
+        assertEquals("Expected exactly one TextView with id " + viewId, 1, matches.size)
+        assertEquals(
+            "TextView " + viewId + " must reference @string/" + stringName,
+            "@string/" + stringName,
+            matches.single().getAttribute("android:text")
+        )
+    }
+
+    private fun assertStringResource(
+        strings: org.w3c.dom.Document,
+        name: String,
+        expectedText: String
+    ) {
+        val nodes = strings.getElementsByTagName("string")
+        val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+            .filter { it.getAttribute("name") == name }
+
+        assertEquals("Expected exactly one string resource named " + name, 1, matches.size)
+        assertTrue(
+            "String resource " + name + " must contain " + expectedText,
+            matches.single().textContent.contains(expectedText, ignoreCase = true)
+        )
+    }
+
+    private fun parseXml(file: File): org.w3c.dom.Document {
+        assertTrue("Expected Android resource file at " + file.path, file.isFile)
+        val factory = DocumentBuilderFactory.newInstance()
+        factory.isExpandEntityReferences = false
+        return factory.newDocumentBuilder().parse(file)
+    }
+
+    @Test
+    fun widgetProviderRefreshesEveryInstanceAndHandlesSystemTimeBroadcasts() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget onUpdate must update every supplied widget instance",
+            source.contains("appWidgetIds.forEach { updateWidget(context, manager, it) }")
+        )
+        assertTrue(
+            "Date changes must refresh the widget",
+            source.contains("Intent.ACTION_DATE_CHANGED")
+        )
+        assertTrue(
+            "Manual time changes must refresh the widget",
+            source.contains("Intent.ACTION_TIME_CHANGED")
+        )
+        assertTrue(
+            "Time-zone changes must refresh the widget",
+            source.contains("Intent.ACTION_TIMEZONE_CHANGED")
+        )
+    }
+
+    @Test
+    fun widgetProviderDeclaresResizeAndPeriodicRefreshConfiguration() {
+        val provider = parseXml(File("src/main/res/xml/sun_clock_widget_info.xml"))
+        val root = provider.documentElement
+        assertEquals("250dp", root.getAttribute("android:minWidth"))
+        assertEquals("130dp", root.getAttribute("android:minHeight"))
+        assertEquals("horizontal|vertical", root.getAttribute("android:resizeMode"))
+        assertEquals("1800000", root.getAttribute("android:updatePeriodMillis"))
+        assertTrue(
+            "Widget must remain eligible for the home screen",
+            root.getAttribute("android:widgetCategory").contains("home_screen")
+        )
+    }
+
+    @Test
+    fun locationRepositoryRejectsMalformedAndOutOfRangeSavedCoordinates() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationRepository.kt"
+        ).readText()
+        assertTrue(
+            "Saved coordinates must be parsed as numbers",
+            source.contains("?.toDoubleOrNull()")
+        )
+        assertTrue(
+            "Saved coordinates must pass SolarCalculator range validation",
+            source.contains("SolarCalculator.hasValidCoordinates(latitude, longitude)")
+        )
+        assertTrue(
+            "Invalid coordinates must not be persisted",
+            source.contains("Cannot save an invalid latitude/longitude pair")
+        )
+    }
+
+    @Test
+    fun savingLocationTriggersRefreshOfEveryExistingWidget() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationSetupViewModel.kt"
+        ).readText()
+        val save = source.indexOf("repository.save(location)")
+        val refresh = source.indexOf("refreshWidgets()", save)
+        assertTrue("A successful location save must refresh existing widgets", save >= 0 && refresh > save)
+        assertTrue(
+            "Widget refresh must enumerate all registered widget instances",
+            source.contains("manager.getAppWidgetIds(")
+        )
+        assertTrue(
+            "Widget refresh must update every registered instance",
+            source.contains("ids.forEach { SunClockWidgetProvider.updateWidget(context, manager, it) }")
+        )
+    }
+
+    @Test
+    fun widgetRootOpensTheLocationSetupActivityAndManifestDeclaresTimeEvents() {
+        val provider = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget root must open the setup activity when tapped",
+            provider.contains("Intent(context, LocationSetupActivity::class.java)") &&
+                provider.contains("setOnClickPendingIntent(R.id.widget_root, openApp)")
+        )
+
+        val manifest = parseXml(File("src/main/AndroidManifest.xml"))
+        val receivers = manifest.getElementsByTagName("receiver")
+        val widgetReceiver = (0 until receivers.length)
+            .map { receivers.item(it) as Element }
+            .single { it.getAttribute("android:name") == ".SunClockWidgetProvider" }
+        val actions = widgetReceiver.getElementsByTagName("action")
+        val actionNames = (0 until actions.length)
+            .map { (actions.item(it) as Element).getAttribute("android:name") }
+        assertTrue(actionNames.contains("android.intent.action.DATE_CHANGED"))
+        assertTrue(actionNames.contains("android.intent.action.TIME_SET"))
+        assertTrue(actionNames.contains("android.intent.action.TIMEZONE_CHANGED"))
+    }
+}
+}{InstrumentationRegistry.getInstrumentation().targetContext.packageName}") &&
                 source.contains("HIERARCHY_COPY_OK")
         )
     }
