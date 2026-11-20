@@ -86,7 +86,6 @@ class WidgetResourceContractTest {
         )
     }
 
-
     @Test
     fun screenshotUiTestDragsTheWidgetPreviewInsteadOfTheAppName() {
         val source = File(
