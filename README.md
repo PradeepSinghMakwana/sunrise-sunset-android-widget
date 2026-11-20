@@ -78,7 +78,7 @@ Every release requires two **genuine physical-device** screenshots, captured and
 
 The release workflow validates the screenshot files' basic structure and dimensions, but those automated checks cannot establish visual correctness or verify which device captured them. Do not push a release tag until both screenshots have been reviewed and committed.
 
-Push a tag matching the app's `versionName` (for example, `v2.1`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports. F-Droid publication still requires its official submission and maintainer review; generated metadata alone does not mean the app is published.
+Push a tag matching the app's `versionName` (for example, `v2.0`) to start a release. The workflow publishes a GitHub Release with the APK, tagged source archive, and audit reports. F-Droid publication still requires its official submission and maintainer review; generated metadata alone does not mean the app is published.
 
 ## Branch integration policy
 
