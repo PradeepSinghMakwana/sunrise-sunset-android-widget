@@ -86,6 +86,22 @@ class WidgetResourceContractTest {
         )
     }
 
+
+    @Test
+    fun screenshotUiTestImportsAppWidgetManagerFromAndroidAppwidgetPackage() {
+        val source = File(
+            "src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt"
+        ).readText()
+        assertTrue(
+            "AppWidgetManager must be imported from android.appwidget, not android.app",
+            source.contains("import android.appwidget.AppWidgetManager")
+        )
+        assertTrue(
+            "Incorrect android.app.AppWidgetManager import must not return",
+            !source.contains("import android.app.AppWidgetManager")
+        )
+    }
+
     private fun assertWidgetLabel(
         layout: org.w3c.dom.Document,
         viewId: String,
