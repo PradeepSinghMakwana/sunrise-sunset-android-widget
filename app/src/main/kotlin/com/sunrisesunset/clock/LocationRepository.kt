@@ -54,28 +54,34 @@ class LocationRepository(
     }
 
     suspend fun findLocation(): Location? {
-        val cached = withContext(Dispatchers.IO) {
-            listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
-                .firstNotNullOfOrNull { provider ->
-                    try {
-                        if (locationGateway.isProviderEnabled(provider)) {
-                            locationGateway.getLastKnownLocation(provider)
-                        } else {
-                            null
+        val cached = findCachedLocation()
+        if (cached != null) {
+            return cached
+        }
+        return requestNetworkLocation()
+    }
+
+    private suspend fun findCachedLocation(): Location? = withContext(Dispatchers.IO) {
+        listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            .firstNotNullOfOrNull { provider ->
+                try {
+                    if (locationGateway.isProviderEnabled(provider)) {
+                        locationGateway.getLastKnownLocation(provider)?.takeIf {
+                            SolarCalculator.hasValidCoordinates(it.latitude, it.longitude)
                         }
-                    } catch (_: SecurityException) {
-                        null
-                    } catch (_: RuntimeException) {
+                    } else {
                         null
                     }
+                } catch (_: SecurityException) {
+                    null
+                } catch (_: RuntimeException) {
+                    null
                 }
-        }
-        if (cached != null && SolarCalculator.hasValidCoordinates(
-                cached.latitude, cached.longitude
-            )
-        ) return cached
+            }
+    }
 
-        return withContext(Dispatchers.Main.immediate) {
+    private suspend fun requestNetworkLocation(): Location? =
+        withContext(Dispatchers.Main.immediate) {
             suspendCancellableCoroutine { continuation ->
                 val completed = AtomicBoolean(false)
                 lateinit var listener: LocationListener
@@ -86,7 +92,9 @@ class LocationRepository(
                         } catch (_: Exception) {
                             // The listener may already have been removed by the platform.
                         }
-                        if (continuation.isActive) continuation.resume(location)
+                        if (continuation.isActive) {
+                            continuation.resume(location)
+                        }
                     }
                 }
                 listener = object : LocationListener {
@@ -127,7 +135,6 @@ class LocationRepository(
                 }
             }
         }
-    }
 
     suspend fun save(location: Location) = withContext(Dispatchers.IO) {
         require(SolarCalculator.hasValidCoordinates(location.latitude, location.longitude)) {
