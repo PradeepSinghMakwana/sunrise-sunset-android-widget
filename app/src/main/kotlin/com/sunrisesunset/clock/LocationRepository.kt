@@ -1,5 +1,6 @@
 package com.sunrisesunset.clock
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.location.LocationListener
@@ -22,6 +23,7 @@ interface LocationGateway {
     fun removeUpdates(listener: LocationListener)
 }
 
+@SuppressLint("MissingPermission")
 private class AndroidLocationGateway(context: Context) : LocationGateway {
     private val manager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
