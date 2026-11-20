@@ -254,12 +254,6 @@ class WidgetResourceContractTest {
         factory.isExpandEntityReferences = false
         return factory.newDocumentBuilder().parse(file)
     }
-}
-}{hierarchy.absolutePath}"))
-        val evidenceFunction = source.substringAfter("private fun captureShellEvidence").substringBefore("private fun hierarchyFile")
-        assertTrue(!evidenceFunction.contains("getExternalFilesDir"))
-    }
-
     @Test
     fun everyRequiredUiCheckpointRequestsShellOwnedHierarchyEvidence() {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
