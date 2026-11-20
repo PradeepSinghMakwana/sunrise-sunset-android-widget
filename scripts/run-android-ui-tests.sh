@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Run Android UI tests and collect diagnostics without losing Gradle's exit code.
+# Screenshot coordinates are in California; use the matching timezone so solar-event
+# values are local civil time rather than UTC. Set both Android's stored timezone
+# and the system property, then broadcast the change before app/test processes start.
+adb shell settings put global time_zone America/Los_Angeles
+adb shell setprop persist.sys.timezone America/Los_Angeles
+adb shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles >/dev/null 2>&1 || true
 set +e
 gradle :app:connectedDebugAndroidTest
 test_status=$?
