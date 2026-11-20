@@ -95,8 +95,12 @@ class StoreScreenshotTest {
         captureCheckpoint(device, output, "07-widget-preview")
 
         val widgetPreview = device.wait(
-            Until.findObject(By.textContains("Sunrise Sunset Clock")), 8_000)
-        assertNotNull("Could not locate the Sunrise Sunset Clock widget preview", widgetPreview)
+            Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
+        assertNotNull(
+            "Could not locate the actual Launcher3 widget_preview view; " +
+                "do not drag the app-name text",
+            widgetPreview
+        )
         widgetPreview!!.drag(
             android.graphics.Point(device.displayWidth / 2, (device.displayHeight * 0.48).toInt()),
             1_000)
