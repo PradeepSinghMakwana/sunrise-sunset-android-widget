@@ -81,7 +81,7 @@ class WidgetResourceContractTest {
     }
 
     @Test
-    fun screenshotUiTestCollectsShellOwnedScreenshotsAndAppPrivateHierarchyEvidence() {
+    fun screenshotUiTestCollectsShellOwnedScreenshotsAndShellReadableHierarchyEvidence() {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
         assertTrue(source.contains("/data/local/tmp/sunrise-sunset-ci") && source.contains("screencap -p"))
         assertTrue(source.contains("device.dumpWindowHierarchy(hierarchyFile(context,"))
