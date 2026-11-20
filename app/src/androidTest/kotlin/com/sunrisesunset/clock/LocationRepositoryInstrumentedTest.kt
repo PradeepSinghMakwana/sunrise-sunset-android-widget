@@ -187,4 +187,39 @@ class LocationRepositoryInstrumentedTest {
         }
     }
 
+
+    @Test
+    fun validCachedLocationIsReturnedWithoutRegisteringUpdates() = runBlocking {
+        val cached = Location("cached").apply {
+            latitude = 22.7196
+            longitude = 75.8577
+        }
+        val gateway = FakeLocationGateway(
+            providerEnabled = true,
+            cachedLocation = cached
+        )
+        val result = LocationRepository(context, gateway).findLocation()
+        assertEquals(cached.latitude, result?.latitude ?: Double.NaN, 0.000001)
+        assertEquals(0, gateway.requestCount)
+    }
+
+    @Test
+    fun invalidCachedLocationIsIgnoredAndFreshLookupIsAttempted() = runBlocking {
+        val invalid = Location("cached").apply {
+            latitude = Double.NaN
+            longitude = 75.8577
+        }
+        val gateway = FakeLocationGateway(
+            providerEnabled = true,
+            cachedLocation = invalid
+        )
+        try {
+            withTimeout(1_000) { LocationRepository(context, gateway).findLocation() }
+        } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+            // The fake network provider intentionally never returns a replacement fix.
+        }
+        assertEquals(1, gateway.requestCount)
+        assertEquals(1, gateway.removeCount)
+    }
+
 }
