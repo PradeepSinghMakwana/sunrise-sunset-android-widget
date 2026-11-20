@@ -19,9 +19,9 @@ The workflow uploads the `Sunrise-Sunset-Clock-genuine-screenshots-and-diagnosti
 - Text reports recording the explicit app launch result, resumed activity, focused window, and UI Automator hierarchy.
 - Emulator properties, display size/density, Android activity and window dumps, and the installed app package details.
 - A full Android `logcat` snapshot and the instrumentation exit code.
-- Any screenshots and reports saved in the app's private `files/screenshots` directory, retrieved using Android's test-only `run-as` facility.
+- All screenshots and UI hierarchy XML files saved by instrumentation in the app's external-files `screenshots` directory, retrieved by ADB from `/sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/`.
 
-The test writes diagnostics into the app's private files area so the workflow can retrieve them without requesting storage access from the app. The workflow also attempts to capture the final emulator display. That final display capture is diagnostic evidence only; it is not a substitute for either required screenshot.
+The test writes screenshot and hierarchy files into the app's external-files directory. The host collector pulls that exact directory after instrumentation exits; this avoids relying on `run-as` and requires no storage permission. The test uses `UiDevice.dumpWindowHierarchy` instead of launching a second shell `uiautomator dump` inside the active UI Automator session. The workflow also attempts to capture the final emulator display. That final display capture is diagnostic evidence only; it is not a substitute for either required screenshot.
 
 ### Investigating a failed run
 
@@ -32,7 +32,7 @@ The test writes diagnostics into the app's private files area so the workflow ca
 5. Fix the underlying cause. Do not make a test pass by skipping the UI check, accepting a blank screenshot, or fabricating an image.
 6. Rerun the workflow and inspect both required screenshots. A green APK build alone does not mean screenshot validation passed.
 
-The diagnostic artifact is produced for workflow-dispatched and pull-request runs. Ordinary pushes to `main` build the APK without starting the slower emulator UI suite. Keep genuine emulator UI validation enabled for pull requests, manual validation, and release validation.
+The emulator UI suite runs for push, pull-request, and manually dispatched builds. Its screenshot and diagnostic artifact is uploaded even when the tests fail. This keeps real app and launcher evidence available for every build trigger.
 
 ## Permissions and privacy
 
