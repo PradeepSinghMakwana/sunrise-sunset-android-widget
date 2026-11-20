@@ -2,7 +2,7 @@
 
 The project's automated UI validation and release screenshot environment is an Android 13 emulator (API level 33), using the AOSP `default` x86_64 system image. This is an explicit emulator-based release evidence policy; screenshots must not be described as physical-device captures.
 
-The Android Emulator Runner action creates the AVD without a named hardware profile: its `profile` input is optional, and the action documentation explicitly says to use `avdmanager list device` to enumerate profile IDs before specifying one. We omit it rather than assuming a Pixel profile exists on the hosted runner.
+The Android Emulator Runner action creates the AVD without a named hardware profile. We deliberately omit `profile`: this avoids selecting any Google Pixel hardware profile. The system image is generic AOSP (`target: default`), not a Pixel/Google Play image or an OEM skin. After boot, `scripts/run-android-ui-tests.sh` configures and verifies a modern tall-phone display at 1080 × 2400 and 420 dpi.
 
 The previous CI failure was not an Android 13 image availability problem. The runner successfully downloaded `system-images;android-33;default;x86_64`, then `avdmanager` rejected the unverified `Pixel_2` device ID with `No device found matching --device Pixel_2`. That prevented AVD creation and the emulator never started.
 
@@ -29,13 +29,15 @@ The workflows use:
 - API level 33
 - AOSP `default` system image
 - x86_64 architecture
-- No hard-coded AVD hardware profile; let avdmanager create its default profile
+- No named AVD hardware profile; do not use Google Pixel profiles
+- Generic AOSP launcher/system image (`target: default`)
+- Display override: 1080 × 2400 pixels at 420 dpi, verified through `adb shell wm`
 - KVM enabled on the GitHub-hosted Linux runner
 - Headless rendering with SwiftShader
 - Animations disabled
 - No boot snapshots
 
-The API 33 x86_64 system image was confirmed downloadable in the failed run logs. The failure occurred after image installation, at the AVD profile selection step. No Google Play image or AWS Device Farm is needed for this pass.
+The API 33 x86_64 system image was confirmed downloadable in the failed run logs. The earlier failure occurred after image installation, at AVD profile selection. No Pixel profile, Google Play image, or AWS Device Farm is needed for this pass.
 
 ## Automated Android 13 checks
 
@@ -70,4 +72,4 @@ Run the fast, host-only checks with:
 python3 -m unittest discover -s scripts -p 'test_*.py' -v
 ```
 
-The regression suite includes the exact historical failure: a `Pixel_2` ID absent from `avdmanager list device` output must be rejected. Matching is exact and case-sensitive, so a partial name or a differently-cased ID cannot silently pass. The CI workflow configuration test prevents either workflow from reintroducing a hard-coded profile without changing the explicit no-profile policy. If a named profile becomes necessary, first run the validator on that same runner to confirm the exact ID exists.
+The regression suite includes the exact historical failure: a `Pixel_2` ID absent from `avdmanager list device` output must be rejected. Matching is exact and case-sensitive. Additional tests require both CI workflows to omit named profiles and verify that the runner applies and checks the 1080 × 2400 / 420 dpi display override.
