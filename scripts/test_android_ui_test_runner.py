@@ -13,7 +13,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "build-apk.yml"
 
 
 class AndroidUiTestRunnerTest(unittest.TestCase):
-    def _run_with_stubs(self, gradle_status, evidence_mode="missing"):
+    def _run_with_stubs(self, gradle_status, evidence_mode="missing", timezone="PST-0800"):
         with tempfile.TemporaryDirectory() as directory:
             temp = Path(directory)
             calls = temp / "adb-calls.txt"
@@ -27,7 +27,9 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
             )
             adb = bin_dir / "adb"
             adb.write_text(
-                "#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\nexit 0\n",
+                "#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\n"
+                "if [[ \"$*\" == \"shell date +%Z%z\" ]]; then echo \"$DEVICE_TIMEZONE\"; fi\n"
+                "exit 0\n",
                 encoding="utf-8",
             )
             gradle.chmod(0o755)
@@ -68,6 +70,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "PATH": f"{bin_dir}{os.pathsep}{env['PATH']}",
                 "GRADLE_TEST_EXIT": str(gradle_status),
                 "ADB_CALLS": str(calls),
+                "DEVICE_TIMEZONE": timezone,
             })
             result = subprocess.run(
                 ["bash", str(RUNNER)],
@@ -84,13 +87,27 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         self.assertEqual(7, result.returncode)
         self.assertEqual(
             [
-                "shell settings put global time_zone America/Los_Angeles",
-                "shell setprop persist.sys.timezone America/Los_Angeles",
+                "shell settings put global auto_time_zone 0",
+                "shell cmd alarm set-timezone America/Los_Angeles",
+                "shell date +%Z%z",
                 "shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles",
                 "pull /data/local/tmp/sunrise-sunset-ci/. android-13-screenshots/",
                 "shell dumpsys appwidget",
                 "logcat -d",
                 "exec-out screencap -p",
+            ],
+            adb_calls,
+        )
+
+    def test_fails_before_gradle_when_effective_timezone_is_not_california(self):
+        result, adb_calls = self._run_with_stubs(0, timezone="UTC+0000")
+        self.assertEqual(1, result.returncode)
+        self.assertIn("expected PST-0800", result.stdout)
+        self.assertEqual(
+            [
+                "shell settings put global auto_time_zone 0",
+                "shell cmd alarm set-timezone America/Los_Angeles",
+                "shell date +%Z%z",
             ],
             adb_calls,
         )
@@ -134,8 +151,9 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("script: bash scripts/run-android-ui-tests.sh", workflow)
         runner = RUNNER.read_text(encoding="utf-8")
-        self.assertIn("settings put global time_zone America/Los_Angeles", runner)
-        self.assertIn("setprop persist.sys.timezone America/Los_Angeles", runner)
+        self.assertIn("cmd alarm set-timezone America/Los_Angeles", runner)
+        self.assertIn("date +%Z%z", runner)
+        self.assertIn('expected PST-0800', runner)
         self.assertIn("TIMEZONE_CHANGED", runner)
         self.assertNotIn("test_status=$?", workflow)
 
