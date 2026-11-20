@@ -103,8 +103,8 @@ class WidgetRenderingTest {
         assertNotNull(clock)
         assertEquals("hh:mm:ss a", clock.format12Hour.toString())
         assertEquals("HH:mm:ss", clock.format24Hour.toString())
-        assertEquals("☀  SUNRISE", text(root, R.id.sunrise_label))
-        assertEquals("☾  SUNSET", text(root, R.id.sunset_label))
+        assertEquals("☀ SUNRISE", text(root, R.id.sunrise_label))
+        assertEquals("☾ SUNSET", text(root, R.id.sunset_label))
     }
 
     private fun saveCoordinates(latitude: Double, longitude: Double) {
