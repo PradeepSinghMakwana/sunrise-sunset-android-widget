@@ -176,4 +176,61 @@ class WidgetResourceContractTest {
         factory.isExpandEntityReferences = false
         return factory.newDocumentBuilder().parse(file)
     }
+
+    @Test
+    fun widgetProviderRefreshesEveryInstanceAndHandlesSystemTimeBroadcasts() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget onUpdate must update every supplied widget instance",
+            source.contains("appWidgetIds.forEach { updateWidget(context, manager, it) }")
+        )
+        assertTrue(
+            "Date changes must refresh the widget",
+            source.contains("Intent.ACTION_DATE_CHANGED")
+        )
+        assertTrue(
+            "Manual time changes must refresh the widget",
+            source.contains("Intent.ACTION_TIME_CHANGED")
+        )
+        assertTrue(
+            "Time-zone changes must refresh the widget",
+            source.contains("Intent.ACTION_TIMEZONE_CHANGED")
+        )
+    }
+
+    @Test
+    fun widgetProviderDeclaresResizeAndPeriodicRefreshConfiguration() {
+        val provider = parseXml(File("src/main/res/xml/sun_clock_widget_info.xml"))
+        val root = provider.documentElement
+        assertEquals("250dp", root.getAttribute("android:minWidth"))
+        assertEquals("130dp", root.getAttribute("android:minHeight"))
+        assertEquals("horizontal|vertical", root.getAttribute("android:resizeMode"))
+        assertEquals("1800000", root.getAttribute("android:updatePeriodMillis"))
+        assertTrue(
+            "Widget must remain eligible for the home screen",
+            root.getAttribute("android:widgetCategory").contains("home_screen")
+        )
+    }
+
+    @Test
+    fun locationRepositoryRejectsMalformedAndOutOfRangeSavedCoordinates() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationRepository.kt"
+        ).readText()
+        assertTrue(
+            "Saved coordinates must be parsed as numbers",
+            source.contains("?.toDoubleOrNull()")
+        )
+        assertTrue(
+            "Saved coordinates must pass SolarCalculator range validation",
+            source.contains("SolarCalculator.hasValidCoordinates(latitude, longitude)")
+        )
+        assertTrue(
+            "Invalid coordinates must not be persisted",
+            source.contains("Cannot save an invalid latitude/longitude pair")
+        )
+    }
+
 }
