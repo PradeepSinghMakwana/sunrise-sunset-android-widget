@@ -22,12 +22,12 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
 
             gradle = bin_dir / "gradle"
             gradle.write_text(
-                "#!/usr/bin/env bash\\nexit \\"$GRADLE_TEST_EXIT\\"\\n",
+                "#!/usr/bin/env bash\nexit \"$GRADLE_TEST_EXIT\"\n",
                 encoding="utf-8",
             )
             adb = bin_dir / "adb"
             adb.write_text(
-                "#!/usr/bin/env bash\\nprintf '%s\\\\n' \\"$*\\" >> \\"$ADB_CALLS\\"\\nexit 0\\n",
+                "#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\nexit 0\n",
                 encoding="utf-8",
             )
             gradle.chmod(0o755)
