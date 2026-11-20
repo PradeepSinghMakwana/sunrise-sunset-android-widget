@@ -144,12 +144,6 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 600
           script: bash scripts/run-android-ui-tests.sh
-      - name: Collect Android 13 screenshot evidence
-        if: always()
-        run: |
-          mkdir -p android-13-screenshots
-          adb devices
-          adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/. android-13-screenshots/ || true
       - name: Upload Android 13 UI test screenshots and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
