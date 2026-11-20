@@ -102,10 +102,12 @@ class StoreScreenshotTest {
         Thread.sleep(1_000)
         captureCheckpoint(device, output, "08-widget-after-placement")
 
-        val widgetVisible = device.wait(
+        val sunriseVisible = device.wait(
             Until.hasObject(By.textContains("SUNRISE")), 12_000)
-            || device.hasObject(By.textContains("SUNSET"))
-        assertTrue("Widget was not visibly placed on the launcher home screen", widgetVisible)
+        val sunsetVisible = device.wait(
+            Until.hasObject(By.textContains("SUNSET")), 5_000)
+        assertTrue("Widget SUNRISE label was not visible on the launcher", sunriseVisible)
+        assertTrue("Widget SUNSET label was not visible on the launcher", sunsetVisible)
 
         val screenshot = File(output, "02-home-screen-widget.png")
         assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
