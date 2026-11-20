@@ -101,8 +101,21 @@ class StoreScreenshotTest {
             appEntry = device.findObject(By.textContains("Sunrise Sunset Clock"))
         }
         assertNotNull("Widget picker did not list Sunrise Sunset Clock", appEntry)
-        appEntry!!.click()
+        // The app title is a non-clickable TextView inside the clickable widget row.
+        // UiObject2.click() on that child only logs a warning and can leave the
+        // previously selected provider (often Gallery) active. Tap the row itself.
+        val appEntryBounds = appEntry!!.visibleBounds
+        device.click(appEntryBounds.centerX(), appEntryBounds.centerY())
         device.waitForIdle()
+
+        val selectedWidgetName = device.wait(
+            Until.findObject(By.res("com.android.launcher3", "widget_name")), 5_000)
+        assertNotNull("Launcher did not open the selected widget's details", selectedWidgetName)
+        assertTrue(
+            "Launcher selected the wrong widget preview: " +
+                selectedWidgetName?.contentDescription,
+            selectedWidgetName?.contentDescription?.contains("Sunrise Sunset Clock") == true
+        )
         captureCheckpoint(device, output, "07-widget-preview")
 
         val widgetPreview = device.wait(
