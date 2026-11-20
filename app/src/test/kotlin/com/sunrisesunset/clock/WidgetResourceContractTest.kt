@@ -233,4 +233,47 @@ class WidgetResourceContractTest {
         )
     }
 
+
+    @Test
+    fun savingLocationTriggersRefreshOfEveryExistingWidget() {
+        val source = File(
+            "src/main/kotlin/com/sunrisesunset/clock/LocationSetupViewModel.kt"
+        ).readText()
+        val save = source.indexOf("repository.save(location)")
+        val refresh = source.indexOf("refreshWidgets()", save)
+        assertTrue("A successful location save must refresh existing widgets", save >= 0 && refresh > save)
+        assertTrue(
+            "Widget refresh must enumerate all registered widget instances",
+            source.contains("manager.getAppWidgetIds(")
+        )
+        assertTrue(
+            "Widget refresh must update every registered instance",
+            source.contains("ids.forEach { SunClockWidgetProvider.updateWidget(context, manager, it) }")
+        )
+    }
+
+    @Test
+    fun widgetRootOpensTheLocationSetupActivityAndManifestDeclaresTimeEvents() {
+        val provider = File(
+            "src/main/kotlin/com/sunrisesunset/clock/SunClockWidgetProvider.kt"
+        ).readText()
+        assertTrue(
+            "Widget root must open the setup activity when tapped",
+            provider.contains("Intent(context, LocationSetupActivity::class.java)") &&
+                provider.contains("setOnClickPendingIntent(R.id.widget_root, openApp)")
+        )
+
+        val manifest = parseXml(File("src/main/AndroidManifest.xml"))
+        val receivers = manifest.getElementsByTagName("receiver")
+        val widgetReceiver = (0 until receivers.length)
+            .map { receivers.item(it) as Element }
+            .single { it.getAttribute("android:name") == ".SunClockWidgetProvider" }
+        val actions = widgetReceiver.getElementsByTagName("action")
+        val actionNames = (0 until actions.length)
+            .map { (actions.item(it) as Element).getAttribute("android:name") }
+        assertTrue(actionNames.contains("android.intent.action.DATE_CHANGED"))
+        assertTrue(actionNames.contains("android.intent.action.TIME_SET"))
+        assertTrue(actionNames.contains("android.intent.action.TIMEZONE_CHANGED"))
+    }
+
 }
