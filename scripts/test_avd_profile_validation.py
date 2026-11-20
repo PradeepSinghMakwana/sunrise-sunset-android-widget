@@ -53,7 +53,7 @@ class AvdProfileValidationTest(unittest.TestCase):
         self.assertIn("Android-13-emulator-release-screenshots-and-diagnostics", workflow)
         self.assertNotIn("physical-device", workflow.lower())
 
-    def test_ci_workflows_do_not_pin_unverified_hardware_profiles(self):
+    def test_ci_workflows_preflight_and_pin_the_non_pixel_nexus_profile(self):
         root = Path(__file__).resolve().parents[1]
         workflow_paths = [
             root / ".github/workflows/build-apk.yml",
@@ -62,11 +62,9 @@ class AvdProfileValidationTest(unittest.TestCase):
         for workflow in workflow_paths:
             with self.subTest(workflow=workflow.name):
                 content = workflow.read_text(encoding="utf-8")
-                self.assertNotRegex(
-                    content,
-                    r"(?m)^\s*profile\s*:",
-                    "Do not add an AVD profile without a preflight existence check",
-                )
+                self.assertIn("avd_profile_validation.py 'Nexus 5X'", content)
+                self.assertRegex(content, r"(?m)^\s*profile: Nexus 5X$")
+                self.assertNotIn("profile: Pixel", content)
 
 
 if __name__ == "__main__":
