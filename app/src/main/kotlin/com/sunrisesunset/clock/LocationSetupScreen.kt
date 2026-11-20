@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,7 +19,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
@@ -195,22 +193,6 @@ fun locationSetupScreen(
                                     fontWeight = FontWeight.SemiBold)
                             }
                         }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(7.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.65f),
-                                    CircleShape
-                                )
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.58f)
-                                    .height(7.dp)
-                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            )
-                        }
                         Text(
                             "Times are calculated for your saved approximate location.",
                             style = MaterialTheme.typography.bodySmall,
@@ -269,16 +251,6 @@ fun locationSetupScreen(
                                 },
                                 modifier = Modifier.padding(vertical = 5.dp)
                             )
-                        }
-                        if (state.hasSavedLocation) {
-                            OutlinedButton(
-                                onClick = onRequestLocationPermission,
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !state.isLoading,
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Update location")
-                            }
                         }
                     }
                 }
