@@ -1,9 +1,8 @@
 # Store screenshots
 
-Release screenshots must be genuine, unaltered captures from a **physical Android phone**, not an emulator or a mockup.
+The CI release workflow captures these screenshots using the Android 13 (API 33) AOSP emulator and the actual running app:
 
-Required files:
-- `01-app-setup.png`: the actual app setup screen, with the setup action visible.
-- `02-home-screen-widget.png`: the actual Android launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
+- `01-app-setup.png`: the app setup screen with the approximate-location action visible.
+- `02-home-screen-widget.png`: the Android Launcher3 home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET labels visible.
 
-Capture both with the phone's native screenshot function. Review the images for legibility and privacy before committing. The release workflow checks PNG structure, dimensions, size, and that the two images differ; it cannot replace human visual review.
+The images are captured by UI Automator from the running application and launcher, not generated or composited. Intermediate screenshots and UI hierarchy XML files are uploaded as a separate CI artifact for diagnosis. Visually review the final PNGs before publishing a release.
