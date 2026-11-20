@@ -1,6 +1,7 @@
 package com.sunrisesunset.clock
 
 import android.appwidget.AppWidgetManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.app.KeyguardManager
 import android.content.ComponentName
@@ -151,9 +152,41 @@ class StoreScreenshotTest {
             "Home-screen screenshot is visually unchanged after widget placement",
             changedPixels > 500
         )
+        val sunriseAccentPixels = countPixelsNear(after, 0xFFFFD27A.toInt(), tolerance = 72)
+        val sunsetAccentPixels = countPixelsNear(after, 0xFFFFB28A.toInt(), tolerance = 72)
+        assertTrue(
+            "Screenshot does not visibly contain the widget's sunrise label accent",
+            sunriseAccentPixels > 12
+        )
+        assertTrue(
+            "Screenshot does not visibly contain the widget's sunset label accent",
+            sunsetAccentPixels > 12
+        )
         before.recycle()
         after.recycle()
         device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
+    }
+
+
+    private fun countPixelsNear(bitmap: Bitmap, target: Int, tolerance: Int): Int {
+        val targetRed = (target shr 16) and 0xFF
+        val targetGreen = (target shr 8) and 0xFF
+        val targetBlue = target and 0xFF
+        var matches = 0
+        for (y in 0 until bitmap.height step 2) {
+            for (x in 0 until bitmap.width step 2) {
+                val pixel = bitmap.getPixel(x, y)
+                val red = (pixel shr 16) and 0xFF
+                val green = (pixel shr 8) and 0xFF
+                val blue = pixel and 0xFF
+                if (
+                    kotlin.math.abs(red - targetRed) <= tolerance &&
+                    kotlin.math.abs(green - targetGreen) <= tolerance &&
+                    kotlin.math.abs(blue - targetBlue) <= tolerance
+                ) matches++
+            }
+        }
+        return matches
     }
 
     private fun captureCheckpoint(device: UiDevice, output: File, name: String) {
