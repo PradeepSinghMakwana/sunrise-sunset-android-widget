@@ -11,7 +11,40 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
-class LocationRepository(private val context: Context) {
+/**
+ * Small adapter boundary so provider errors, callbacks, and cancellation can be tested
+ * deterministically without depending on physical location hardware.
+ */
+interface LocationGateway {
+    fun isProviderEnabled(provider: String): Boolean
+    fun getLastKnownLocation(provider: String): Location?
+    fun requestLocationUpdates(provider: String, listener: LocationListener)
+    fun removeUpdates(listener: LocationListener)
+}
+
+private class AndroidLocationGateway(context: Context) : LocationGateway {
+    private val manager =
+        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+    override fun isProviderEnabled(provider: String): Boolean =
+        manager.isProviderEnabled(provider)
+
+    override fun getLastKnownLocation(provider: String): Location? =
+        manager.getLastKnownLocation(provider)
+
+    override fun requestLocationUpdates(provider: String, listener: LocationListener) {
+        manager.requestLocationUpdates(provider, 0L, 0f, listener)
+    }
+
+    override fun removeUpdates(listener: LocationListener) {
+        manager.removeUpdates(listener)
+    }
+}
+
+class LocationRepository(
+    private val context: Context,
+    private val locationGateway: LocationGateway = AndroidLocationGateway(context)
+) {
     suspend fun hasSavedLocation(): Boolean = withContext(Dispatchers.IO) {
         val prefs = context.getSharedPreferences(LocationPreferences.PREFS, Context.MODE_PRIVATE)
         val latitude = prefs.getString(LocationPreferences.LATITUDE, null)?.toDoubleOrNull()
@@ -21,12 +54,15 @@ class LocationRepository(private val context: Context) {
     }
 
     suspend fun findLocation(): Location? {
-        val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val cached = withContext(Dispatchers.IO) {
             listOf(LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
                 .firstNotNullOfOrNull { provider ->
                     try {
-                        if (manager.isProviderEnabled(provider)) manager.getLastKnownLocation(provider) else null
+                        if (locationGateway.isProviderEnabled(provider)) {
+                            locationGateway.getLastKnownLocation(provider)
+                        } else {
+                            null
+                        }
                     } catch (_: SecurityException) {
                         null
                     } catch (_: RuntimeException) {
@@ -34,7 +70,10 @@ class LocationRepository(private val context: Context) {
                     }
                 }
         }
-        if (cached != null) return cached
+        if (cached != null && SolarCalculator.hasValidCoordinates(
+                cached.latitude, cached.longitude
+            )
+        ) return cached
 
         return withContext(Dispatchers.Main.immediate) {
             suspendCancellableCoroutine { continuation ->
@@ -43,7 +82,7 @@ class LocationRepository(private val context: Context) {
                 fun finish(location: Location?) {
                     if (completed.compareAndSet(false, true)) {
                         try {
-                            manager.removeUpdates(listener)
+                            locationGateway.removeUpdates(listener)
                         } catch (_: Exception) {
                             // The listener may already have been removed by the platform.
                         }
@@ -51,7 +90,11 @@ class LocationRepository(private val context: Context) {
                     }
                 }
                 listener = object : LocationListener {
-                    override fun onLocationChanged(location: Location) = finish(location)
+                    override fun onLocationChanged(location: Location) {
+                        if (SolarCalculator.hasValidCoordinates(location.latitude, location.longitude)) {
+                            finish(location)
+                        }
+                    }
 
                     @Deprecated("Deprecated by Android")
                     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
@@ -62,20 +105,18 @@ class LocationRepository(private val context: Context) {
                 continuation.invokeOnCancellation {
                     if (completed.compareAndSet(false, true)) {
                         try {
-                            manager.removeUpdates(listener)
+                            locationGateway.removeUpdates(listener)
                         } catch (_: Exception) {
                             // Cancellation cleanup must not mask the original cancellation.
                         }
                     }
                 }
                 try {
-                    if (!manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    if (!locationGateway.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                         finish(null)
                     } else {
-                        manager.requestLocationUpdates(
+                        locationGateway.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
-                            0L,
-                            0f,
                             listener
                         )
                     }
