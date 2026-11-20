@@ -67,3 +67,14 @@ The emulator is used for repeatable UI testing and screenshot generation; it is 
 ## Permissions
 
 The manifest declares only `ACCESS_COARSE_LOCATION`. Do not add `ACCESS_FINE_LOCATION` just to satisfy tests. The widget-placement test seeds coordinates in test app preferences and must not request the user's location permission.
+
+
+## AVD profile regression tests
+
+Run the fast, host-only checks with:
+
+```sh
+python3 -m unittest discover -s scripts -p 'test_*.py' -v
+```
+
+The regression suite includes the exact historical failure: a `Pixel_2` ID absent from `avdmanager list device` output must be rejected. Matching is exact and case-sensitive, so a partial name or a differently-cased ID cannot silently pass. The CI workflow configuration test prevents either workflow from reintroducing a hard-coded profile without changing the explicit no-profile policy. If a named profile becomes necessary, first run the validator on that same runner to confirm the exact ID exists.
