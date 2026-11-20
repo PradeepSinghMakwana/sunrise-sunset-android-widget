@@ -120,18 +120,12 @@ class StoreScreenshotTest {
         device.click(appEntryBounds.centerX(), appEntryBounds.centerY())
         device.waitForIdle()
 
-        val selectedWidgetName = device.wait(
-            Until.findObject(By.res("com.android.launcher3", "widget_name")), 5_000)
-        assertNotNull("Launcher did not open the selected widget's details", selectedWidgetName)
-        assertTrue(
-            "Launcher selected the wrong widget preview: " +
-                selectedWidgetName?.contentDescription,
-            selectedWidgetName?.contentDescription?.contains("Sunrise Sunset Clock") == true
-        )
-        captureCheckpoint(device, output, "07-widget-preview")
-
+        // Save evidence immediately after tapping the provider row. Launcher3's
+        // widget_name accessibility ID is not stable across Android 13 builds.
+        captureCheckpoint(device, output, "07-widget-row-selected")
         val widgetPreview = device.wait(
             Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
+        device.dumpWindowHierarchy(File(output, "07-widget-row-selected.xml"))
         assertNotNull(
             "Could not locate the actual Launcher3 widget_preview view; " +
                 "do not drag the app-name text",
