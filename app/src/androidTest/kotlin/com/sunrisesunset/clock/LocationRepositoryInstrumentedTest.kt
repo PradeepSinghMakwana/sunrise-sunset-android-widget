@@ -94,7 +94,7 @@ class LocationRepositoryInstrumentedTest {
         val gateway = FakeLocationGateway(providerEnabled = true)
         val repository = LocationRepository(context, gateway)
         try {
-            withTimeout(150) { repository.findLocation() }
+            withTimeout(1_000) { repository.findLocation() }
         } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
             // Expected: fake provider deliberately never emits a fix.
         }
@@ -127,7 +127,9 @@ class LocationRepositoryInstrumentedTest {
         val gateway = FakeLocationGateway(providerEnabled = true)
         val repository = LocationRepository(context, gateway)
         val pending = async { repository.findLocation() }
-        while (gateway.requestCount == 0) delay(10)
+        withTimeout(5_000) {
+            while (gateway.requestCount == 0) delay(10)
+        }
 
         gateway.emit(Location("test").apply {
             latitude = 91.0
