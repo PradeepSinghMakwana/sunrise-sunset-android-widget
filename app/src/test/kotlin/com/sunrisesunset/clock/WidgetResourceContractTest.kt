@@ -92,7 +92,8 @@ class WidgetResourceContractTest {
         )
         assertTrue(
             "UI test must explain why RemoteViews children are not queried",
-            source.contains("RemoteViews child TextViews are not individually queryable")
+            source.contains("RemoteViews children as one") &&
+                source.contains("individual TextViews aren't queryable")
         )
     }
 
