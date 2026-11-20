@@ -11,6 +11,22 @@ if [[ "$device_timezone" != "PST-0800" && "$device_timezone" != "PDT-0700" ]]; t
     exit 1
 fi
 adb shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles >/dev/null 2>&1 || true
+
+# Use a generic tall-phone display, not a Pixel hardware profile or OEM skin.
+# Apply before launching the app so UI layout and screenshot evidence use it.
+adb shell wm size 1080x2400
+adb shell wm density 420
+display_size="$(adb shell wm size | tr -d '\\r')"
+display_density="$(adb shell wm density | tr -d '\\r')"
+if [[ "$display_size" != *"Override size: 1080x2400"* ]]; then
+    echo "Emulator display size was not applied: $display_size"
+    exit 1
+fi
+if [[ "$display_density" != *"Override density: 420"* ]]; then
+    echo "Emulator display density was not applied: $display_density"
+    exit 1
+fi
+
 set +e
 gradle :app:connectedDebugAndroidTest
 test_status=$?
