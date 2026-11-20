@@ -43,6 +43,7 @@ class StoreScreenshotTest {
             assertTrue("Could not capture app setup screen", device.takeScreenshot(screenshot))
             assertTrue("App screenshot is empty", screenshot.length() > 10_000)
             device.dumpWindowHierarchy(File(output, "01-app-setup.xml"))
+            captureShellEvidence(device, "01-app-setup")
         } finally {
             scenario.close()
         }
@@ -108,6 +109,8 @@ class StoreScreenshotTest {
                 device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
             device.waitForIdle()
         }
+        // Reacquire after the final swipe: a UiObject2 can retain stale bounds.
+        appEntry = device.findObject(widgetEntrySelector)
         assertNotNull("Widget picker did not list Sunrise Sunset Clock", appEntry)
         val appEntryBounds = appEntry!!.visibleBounds
         assertTrue(
@@ -216,6 +219,7 @@ class StoreScreenshotTest {
         before.recycle()
         after.recycle()
         device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
+        captureShellEvidence(device, "02-home-screen-widget")
     }
 
 
@@ -252,6 +256,18 @@ class StoreScreenshotTest {
     private fun captureCheckpoint(device: UiDevice, output: File, name: String) {
         device.takeScreenshot(File(output, "$name.png"))
         device.dumpWindowHierarchy(File(output, "$name.xml"))
+        captureShellEvidence(device, name)
+    }
+
+    // Gradle removes the target app after connectedDebugAndroidTest. Save
+    // checkpoint evidence in shell-owned /data/local/tmp so the runner can pull
+    // it after Gradle finishes, instead of losing the app's external files.
+    private fun captureShellEvidence(device: UiDevice, name: String) {
+        val evidenceDirectory = "/data/local/tmp/sunrise-sunset-ci"
+        device.executeShellCommand("mkdir -p $evidenceDirectory")
+        device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
+        device.executeShellCommand("uiautomator dump $evidenceDirectory/$name.xml")
+        device.executeShellCommand("dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt")
     }
 
     private fun screenshotDirectory(context: Context): File {
