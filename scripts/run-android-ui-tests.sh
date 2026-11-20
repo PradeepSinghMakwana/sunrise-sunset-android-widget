@@ -6,8 +6,8 @@
 adb shell settings put global auto_time_zone 0
 adb shell cmd alarm set-timezone America/Los_Angeles
 device_timezone="$(adb shell date +%Z%z | tr -d '\r')"
-if [[ "$device_timezone" != "PST-0800" ]]; then
-    echo "Android 13 emulator timezone is '$device_timezone'; expected PST-0800"
+if [[ "$device_timezone" != "PST-0800" && "$device_timezone" != "PDT-0700" ]]; then
+    echo "Android 13 emulator timezone is '$device_timezone'; expected a California PST/PDT offset"
     exit 1
 fi
 adb shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles >/dev/null 2>&1 || true
