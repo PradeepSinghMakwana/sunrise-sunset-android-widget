@@ -57,3 +57,8 @@ The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCAT
 ## Legacy emulator diagnostics
 
 `StoreScreenshotTest.kt` and `docs/EMULATOR_DIAGNOSTICS.md` describe the earlier emulator-based screenshot investigation. They are not part of the release workflow and must not be used to produce release screenshots.
+
+
+## Android 13 physical-device validation
+
+Before publishing store screenshots or creating a release tag, follow [Android 13 physical-device release validation](ANDROID_13_PHYSICAL_DEVICE_TEST.md) on a Samsung Galaxy A51 running Android 13 (API 33). The app keeps `targetSdk = 35`; this does not prevent installation or testing on Android 13. Do not use an emulator or AWS Device Farm for this release pass. Build and install the CI debug APK on the physical phone, complete the checklist, and capture the two original store screenshots using the phone's native screenshot function.
