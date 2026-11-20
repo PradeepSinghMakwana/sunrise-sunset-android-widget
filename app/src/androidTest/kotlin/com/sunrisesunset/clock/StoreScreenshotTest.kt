@@ -1,6 +1,6 @@
 package com.sunrisesunset.clock
 
-import android.app.AppWidgetManager
+import android.appwidget.AppWidgetManager
 import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
