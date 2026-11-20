@@ -46,11 +46,15 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Verify non-Pixel Nexus 5X AVD profile exists
+        run: python3 scripts/avd_profile_validation.py 'Nexus 5X'
+
       - name: Capture release screenshots on Android 13 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
           target: default
+          profile: Nexus 5X
           arch: x86_64
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
