@@ -86,7 +86,7 @@ class WidgetResourceContractTest {
         assertTrue(source.contains("/data/local/tmp/sunrise-sunset-ci") && source.contains("screencap -p"))
         assertTrue(source.contains("device.dumpWindowHierarchy(hierarchyFile(context,"))
         assertTrue(source.contains("File(externalFilesDirectory, \"screenshots\")"))
-        assertTrue(source.contains("cp \\${hierarchy.absolutePath} \\$evidenceDirectory/\\$name.xml"))
+        assertTrue(source.contains("cp ${'$'}{hierarchy.absolutePath} ${'$'}evidenceDirectory/${'$'}name.xml"))
         assertTrue(source.contains("HIERARCHY_COPY_OK"))
     }
 
