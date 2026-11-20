@@ -15,6 +15,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import java.io.File
+import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith
 class StoreScreenshotTest {
     @Test
     fun captureRealAppSetupScreen() {
+        assertCiTimezone()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val device = UiDevice.getInstance(instrumentation)
@@ -37,13 +39,13 @@ class StoreScreenshotTest {
             assertTrue("Setup action did not become visible to UI Automator",
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
             device.waitForIdle()
-            captureCheckpoint(device, output, "04-app-setup-ready")
+            captureCheckpoint(device, context, "04-app-setup-ready")
 
             val screenshot = File(output, "01-app-setup.png")
             assertTrue("Could not capture app setup screen", device.takeScreenshot(screenshot))
             assertTrue("App screenshot is empty", screenshot.length() > 10_000)
-            device.dumpWindowHierarchy(File(output, "01-app-setup.xml"))
-            captureShellEvidence(device, "01-app-setup")
+            device.dumpWindowHierarchy(hierarchyFile(context, "01-app-setup"))
+            captureShellEvidence(device, context, "01-app-setup")
         } finally {
             scenario.close()
         }
@@ -75,15 +77,15 @@ class StoreScreenshotTest {
         device.waitForIdle()
         Thread.sleep(1_000)
         device.takeScreenshot(File(output, "02-launcher-before.png"))
-        device.dumpWindowHierarchy(File(output, "02-launcher-before.xml"))
-        captureShellEvidence(device, "02-launcher-before")
+        device.dumpWindowHierarchy(hierarchyFile(context, "02-launcher-before"))
+        captureShellEvidence(device, context, "02-launcher-before")
 
         val workspace = device.wait(
             Until.findObject(By.res("com.android.launcher3", "workspace")), 10_000)
         assertNotNull("Launcher3 workspace was not exposed; inspect 02-launcher-before.xml", workspace)
         workspace!!.longClick()
         device.waitForIdle()
-        captureCheckpoint(device, output, "05-launcher-edit-menu")
+        captureCheckpoint(device, context, "05-launcher-edit-menu")
 
         val widgetsButton: UiObject2? = device.wait(
             Until.findObject(By.text("Widgets")), 5_000)
@@ -91,7 +93,7 @@ class StoreScreenshotTest {
         assertNotNull("Launcher edit menu did not expose Widgets", widgetsButton)
         widgetsButton!!.click()
         device.waitForIdle()
-        captureCheckpoint(device, output, "06-widget-picker-open")
+        captureCheckpoint(device, context, "06-widget-picker-open")
 
         val widgetEntrySelector = By.textContains("Sunrise Sunset Clock")
         var appEntry: UiObject2? = null
@@ -126,10 +128,10 @@ class StoreScreenshotTest {
 
         // Save evidence immediately after tapping the provider row. Launcher3's
         // widget_name accessibility ID is not stable across Android 13 builds.
-        captureCheckpoint(device, output, "07-widget-row-selected")
+        captureCheckpoint(device, context, "07-widget-row-selected")
         val widgetPreview = device.wait(
             Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
-        device.dumpWindowHierarchy(File(output, "07-widget-row-selected.xml"))
+        device.dumpWindowHierarchy(hierarchyFile(context, "07-widget-row-selected"))
         assertNotNull(
             "Could not locate the actual Launcher3 widget_preview view; " +
                 "do not drag the app-name text",
@@ -140,7 +142,7 @@ class StoreScreenshotTest {
             1_000)
         device.waitForIdle()
         Thread.sleep(1_000)
-        captureCheckpoint(device, output, "08-widget-after-placement")
+        captureCheckpoint(device, context, "08-widget-after-placement")
 
         // Android 13 keeps the widget selected after the drag, with resize handles
         // visible. Dismiss that mode before treating the home screen as final.
@@ -219,8 +221,8 @@ class StoreScreenshotTest {
         )
         before.recycle()
         after.recycle()
-        device.dumpWindowHierarchy(File(output, "02-home-screen-widget.xml"))
-        captureShellEvidence(device, "02-home-screen-widget")
+        device.dumpWindowHierarchy(hierarchyFile(context, "02-home-screen-widget"))
+        captureShellEvidence(device, context, "02-home-screen-widget")
     }
 
 
@@ -254,22 +256,19 @@ class StoreScreenshotTest {
         return matches
     }
 
-    private fun captureCheckpoint(device: UiDevice, output: File, name: String) {
+    private fun captureCheckpoint(device: UiDevice, context: Context, name: String) {
+        val output = screenshotDirectory(context)
         device.takeScreenshot(File(output, "$name.png"))
-        device.dumpWindowHierarchy(File(output, "$name.xml"))
-        captureShellEvidence(device, name)
+        device.dumpWindowHierarchy(hierarchyFile(context, name))
+        captureShellEvidence(device, context, name)
     }
 
     // Gradle removes the target app after connectedDebugAndroidTest. Save
     // checkpoint evidence in shell-owned /data/local/tmp so the runner can pull
     // it after Gradle finishes, instead of losing the app's external files.
-    private fun captureShellEvidence(device: UiDevice, name: String) {
+    private fun captureShellEvidence(device: UiDevice, context: Context, name: String) {
         val evidenceDirectory = "/data/local/tmp/sunrise-sunset-ci"
-        val screenshotsDirectory = File(
-            requireNotNull(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)),
-            "screenshots"
-        )
-        val hierarchy = File(screenshotsDirectory, "$name.xml")
+        val hierarchy = hierarchyFile(context, name)
         assertTrue("Window hierarchy was not written for $name: $hierarchy", hierarchy.exists() && hierarchy.length() > 0)
         device.executeShellCommand("mkdir -p $evidenceDirectory")
         device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
@@ -289,6 +288,23 @@ class StoreScreenshotTest {
             )
         }
         device.executeShellCommand("dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt")
+    }
+
+    private fun hierarchyFile(context: Context, name: String): File {
+        val directory = File(context.filesDir, "screenshots")
+        assertTrue(
+            "Could not create internal hierarchy directory at ${directory.absolutePath}",
+            directory.mkdirs() || directory.isDirectory
+        )
+        return File(directory, "$name.xml")
+    }
+
+    private fun assertCiTimezone() {
+        assertEquals(
+            "Android 13 CI emulator must use California local time, not UTC",
+            ZoneId.of("America/Los_Angeles"),
+            ZoneId.systemDefault()
+        )
     }
 
     private fun screenshotDirectory(context: Context): File {
