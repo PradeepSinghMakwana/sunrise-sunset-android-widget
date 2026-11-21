@@ -11,7 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-PROFILE_ID = re.compile(r'^\s*id:\s*\d+\s+or\s+"([^"]+)"\s*$', re.MULTIL)
+PROFILE_ID = re.compile(r'^\s*id:\s*\d+\s+or\s+"([^"]+)"\s*$', re.MULTILINE)
 
 
 def parse_device_profile_ids(output: str) -> set[str]:
