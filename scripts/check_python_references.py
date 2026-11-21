@@ -14,7 +14,7 @@ SCRIPT_DIR = ROOT / "scripts"
 
 def check_file(path: Path) -> list[str]:
     errors: list[str] = []
-    display_path = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+    display_path = display_path if path.is_relative_to(ROOT) else path
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except (SyntaxError, UnicodeDecodeError) as exc:
@@ -53,7 +53,7 @@ def check_file(path: Path) -> list[str]:
             if module is not None and not hasattr(module, node.attr):
                 suggestions = difflib.get_close_matches(node.attr, dir(module), n=1, cutoff=0.72)
                 hint = f"; did you mean {suggestions[0]!r}?" if suggestions else ""
-                errors.append(f"{path.relative_to(ROOT)}:{node.lineno}: reference {node.value.id}.{node.attr} does not exist in imported module{hint}")
+                errors.append(f"{display_path}:{node.lineno}: reference {node.value.id}.{node.attr} does not exist in imported module{hint}")
     return errors
 
 
