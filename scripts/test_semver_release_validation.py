@@ -1,6 +1,7 @@
 """Regression tests for semantic release tag validation."""
 
 import os
+import re
 import subprocess
 import unittest
 from pathlib import Path
@@ -14,8 +15,8 @@ class SemVerReleaseValidationTest(unittest.TestCase):
     def validate(self, tag, version_name):
         original = GRADLE.read_text(encoding="utf-8")
         try:
-            GRADLE.write_text(original.replace(
-                'versionName = "2.0"', f'versionName = "{version_name}"', 1
+            GRADLE.write_text(re.sub(
+                r'versionName = "[^"]+"', f'versionName = "{version_name}"', original, count=1
             ), encoding="utf-8")
             env = {"PATH": os.environ["PATH"], "GITHUB_REF_NAME": tag}
             return subprocess.run(
