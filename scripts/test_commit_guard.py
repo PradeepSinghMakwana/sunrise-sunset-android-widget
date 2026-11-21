@@ -261,6 +261,10 @@ class CommitGuardTest(unittest.TestCase):
             }}), encoding="utf-8")
             subprocess.run(["git", "add", ".commitguard/intent-audit.json"], cwd=repo, check=True)
             subprocess.run(["git", "commit", "-qm", "Record per-commit audits"], cwd=repo, check=True)
+            manifest["audit_note"] = "second metadata-only follow-up"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            subprocess.run(["git", "add", ".commitguard/intent-audit.json"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "Record audit ledger follow-up"], cwd=repo, check=True)
             head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
             with patch.object(commit_intent_audit, "ROOT", repo), patch.object(
                 commit_intent_audit, "MANIFEST", manifest_path
