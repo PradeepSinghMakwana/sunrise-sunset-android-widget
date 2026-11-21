@@ -73,7 +73,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "PATH": f"{bin_dir}{os.pathsep}{env['PATH']}",
                 "GRADLE_TEST_EXIT": str(gradle_status),
                 "ADB_CALLS": str(calls),
-                "DEVICE_TIMEZONE": timezone,\n                "DENSITY_MODE": density_mode,
+                "DEVICE_TIMEZONE": timezone,
                 "DENSITY_MODE": density_mode,
             })
             result = subprocess.run(
