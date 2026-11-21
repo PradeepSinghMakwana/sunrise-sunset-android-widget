@@ -182,15 +182,155 @@ def validate(staged: bool) -> list[str]:
     return []
 
 
+
+def commit_parent(sha: str) -> str | None:
+    fields = git("rev-list", "--parents", "-n", "1", sha).split()
+    return fields[1] if len(fields) > 1 else None
+
+
+def commit_files(sha: str) -> list[str]:
+    parent = commit_parent(sha)
+    if parent is None:
+        output = git("diff-tree", "--root", "--no-commit-id", "--name-only", "--no-renames", "-r", sha)
+    else:
+        output = git("diff", "--name-only", "--no-renames", parent, sha)
+    return sorted(set(output.splitlines()))
+
+
+def commit_words(sha: str) -> collections.Counter[tuple[str, str]]:
+    parent = commit_parent(sha)
+    if parent is None:
+        raise AuditError(f"root commit {sha} has no auditable parent; use a branch merge-base")
+    common = ["--no-ext-diff", "--no-renames", "--word-diff=porcelain",
+              "--word-diff-regex=" + TOKEN_PATTERN, "--unified=0", "--no-color"]
+    output = git("diff", parent, sha, *common, "--", ".", ":(exclude)" + AUDIT_PATH)
+    counts: collections.Counter[tuple[str, str]] = collections.Counter()
+    in_hunk = False
+    for line in output.splitlines():
+        if line.startswith("@@"):
+            in_hunk = True
+            continue
+        if in_hunk and line and line[0] in "+-":
+            direction = "added" if line[0] == "+" else "removed"
+            for token in TOKEN_RE.findall(line[1:]):
+                counts[(direction, token)] += 1
+    return counts
+
+
+def validate_commit_record(sha: str, record: dict) -> list[str]:
+    errors: list[str] = []
+    for field in ("intent", "reviewed_by", "commit_subject"):
+        if not nonempty(record.get(field)):
+            errors.append(f"commit {sha}: {field} must be non-empty")
+    subject = git("log", "-1", "--format=%s", sha).strip()
+    if record.get("commit_subject") != subject:
+        errors.append(f"commit {sha}: reviewed subject does not match {subject!r}")
+    requirements = record.get("requirements")
+    req_ids = set()
+    if not isinstance(requirements, list) or not requirements:
+        errors.append(f"commit {sha}: requirements must be a non-empty list")
+        requirements = []
+    for item in requirements:
+        if isinstance(item, dict) and nonempty(item.get("id")) and nonempty(item.get("text")):
+            req_ids.add(item["id"])
+        else:
+            errors.append(f"commit {sha}: each requirement needs id and text")
+    files = set(commit_files(sha)) - {AUDIT_PATH}
+    reviews = record.get("file_reviews")
+    if not isinstance(reviews, dict):
+        errors.append(f"commit {sha}: file_reviews must be an object")
+        reviews = {}
+    for path in sorted(files):
+        review = reviews.get(path)
+        if not isinstance(review, dict) or not nonempty(review.get("necessity")):
+            errors.append(f"commit {sha}: changed file lacks necessity review: {path}")
+            continue
+        mapped = review.get("requirement_ids")
+        if not isinstance(mapped, list) or not mapped or any(value not in req_ids for value in mapped):
+            errors.append(f"commit {sha}: {path} has invalid requirement references")
+    for path in sorted(set(reviews) - files):
+        errors.append(f"commit {sha}: stale file review: {path}")
+    actual = commit_words(sha)
+    declared: collections.Counter[tuple[str, str]] = collections.Counter()
+    entries = record.get("word_reviews")
+    if not isinstance(entries, list):
+        errors.append(f"commit {sha}: word_reviews must be a list")
+        entries = []
+    for index, item in enumerate(entries):
+        if not isinstance(item, dict):
+            errors.append(f"commit {sha}: word_reviews[{index}] must be an object")
+            continue
+        direction, token = item.get("direction"), item.get("token")
+        count, req_id = item.get("count"), item.get("requirement_id")
+        if direction not in ("added", "removed") or not nonempty(token):
+            errors.append(f"commit {sha}: word_reviews[{index}] has invalid direction/token")
+            continue
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            errors.append(f"commit {sha}: word_reviews[{index}] count must be positive")
+            continue
+        if req_id not in req_ids or not nonempty(item.get("rationale")):
+            errors.append(f"commit {sha}: word_reviews[{index}] lacks a valid requirement or rationale")
+        declared[(direction, token)] += count
+    for key in sorted(set(actual) | set(declared)):
+        if actual[key] != declared[key]:
+            errors.append(f"commit {sha}: {key[0]} word {key[1]!r}: diff has {actual[key]}, reviewed {declared[key]}")
+    return errors
+
+
+def validate_range(base: str, head: str) -> list[str]:
+    if not nonempty(base) or not nonempty(head):
+        raise AuditError("range base and head SHAs are required")
+    git("cat-file", "-e", base + "^{commit}")
+    git("cat-file", "-e", head + "^{commit}")
+    records = load_manifest().get("commit_audits")
+    if not isinstance(records, dict):
+        raise AuditError("commit_audits must map each changed commit SHA to its audit record")
+    commits = git("rev-list", "--reverse", base + ".." + head).splitlines()
+    if not commits:
+        raise AuditError(f"no commits found in range {base}..{head}")
+    errors: list[str] = []
+    audited = 0
+    for sha in commits:
+        files = commit_files(sha)
+        if not files:
+            continue
+        if files == [AUDIT_PATH]:
+            parent = commit_parent(sha)
+            if parent is None or parent not in records:
+                errors.append(f"manifest-only commit {sha} lacks an audit record for its preceding commit")
+            continue
+        record = records.get(sha)
+        if record is None:
+            errors.append(f"commit {sha} has no per-commit audit record")
+            actual = commit_words(sha)
+            diagnostic = [{"direction": d, "token": t, "count": n} for (d, t), n in sorted(actual.items())]
+            print(f"[CommitGuard] REQUIRED_AUDIT {sha} files={json.dumps([p for p in files if p != AUDIT_PATH])} words={json.dumps(diagnostic)}")
+            continue
+        audited += 1
+        errors.extend(validate_commit_record(sha, record))
+    if not audited:
+        errors.append("range contains no audited code commits")
+    if errors:
+        return errors
+    print(f"[CommitGuard] Range audit PASS: {audited} individual commit(s), {len(commits)} total commit(s).")
+    print("[CommitGuard] Human review attestations are recorded; semantic truth still requires human judgment.")
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--staged", action="store_true", help="audit the staged diff (pre-commit)")
-    mode.add_argument("--head", action="store_true", help="audit the latest committed change (CI)")
+    mode.add_argument("--head", action="store_true", help="audit the latest committed change")
+    parser.add_argument("--range", nargs=2, metavar=("BASE", "HEAD"),
+                        help="audit every individual commit between BASE and HEAD")
     args = parser.parse_args()
     try:
-        staged = not args.head
-        errors = validate(staged)
+        if args.range:
+            errors = validate_range(args.range[0], args.range[1])
+        else:
+            staged = not args.head
+            errors = validate(staged)
     except AuditError as exc:
         print(f"[CommitGuard] ERROR: {exc}", file=sys.stderr)
         return 1
