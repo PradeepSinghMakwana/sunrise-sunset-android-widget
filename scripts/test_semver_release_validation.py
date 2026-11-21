@@ -72,7 +72,10 @@ class SemVerReleaseValidationTest(unittest.TestCase):
         workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("scripts/semver-release-validation.sh", workflow)
         self.assertIn("Verify Semantic Version tag matches Gradle versionName", workflow)
-        self.assertIn("Run CommitGuard (mandatory release validation)", workflow)\n        self.assertIn("bash scripts/commit-guard.sh", workflow)\n        guard = (ROOT / "scripts" / "commit-guard.sh").read_text(encoding="utf-8")\n        self.assertIn(":app:testDebugUnitTest", guard)
+        self.assertIn("Run CommitGuard (mandatory release validation)", workflow)
+        self.assertIn("bash scripts/commit-guard.sh", workflow)
+        guard = (ROOT / "scripts" / "commit-guard.sh").read_text(encoding="utf-8")
+        self.assertIn(":app:testDebugUnitTest", guard)
         self.assertIn("Capture release screenshots on Android 13 emulator", workflow)
 
     def test_validator_is_not_accidentally_skipped_by_shell_syntax_checks(self):
