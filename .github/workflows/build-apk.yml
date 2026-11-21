@@ -3,9 +3,8 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: ['**']
   pull_request:
-    branches: [ main ]
 
 concurrency:
   group: android-ci-${{ github.ref }}
