@@ -1,7 +1,9 @@
 """Regression tests for the mandatory CommitGuard gate."""
-import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+
+from check_python_references import check_file
 
 ROOT = Path(__file__).resolve().parents[1]
 GUARD = ROOT / "scripts" / "commit-guard.sh"
@@ -17,13 +19,23 @@ class CommitGuardTest(unittest.TestCase):
         self.assertIn("unittest discover", content)
         self.assertIn(":app:testDebugUnitTest", content)
 
-    def test_reference_checker_detects_typo_in_module_attribute(self):
-        # Regression fixture proves the exact class of typo that escaped CI earlier.
-        source = "import re\\nre.MULTIL\\n"
-        checker_globals = {}
-        exec(compile(source, "<fixture>", "exec"), checker_globals)
+    def test_reference_checker_catches_typo_in_imported_module_attribute(self):
+        with tempfile.TemporaryDirectory() as temp:
+            fixture = Path(temp) / "typo_fixture.py"
+            fixture.write_text("import re\\nre.MULTIL\\n", encoding="utf-8")
+            errors = check_file(fixture)
+            self.assertTrue(errors)
+            self.assertIn("re.MULTIL", errors[0])
+            self.assertIn("MULTILINE", errors[0])
 
-    def test_checker_itself_parses(self):
+    def test_reference_checker_passes_correct_reference(self):
+        with tempfile.TemporaryDirectory() as temp:
+            fixture = Path(temp) / "correct_fixture.py"
+            fixture.write_text("import re\\nre.MULTILINE\\n", encoding="utf-8")
+            self.assertEqual([], check_file(fixture))
+
+    def test_checker_itself_parses_and_checks_all_script_files(self):
+        import subprocess
         result = subprocess.run(
             ["python3", str(CHECKER)], cwd=ROOT, text=True, capture_output=True
         )
