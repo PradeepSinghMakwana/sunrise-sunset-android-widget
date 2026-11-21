@@ -81,7 +81,7 @@ class WidgetResourceContractTest {
         val source = File("src/androidTest/kotlin/com/sunrisesunset/clock/StoreScreenshotTest.kt").readText()
         assertTrue(source.contains("/data/local/tmp/sunrise-sunset-ci"))
         assertTrue(source.contains("screencap -p"))
-        assertTrue(source.contains("uiautomator dump $hierarchyPath 2>&1"))
+        assertTrue(source.contains("uiautomator dump \\$hierarchyPath 2>&1"))
         assertTrue(source.contains("test -s \$hierarchyPath && echo HIERARCHY_DUMP_OK"))
         assertTrue(source.contains("verification.contains(\"HIERARCHY_DUMP_OK\")"))
         val evidenceFunction = source.substringAfter("private fun captureShellEvidence")
