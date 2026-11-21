@@ -15,6 +15,11 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import java.io.File
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -35,16 +40,16 @@ class StoreScreenshotTest {
         unlockDevice(device, context)
         val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
         try {
-            Thread.sleep(1_000)
+            stage("settle screen", 2_000) { Thread.sleep(250) }
             assertTrue("Setup action did not become visible to UI Automator",
                 device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
-            device.waitForIdle()
+            waitForUiIdle(device, "UI idle")
             captureCheckpoint(device, context, "04-app-setup-ready")
 
             val screenshot = File(output, "01-app-setup.png")
-            assertTrue("Could not capture app setup screen", device.takeScreenshot(screenshot))
+            assertTrue("Could not capture app setup screen", captureScreenshot(device, screenshot, "screen"))
             assertTrue("App screenshot is empty", screenshot.length() > 10_000)
-            device.dumpWindowHierarchy(hierarchyFile(context, "01-app-setup"))
+            captureHierarchy(device, hierarchyFile(context, "01-app-setup"))
             captureShellEvidence(device, context, "01-app-setup")
         } finally {
             scenario.close()
@@ -72,28 +77,28 @@ class StoreScreenshotTest {
         )
 
         unlockDevice(device, context)
-        device.pressHome()
+        stage("return to launcher", 5_000) { device.pressHome() }
         assertTrue("Android launcher did not become visible",
             device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000))
-        device.waitForIdle()
-        Thread.sleep(1_000)
-        device.takeScreenshot(File(output, "02-launcher-before.png"))
-        device.dumpWindowHierarchy(hierarchyFile(context, "02-launcher-before"))
+        waitForUiIdle(device, "UI idle")
+        stage("settle screen", 2_000) { Thread.sleep(250) }
+        captureScreenshot(device, File(output, "02-launcher-before.png"), "launcher-before")
+        captureHierarchy(device, hierarchyFile(context, "02-launcher-before"))
         captureShellEvidence(device, context, "02-launcher-before")
 
         val workspace = device.wait(
             Until.findObject(By.res("com.android.launcher3", "workspace")), 10_000)
         assertNotNull("Launcher3 workspace was not exposed; inspect 02-launcher-before.xml", workspace)
-        workspace!!.longClick()
-        device.waitForIdle()
+        stage("open launcher edit menu", 5_000) { workspace!!.longClick() }
+        waitForUiIdle(device, "UI idle")
         captureCheckpoint(device, context, "05-launcher-edit-menu")
 
         val widgetsButton: UiObject2? = device.wait(
             Until.findObject(By.text("Widgets")), 5_000)
             ?: device.wait(Until.findObject(By.descContains("Widgets")), 2_000)
         assertNotNull("Launcher edit menu did not expose Widgets", widgetsButton)
-        widgetsButton!!.click()
-        device.waitForIdle()
+        stage("open widget picker", 5_000) { widgetsButton!!.click() }
+        waitForUiIdle(device, "UI idle")
         captureCheckpoint(device, context, "06-widget-picker-open")
 
         val widgetEntrySelector = By.textContains("Sunrise Sunset Clock")
@@ -111,7 +116,7 @@ class StoreScreenshotTest {
             if (fullyVisible) break
             device.swipe(device.displayWidth / 2, (device.displayHeight * 0.78).toInt(),
                 device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
-            device.waitForIdle()
+            waitForUiIdle(device, "UI idle")
         }
         // Reacquire after the final swipe: a UiObject2 can retain stale bounds.
         appEntry = device.findObject(widgetEntrySelector)
@@ -124,15 +129,15 @@ class StoreScreenshotTest {
         )
         // Tap the center of the fully visible widget row, not an off-screen
         // accessibility node whose bounds may be clipped to a neighboring item.
-        device.click(appEntryBounds.centerX(), appEntryBounds.centerY())
-        device.waitForIdle()
+        stage("select widget row", 5_000) { device.click(appEntryBounds.centerX(), appEntryBounds.centerY()) }
+        waitForUiIdle(device, "UI idle")
 
         // Save evidence immediately after tapping the provider row. Launcher3's
         // widget_name accessibility ID is not stable across Android 13 builds.
         captureCheckpoint(device, context, "07-widget-row-selected")
         val widgetPreview = device.wait(
             Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
-        device.dumpWindowHierarchy(hierarchyFile(context, "07-widget-row-selected"))
+        captureHierarchy(device, hierarchyFile(context, "07-widget-row-selected"))
         assertNotNull(
             "Could not locate the actual Launcher3 widget_preview view; " +
                 "do not drag the app-name text",
@@ -141,17 +146,17 @@ class StoreScreenshotTest {
         widgetPreview!!.drag(
             android.graphics.Point(device.displayWidth / 2, (device.displayHeight * 0.48).toInt()),
             1_000)
-        device.waitForIdle()
-        Thread.sleep(1_000)
+        waitForUiIdle(device, "UI idle")
+        stage("settle screen", 2_000) { Thread.sleep(250) }
         captureCheckpoint(device, context, "08-widget-after-placement")
 
         // Android 13 keeps the widget selected after the drag, with resize handles
         // visible. Dismiss that mode before treating the home screen as final.
-        device.pressBack()
-        device.waitForIdle()
-        Thread.sleep(1_000)
+        stage("exit widget placement mode", 5_000) { device.pressBack() }
+        waitForUiIdle(device, "UI idle")
+        stage("settle screen", 2_000) { Thread.sleep(250) }
 
-        val widgetIds = appWidgetManager.getAppWidgetIds(expectedProvider)
+        val widgetIds = stage("verify registered widget", 5_000) { appWidgetManager.getAppWidgetIds(expectedProvider) }
         assertTrue(
             "Launcher drag did not register a Sunrise Sunset Clock widget instance; " +
                 "inspect 08-widget-after-placement.xml",
@@ -222,10 +227,34 @@ class StoreScreenshotTest {
         )
         before.recycle()
         after.recycle()
-        device.dumpWindowHierarchy(hierarchyFile(context, "02-home-screen-widget"))
+        captureHierarchy(device, hierarchyFile(context, "02-home-screen-widget"))
         captureShellEvidence(device, context, "02-home-screen-widget")
     }
 
+
+    // Every potentially blocking platform operation has an independent deadline.
+    private fun <T> stage(name: String, timeoutMs: Long, action: () -> T): T {
+        val task = FutureTask(Callable<T> { action() })
+        Thread(task, "instrumented-stage-$name").apply { isDaemon = true; start() }
+        try { return task.get(timeoutMs, TimeUnit.MILLISECONDS) }
+        catch (error: TimeoutException) { task.cancel(true); throw AssertionError("Stage '$name' exceeded ${timeoutMs}ms", error) }
+        catch (error: ExecutionException) { throw (error.cause ?: error) }
+    }
+
+    private fun waitForUiIdle(device: UiDevice, name: String) {
+        stage(name, 5_000) { device.waitForIdle(4_500) }
+    }
+
+    private fun shell(device: UiDevice, command: String, name: String, timeoutMs: Long): String =
+        stage(name, timeoutMs) { device.executeShellCommand(command) }
+
+    private fun captureScreenshot(device: UiDevice, file: File, name: String): Boolean =
+        stage("$name screenshot", 5_000) { device.takeScreenshot(file) }
+
+    private fun captureHierarchy(device: UiDevice, file: File, name: String) {
+        stage("$name hierarchy dump", 10_000) { device.dumpWindowHierarchy(file) }
+        assertTrue("Hierarchy dump is missing or empty for $name", file.isFile && file.length() > 0)
+    }
 
     private fun countPixelsNear(
         bitmap: Bitmap,
@@ -259,8 +288,8 @@ class StoreScreenshotTest {
 
     private fun captureCheckpoint(device: UiDevice, context: Context, name: String) {
         val output = screenshotDirectory(context)
-        device.takeScreenshot(File(output, "$name.png"))
-        device.dumpWindowHierarchy(hierarchyFile(context, name))
+        captureScreenshot(device, File(output, "$name.png"), "$name checkpoint")
+        captureHierarchy(device, hierarchyFile(context, name))
         captureShellEvidence(device, context, name)
     }
 
@@ -270,8 +299,8 @@ class StoreScreenshotTest {
     private fun captureShellEvidence(device: UiDevice, context: Context, name: String) {
         val evidenceDirectory = "/data/local/tmp/sunrise-sunset-ci"
         val hierarchyPath = "$evidenceDirectory/$name.xml"
-        device.executeShellCommand("mkdir -p $evidenceDirectory")
-        device.executeShellCommand("screencap -p $evidenceDirectory/$name.png")
+        shell(device, "mkdir -p $evidenceDirectory", "$name create evidence directory", 3_000)
+        shell(device, "screencap -p $evidenceDirectory/$name.png", "$name shell screenshot", 5_000)
         // Run uiautomator dump as the shell UID directly into shell-owned storage.
         // App-specific external storage is not reliably readable by shell on Android 13.
         val dumpResult = device.executeShellCommand(
@@ -285,7 +314,7 @@ class StoreScreenshotTest {
                 "uiautomator output: $dumpResult; verification: $verification",
             verification.contains("HIERARCHY_DUMP_OK")
         )
-        device.executeShellCommand("dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt")
+        shell(device, "dumpsys appwidget > $evidenceDirectory/$name-appwidget-dump.txt", "$name appwidget diagnostics", 10_000)
     }
 
     private fun hierarchyFile(context: Context, name: String): File {
@@ -321,9 +350,9 @@ class StoreScreenshotTest {
     }
 
     private fun unlockDevice(device: UiDevice, context: Context) {
-        device.wakeUp()
-        device.executeShellCommand("wm dismiss-keyguard")
-        device.waitForIdle()
+        stage("wake emulator", 5_000) { device.wakeUp() }
+        shell(device, "wm dismiss-keyguard", "dismiss keyguard", 5_000)
+        waitForUiIdle(device, "UI idle")
         assertTrue("Emulator screen did not turn on", device.isScreenOn)
         val keyguardManager = context.getSystemService(KeyguardManager::class.java)
         assertTrue("Emulator keyguard is still locked", !keyguardManager.isKeyguardLocked)
