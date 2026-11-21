@@ -14,10 +14,11 @@ SCRIPT_DIR = ROOT / "scripts"
 
 def check_file(path: Path) -> list[str]:
     errors: list[str] = []
+    display_path = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except (SyntaxError, UnicodeDecodeError) as exc:
-        return [f"{path.relative_to(ROOT)}: syntax error: {exc}"]
+        return [f"{display_path}: syntax error: {exc}"]
 
     aliases: dict[str, object] = {}
     for node in ast.walk(tree):
@@ -44,7 +45,7 @@ def check_file(path: Path) -> list[str]:
                     except ImportError:
                         suggestions = difflib.get_close_matches(item.name, dir(module), n=1, cutoff=0.72)
                         hint = f"; did you mean {suggestions[0]!r}?" if suggestions else ""
-                        errors.append(f"{path.relative_to(ROOT)}:{node.lineno}: imported reference {node.module}.{item.name} does not exist{hint}")
+                        errors.append(f"{display_path}:{node.lineno}: imported reference {node.module}.{item.name} does not exist{hint}")
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
