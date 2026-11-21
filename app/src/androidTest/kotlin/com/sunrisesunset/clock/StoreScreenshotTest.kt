@@ -38,11 +38,13 @@ class StoreScreenshotTest {
         val output = screenshotDirectory(context)
 
         unlockDevice(device, context)
-        val scenario = ActivityScenario.launch(LocationSetupActivity::class.java)
+        val scenario = stage("launch setup activity", 10_000) { ActivityScenario.launch(LocationSetupActivity::class.java) }
         try {
             stage("settle screen", 2_000) { Thread.sleep(250) }
             assertTrue("Setup action did not become visible to UI Automator",
-                device.wait(Until.hasObject(By.text("Use approximate location")), 10_000))
+                stage("wait for setup screen", 10_500) {
+                    device.wait(Until.hasObject(By.text("Use approximate location")), 10_000)
+                })
             waitForUiIdle(device, "UI idle")
             captureCheckpoint(device, context, "04-app-setup-ready")
 
@@ -52,7 +54,7 @@ class StoreScreenshotTest {
             captureHierarchy(device, hierarchyFile(context, "01-app-setup"), "app setup")
             captureShellEvidence(device, context, "01-app-setup")
         } finally {
-            scenario.close()
+            stage("close setup activity", 5_000) { scenario.close() }
         }
     }
 
@@ -79,23 +81,27 @@ class StoreScreenshotTest {
         unlockDevice(device, context)
         stage("return to launcher", 5_000) { device.pressHome() }
         assertTrue("Android launcher did not become visible",
-            device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000))
+            stage("wait for Android launcher", 10_500) {
+                device.wait(Until.hasObject(By.pkg("com.android.launcher3")), 10_000)
+            })
         waitForUiIdle(device, "UI idle")
         stage("settle screen", 2_000) { Thread.sleep(250) }
         captureScreenshot(device, File(output, "02-launcher-before.png"), "launcher-before")
         captureHierarchy(device, hierarchyFile(context, "02-launcher-before"), "launcher before")
         captureShellEvidence(device, context, "02-launcher-before")
 
-        val workspace = device.wait(
-            Until.findObject(By.res("com.android.launcher3", "workspace")), 10_000)
+        val workspace = stage("find launcher workspace", 10_500) {
+            device.wait(Until.findObject(By.res("com.android.launcher3", "workspace")), 10_000)
+        }
         assertNotNull("Launcher3 workspace was not exposed; inspect 02-launcher-before.xml", workspace)
         stage("open launcher edit menu", 5_000) { workspace!!.longClick() }
         waitForUiIdle(device, "UI idle")
         captureCheckpoint(device, context, "05-launcher-edit-menu")
 
-        val widgetsButton: UiObject2? = device.wait(
-            Until.findObject(By.text("Widgets")), 5_000)
-            ?: device.wait(Until.findObject(By.descContains("Widgets")), 2_000)
+        val widgetsButton: UiObject2? = stage("find Widgets control", 7_500) {
+            device.wait(Until.findObject(By.text("Widgets")), 5_000)
+                ?: device.wait(Until.findObject(By.descContains("Widgets")), 2_000)
+        }
         assertNotNull("Launcher edit menu did not expose Widgets", widgetsButton)
         stage("open widget picker", 5_000) { widgetsButton!!.click() }
         waitForUiIdle(device, "UI idle")
@@ -108,8 +114,9 @@ class StoreScreenshotTest {
         // Launcher3 can expose a partially clipped row to UiAutomator. Keep
         // scrolling until the title is actually inside the picker viewport; a
         // click on a clipped row can hit another app/category or empty space.
+        stage("find fully visible widget row", 25_000) {
         for (attempt in 0 until 12) {
-            appEntry = device.findObject(widgetEntrySelector)
+            appEntry = stage("reacquire widget row", 3_000) { device.findObject(widgetEntrySelector) }
             val bounds = appEntry?.visibleBounds
             val fullyVisible = bounds != null && bounds.width() > 0 && bounds.height() > 0 &&
                 bounds.top >= pickerViewportTop && bounds.bottom <= pickerViewportBottom
@@ -118,7 +125,8 @@ class StoreScreenshotTest {
                 device.swipe(device.displayWidth / 2, (device.displayHeight * 0.78).toInt(),
                     device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
             }
-            waitForUiIdle(device, "UI idle")
+            waitForUiIdle(device, "widget picker idle")
+        }
         }
         // Reacquire after the final swipe: a UiObject2 can retain stale bounds.
         appEntry = device.findObject(widgetEntrySelector)
