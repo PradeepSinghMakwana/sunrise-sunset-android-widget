@@ -1,77 +1,63 @@
 {
-  "intent": "Refine CommitGuard's word tokenizer so it audits meaningful identifier and word tokens without treating punctuation as standalone words.",
+  "intent": "Make the CommitGuard CI job inspect the actual pull-request branch commit with its parent history available, so the committed-diff audit can run instead of failing on a shallow checkout.",
   "reviewed_by": "ChatGPT assistant review against the user's explicit CommitGuard requirements; repository-owner review remains possible",
-  "commit_subject": "Add mandatory word-audit review manifest",
+  "commit_subject": "Record workflow history change intention audit",
   "requirements": [
     {
       "id": "R1",
-      "text": "Track every added and removed word occurrence in the changed diff and require a rationale tied to the user's stated intention."
+      "text": "CI must fetch the PR head commit and sufficient Git history for CommitGuard to inspect the changed words and files."
     }
   ],
   "file_reviews": {
-    "scripts/commit_intent_audit.py": {
+    ".github/workflows/build-apk.yml": {
       "requirement_ids": [
         "R1"
       ],
-      "necessity": "The tokenizer must compare meaningful changed words and identifiers occurrence by occurrence; punctuation-only tokens add noise and do not represent words."
+      "necessity": "The CommitGuard job needs the actual PR head and its parent history; the default shallow merge checkout has no HEAD^ and cannot support a fail-closed diff audit."
     }
   },
   "word_reviews": [
     {
-      "direction": "removed",
-      "token": "re.compile",
+      "direction": "added",
+      "token": "with",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "The changed tokenizer line removes no meaningful use of this regular-expression constructor; the token is part of the reviewed source expression."
-    },
-    {
-      "direction": "removed",
-      "token": "r",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Reviewed raw-string prefix retained in the new expression."
-    },
-    {
-      "direction": "removed",
-      "token": "A-Za-z0-9_",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Reviewed character-class text retained twice in the new word-token pattern."
-    },
-    {
-      "direction": "removed",
-      "token": "w",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removed from the punctuation/whitespace alternative because punctuation is not an audited word."
-    },
-    {
-      "direction": "removed",
-      "token": "s",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removed from the punctuation/whitespace alternative because whitespace is not an audited word."
+      "rationale": "Introduces checkout configuration for the CommitGuard job."
     },
     {
       "direction": "added",
-      "token": "re.compile",
+      "token": "ref",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Retains regular-expression compilation for the word-only tokenizer."
+      "rationale": "Selects the actual PR head SHA, or push SHA outside pull requests."
     },
     {
       "direction": "added",
-      "token": "r",
+      "token": "github.event.pull_request.head.sha",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Retains the raw-string literal prefix."
+      "rationale": "Audits the pull request source branch commit rather than the synthetic merge commit."
     },
     {
       "direction": "added",
-      "token": "A-Za-z0-9_",
-      "count": 2,
+      "token": "github.sha",
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Retains the identifier/word character class in both occurrences."
+      "rationale": "Provides the event commit SHA for non-pull-request runs."
+    },
+    {
+      "direction": "added",
+      "token": "fetch-depth",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Fetches complete history so the parent diff can be inspected."
+    },
+    {
+      "direction": "added",
+      "token": "0",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Disables shallow history for this checkout."
     }
   ]
 }
