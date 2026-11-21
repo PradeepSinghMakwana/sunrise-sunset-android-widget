@@ -37,7 +37,7 @@ def git(*args: str) -> str:
 
 def changed_files(staged: bool) -> list[str]:
     args = ["diff", "--cached", "--name-only", "--no-renames"] if staged else [
-        "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+        "diff", "HEAD^", "HEAD", "--name-only", "--no-renames"
     ]
     return sorted(set(git(*args).splitlines()))
 
@@ -45,10 +45,12 @@ def changed_files(staged: bool) -> list[str]:
 def word_occurrences(staged: bool) -> collections.Counter[tuple[str, str]]:
     if staged:
         output = git("diff", "--cached", "--no-ext-diff", "--no-renames",
-                     "--word-diff=porcelain", "--unified=0", "--no-color")
+                     "--word-diff=porcelain", "--unified=0", "--no-color",
+                     "--", ".", ":(exclude)" + AUDIT_PATH)
     else:
-        output = git("show", "--format=", "--no-ext-diff", "--no-renames",
-                     "--word-diff=porcelain", "--unified=0", "--no-color", "HEAD")
+        output = git("diff", "HEAD^", "HEAD", "--no-ext-diff", "--no-renames",
+                     "--word-diff=porcelain", "--unified=0", "--no-color",
+                     "--", ".", ":(exclude)" + AUDIT_PATH)
     counts: collections.Counter[tuple[str, str]] = collections.Counter()
     in_hunk = False
     for line in output.splitlines():
