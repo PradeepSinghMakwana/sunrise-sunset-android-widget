@@ -34,7 +34,15 @@ class CommitGuardTest(unittest.TestCase):
             fixture.write_text("import re\\nre.MULTILINE\\n", encoding="utf-8")
             self.assertEqual([], check_file(fixture))
 
-    def test_checker_itself_parses_and_checks_all_script_files(self):
+    def test_ci_executes_commitguard(self):
+        workflow = (ROOT / ".github" / "workflows" / "build-apk.yml").read_text(encoding="utf-8")
+        self.assertIn("Run CommitGuard (mandatory pre-commit checks)", workflow)
+        self.assertIn("bash scripts/commit-guard.sh", workflow)
+        for path in (ROOT / ".github" / "workflows" / "build-apk.yml",
+                     ROOT / ".github" / "workflows" / "release.yml"):
+            self.assertIn("scripts/check_python_references.py", path.read_text(encoding="utf-8"))
+
+    def test_checker_itself_parses_and_checks_all_script_files(selfself:
         import subprocess
         result = subprocess.run(
             ["python3", str(CHECKER)], cwd=ROOT, text=True, capture_output=True
