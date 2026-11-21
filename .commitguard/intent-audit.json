@@ -1,1232 +1,536 @@
 {
-  "intent": "Make CommitGuard a repository-wide requirement for all branches, pull requests, ordinary development changes, and releases; clarify that required CI and branch-protection settings are needed because GitHub API commits bypass local hooks.",
-  "reviewed_by": "Assistant diff review against the user's explicit repository-wide CommitGuard requirement; repository-owner review remains possible",
-  "commit_subject": "Record repository-wide README intention audit",
+  "intent": "Make the word-by-word audit use identical token boundaries in Python and Git, and add regression coverage for hyphenated words, apostrophes, and unchanged tokens.",
+  "reviewed_by": "Assistant review of the exact source and regression-test diff; repository-owner review remains possible",
+  "commit_subject": "Align CommitGuard word tokenization with audit manifest",
   "requirements": [
     {
       "id": "R1",
-      "text": "CommitGuard policy must apply to all repository changes and commits, not only releases; CI and required branch checks must cover development branches and pull requests."
+      "text": "The Python token counter and Git word-diff tokenizer must recognize the same complete word tokens, including hyphenated and underscored tokens, without counting unchanged words."
+    },
+    {
+      "id": "R2",
+      "text": "Regression tests must detect token-boundary errors involving apostrophes, hyphens, and unchanged words."
     }
   ],
   "file_reviews": {
-    "README.md": {
+    "scripts/commit_intent_audit.py": {
       "requirement_ids": [
         "R1"
       ],
-      "necessity": "The README is the repository's authoritative developer policy; its prior wording did not explicitly establish repository-wide scope or distinguish CI/branch-protection enforcement from local hooks."
+      "necessity": "The existing Git word-diff split whitespace tokens differently from the Python regular expression, causing valid manifest counts to fail and allowing tokenization ambiguity. An explicit shared word-diff regex aligns the two sides."
+    },
+    "scripts/test_commit_guard.py": {
+      "requirement_ids": [
+        "R1",
+        "R2"
+      ],
+      "necessity": "Regression coverage is needed to prevent mismatches for hyphenated terms, apostrophes, and unchanged words from returning."
     }
   },
   "word_reviews": [
     {
-      "direction": "removed",
-      "token": "CommitGuard",
+      "direction": "added",
+      "token": "0",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "1",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
-      "direction": "removed",
-      "token": "pre-commit",
+      "direction": "added",
+      "token": "A-Za-z0-9_",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "verification",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "CommitGuard",
-      "count": 4,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "repository-wide",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "commit",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "verification",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "removed",
-      "token": "Before",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "committing",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "changes",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "run",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "the",
-      "count": 3,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "repository",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "guard",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "from",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "project",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "root",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "added",
-      "token": "is",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "a",
-      "count": 6,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "requirement",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "for",
-      "count": 4,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "all",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "changes",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "and",
+      "token": "actual",
       "count": 7,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "commits",
+      "token": "add",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "added",
       "count": 3,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "not",
-      "count": 4,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "release-only",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "check",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "It",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "applies",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "to",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "ordinary",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "feature",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "work",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "bug",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "fixes",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "maintenance",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "pull",
-      "count": 3,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "requests",
-      "count": 3,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "branch",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "pushes",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "releases",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "Before",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "committing",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "run",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "the",
-      "count": 6,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "repository",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "guard",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "from",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "project",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "root",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "removed",
-      "token": "The",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "reference",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "checker",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "accepts",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "valid",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "Python",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "submodule",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "imports",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "for",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "example",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "unittest",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "import",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "mock",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "and",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "tests",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "a",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "known",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "typo",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "case",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "re.MULTIL",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "suggesting",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "re.MULTILINE",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "Both",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "build",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "release",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "workflows",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "invoke",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "added",
-      "token": "The",
-      "count": 3,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "reference",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "checker",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "accepts",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "valid",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "Python",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "submodule",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "imports",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "example",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "unittest",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "import",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "mock",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "tests",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "known",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "typo",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "case",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "re.MULTIL",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "suggesting",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "re.MULTILINE",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "general",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "Android",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "CI",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "workflow",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "runs",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "every",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "invokes",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
       "token": "as",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "b",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "baseline",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "check",
+      "count": 6,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "commit",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "commit_intent_audit",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "commit_intent_audit.word_occurrences",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "CommitGuard",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "common",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "config",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "cwd",
+      "count": 6,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "def",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "encoding",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "example.invalid",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "git",
+      "count": 6,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "GitHub",
       "count": 4,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "required",
+      "token": "guard",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "validation",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "job",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "release",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "also",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "same",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "an",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "additional",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "use",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "scope",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "of",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "policy",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "removed",
-      "token": "Direct",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "commits",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "made",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "through",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "GitHub",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "s",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "API",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "do",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "not",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "execute",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "local",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
       "token": "hook",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "so",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "CI",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "required",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "checks",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "must",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "enforce",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "implemented",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "gates",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "API-based",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "also",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "be",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "audited",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "before",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "they",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
-    },
-    {
-      "direction": "removed",
-      "token": "are",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "Direct",
+      "token": "init",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "made",
+      "token": "n",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "through",
+      "token": "no-color",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "GitHub",
+      "token": "no-ext-diff",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "s",
+      "token": "no-renames",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "API",
+      "token": "patch.object",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "do",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "execute",
+      "token": "Path",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "local",
-      "count": 2,
+      "token": "porcelain",
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
       "token": "pre-commit",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "hook",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "Therefore",
+      "token": "q",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "treat",
+      "token": "qm",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "only",
+      "token": "r",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "enforcement",
+      "token": "removed",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "repo",
+      "count": 10,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "ROOT",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "branch-protection",
+      "token": "s",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "sample.txt",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "scripts",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "required-check",
+      "token": "self",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "settings",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
-    },
-    {
-      "direction": "added",
-      "token": "must",
+      "token": "self.assertEqual",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "enforce",
-      "count": 1,
+      "token": "self.assertNotIn",
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "development",
+      "token": "staged",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "branches",
-      "count": 1,
+      "token": "subprocess.run",
+      "count": 6,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "well",
-      "count": 1,
+      "token": "temp",
+      "count": 2,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "API-based",
+      "token": "tempfile.TemporaryDirectory",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "be",
+      "token": "Test",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "audited",
+      "token": "test_commit_guard.py",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "before",
+      "token": "test_word_audit_tokenizer_handles_hyphens_apostrophes_and_unchanged_words",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "they",
-      "count": 1,
+      "token": "TOKEN_PATTERN",
+      "count": 2,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     },
     {
       "direction": "added",
-      "token": "are",
+      "token": "True",
+      "count": 7,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "unified",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "user.email",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "user.name",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "utf-8",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "with",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "word-diff",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "word-diff-regex",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "added",
+      "token": "write_text",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "0",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "a",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "no-color",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "no-ext-diff",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "no-renames",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "porcelain",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "scripts",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "test_commit_guard.py",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "unified",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+    },
+    {
+      "direction": "removed",
+      "token": "word-diff",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
     }
   ]
 }
