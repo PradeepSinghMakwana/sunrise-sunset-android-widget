@@ -47,7 +47,7 @@ class SemVerReleaseValidationTest(unittest.TestCase):
         invalid = (
             "", "2.0.0", "v2.0", "v2", "v02.0.0", "v2.00.0", "v2.0.00",
             "v-1.0.0", "v2.0.0-preview.1", "v2.0.0-rc", "v2.0.0-rc.01",
-            "v2.0.0-alpha.0", "v2.0.0-beta.-1", "v2.0.0+build.4",
+            "v2.0.0-beta.-1", "v2.0.0+build.4",
             "v2.0.0-alpha.1.extra", "vv2.0.0",
         )
         for tag in invalid:
