@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class StoreScreenshotTest {
-    @Test
+    @Test(timeout = 90_000)
     fun captureRealAppSetupScreen() {
         assertCiTimezone()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -56,7 +56,7 @@ class StoreScreenshotTest {
         }
     }
 
-    @Test
+    @Test(timeout = 90_000)
     fun placeWidgetOnLauncherAndCaptureHomeScreen() {
         assertCiTimezone()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
