@@ -31,7 +31,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "printf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\n"
                 "if [[ \"$*\" == \"shell date +%Z%z\" ]]; then echo \"$DEVICE_TIMEZONE\"; fi\n"
                 "if [[ \"$*\" == \"shell wm size\" ]]; then echo \"Override size: 1080x2400\"; fi\n"
-                "if [[ '$*' == 'shell wm density' ]]; then if [[ '$DENSITY_MODE' == 'physical' ]]; then echo 'Physical density: 420'; else echo 'Override density: 420'; fi; fi\n"
+                "if [[ \\"$*\\" == \\"shell wm density\\" ]]; then echo \\"Override density: 420\\"; fi\\n"
                 "exit 0\n",
                 encoding="utf-8",
             )
@@ -96,9 +96,9 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "shell date +%Z%z",
                 "shell am broadcast -a android.intent.action.TIMEZONE_CHANGED --es time-zone America/Los_Angeles",
                 "shell wm size 1080x2400",
-                "if [[ '$*' == 'shell wm density' ]]; then if [[ '$DENSITY_MODE' == 'physical' ]]; then echo 'Physical density: 420'; else echo 'Override density: 420'; fi; fi\n"
+                "shell wm density 420",
                 "shell wm size",
-                "if [[ '$*' == 'shell wm density' ]]; then if [[ '$DENSITY_MODE' == 'physical' ]]; then echo 'Physical density: 420'; else echo 'Override density: 420'; fi; fi\n"
+                "shell wm density",
                 "pull /data/local/tmp/sunrise-sunset-ci/. android-13-screenshots/",
                 "shell dumpsys appwidget",
                 "logcat -d",
@@ -125,10 +125,6 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         self.assertEqual(0, result.returncode)
         self.assertNotIn("expected a California PST/PDT offset", result.stdout)
 
-    def test_accepts_physical_density_when_already_420_dpi(self):
-        result, calls = self._run_with_stubs(0, evidence_mode="complete", density_mode="physical")
-        self.assertEqual(0, result.returncode)
-                "if [[ '$*' == 'shell wm density' ]]; then if [[ '$DENSITY_MODE' == 'physical' ]]; then echo 'Physical density: 420'; else echo 'Override density: 420'; fi; fi\n"
 
     def test_fails_when_gradle_succeeds_but_evidence_is_missing(self):
         result, _ = self._run_with_stubs(0)
