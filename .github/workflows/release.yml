@@ -39,6 +39,9 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: bash scripts/release-audit.sh
 
+      - name: Validate release script syntax
+        run: bash -n scripts/release-audit.sh scripts/semver-release-validation.sh scripts/generate-fdroid-metadata.sh
+
       - name: Test AVD profile existence validation
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
 
