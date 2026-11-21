@@ -19,6 +19,17 @@ class CommitGuardTest(unittest.TestCase):
         self.assertIn("unittest discover", content)
         self.assertIn(":app:testDebugUnitTest", content)
 
+    def test_guard_checks_staged_unstaged_and_committed_patch_integrity(self):
+        content = GUARD.read_text(encoding="utf-8")
+        self.assertIn("git diff --check", content)
+        self.assertIn("git diff --cached --check", content)
+        self.assertIn("git show --check --oneline HEAD", content)
+
+    def test_guard_fails_closed_when_gradle_is_unavailable(self):
+        content = GUARD.read_text(encoding="utf-8")
+        self.assertIn("if ! command -v gradle", content)
+        self.assertIn("exit 1", content)
+
     def test_reference_checker_catches_typo_in_imported_module_attribute(self):
         with tempfile.TemporaryDirectory() as temp:
             fixture = Path(temp) / "typo_fixture.py"
@@ -33,6 +44,14 @@ class CommitGuardTest(unittest.TestCase):
             fixture = Path(temp) / "correct_fixture.py"
             fixture.write_text("import re\nre.MULTILINE\n", encoding="utf-8")
             self.assertEqual([], check_file(fixture))
+
+    def test_reference_checker_reports_python_syntax_errors(self):
+        with tempfile.TemporaryDirectory() as temp:
+            fixture = Path(temp) / "syntax_fixture.py"
+            fixture.write_text("def broken(:\n    pass\n", encoding="utf-8")
+            errors = check_file(fixture)
+            self.assertEqual(1, len(errors))
+            self.assertIn("syntax error", errors[0])
 
     def test_ci_executes_commitguard(self):
         workflow = (ROOT / ".github" / "workflows" / "build-apk.yml").read_text(encoding="utf-8")
