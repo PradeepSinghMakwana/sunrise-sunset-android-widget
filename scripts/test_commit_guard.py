@@ -231,7 +231,8 @@ class CommitGuardTest(unittest.TestCase):
 
             def make_record(subject):
                 sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
-                words = commit_intent_audit.commit_words(sha)
+                with patch.object(commit_intent_audit, "ROOT", repo):
+                    words = commit_intent_audit.commit_words(sha)
                 return sha, {
                     "intent": "Change the sample value as required",
                     "reviewed_by": "repository owner",
