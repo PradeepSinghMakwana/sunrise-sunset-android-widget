@@ -46,20 +46,19 @@ class AvdProfileValidationTest(unittest.TestCase):
 
     def test_resolves_avdmanager_from_android_sdk_cmdline_tools_latest(self):
         with tempfile.TemporaryDirectory() as temp:
-            sdk = Path(temp)
-            executable = sdk / "cmdline-tools" / "latest" / "bin" / "avdmanager"
+            executable = Path(temp) / "cmdline-tools" / "latest" / "bin" / "avdmanager"
             executable.parent.mkdir(parents=True)
             executable.write_text("#!/bin/sh\\nexit 0\\n", encoding="utf-8")
-            with mock.patch("avd_profile_validation.shutil.which", return_value=None), \\
-                 mock.patch.dict(os.environ, {"ANDROID_HOME": temp, "ANDROID_SDK_ROOT": ""}):
-                self.assertEqual(str(executable), find_avdmanager())
+            with mock.patch("avd_profile_validation.shutil.which", return_value=None):
+                with mock.patch.dict(os.environ, {"ANDROID_HOME": temp, "ANDROID_SDK_ROOT": ""}):
+                    self.assertEqual(str(executable), find_avdmanager())
 
     def test_fails_with_actionable_message_when_avdmanager_missing(self):
         with tempfile.TemporaryDirectory() as temp:
-            with mock.patch("avd_profile_validation.shutil.which", return_value=None), \\
-                 mock.patch.dict(os.environ, {"ANDROID_HOME": temp, "ANDROID_SDK_ROOT": ""}):
-                with self.assertRaisesRegex(FileNotFoundError, "ANDROID_HOME"):
-                    find_avdmanager()
+            with mock.patch("avd_profile_validation.shutil.which", return_value=None):
+                with mock.patch.dict(os.environ, {"ANDROID_HOME": temp, "ANDROID_SDK_ROOT": ""}):
+                    with self.assertRaisesRegex(FileNotFoundError, "ANDROID_HOME"):
+                        find_avdmanager()
 
     def test_release_workflow_captures_and_publishes_android_13_emulator_screenshots(self):
         root = Path(__file__).resolve().parents[1]
