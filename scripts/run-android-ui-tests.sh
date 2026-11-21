@@ -22,8 +22,8 @@ if [[ "$display_size" != *"Override size: 1080x2400"* ]]; then
     echo "Emulator display size was not applied: $display_size"
     exit 1
 fi
-if [[ "$display_density" != *"Override density: 420"* ]]; then
-    echo "Emulator display density was not applied: $display_density"
+if [[ "$display_density" != *"Override density: 420"* && "$display_density" != *"Physical density: 420"* ]]; then
+    echo "Emulator density is neither overridden nor physically 420 dpi: $display_density"
     exit 1
 fi
 
