@@ -4127,7 +4127,43 @@
           "necessity": "The fixture previously referenced an uninitialized local variable while preparing its second manifest-only commit; this change loads the first committed manifest before modifying it."
         }
       },
-      "word_reviews": []
+      "word_reviews": [
+        {
+          "direction": "added",
+          "token": "encoding",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "Specifies UTF-8 decoding when the regression fixture reloads the committed audit manifest."
+        },
+        {
+          "direction": "added",
+          "token": "json.loads",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "Parses the first committed manifest so the second metadata-only follow-up preserves the existing per-commit records."
+        },
+        {
+          "direction": "added",
+          "token": "manifest",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "Names the audit manifest object that is reloaded before adding the second follow-up note."
+        },
+        {
+          "direction": "added",
+          "token": "manifest_path.read_text",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "Reads the already committed manifest from the fixture path instead of referencing an uninitialized local variable."
+        },
+        {
+          "direction": "added",
+          "token": "utf-8",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "Keeps the fixture's manifest read explicitly UTF-8 and consistent with the JSON writer."
+        }
+      ]
     }
   }
 }
