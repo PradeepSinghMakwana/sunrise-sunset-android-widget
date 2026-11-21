@@ -42,13 +42,8 @@ jobs:
       - name: Validate release script syntax
         run: bash -n scripts/release-audit.sh scripts/semver-release-validation.sh scripts/generate-fdroid-metadata.sh
 
-      - name: Verify Python syntax and imported references
-        run: python3 scripts/check_python_references.py
-      - name: Run regression test suite
-        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
-
-      - name: Run JVM unit tests
-        run: gradle :app:testDebugUnitTest
+      - name: Run CommitGuard (mandatory release validation)
+        run: bash scripts/commit-guard.sh
 
       - name: Enable KVM for hardware-accelerated emulator
         run: |
