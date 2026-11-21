@@ -1,63 +1,1232 @@
 {
-  "intent": "Make the CommitGuard CI job inspect the actual pull-request branch commit with its parent history available, so the committed-diff audit can run instead of failing on a shallow checkout.",
-  "reviewed_by": "ChatGPT assistant review against the user's explicit CommitGuard requirements; repository-owner review remains possible",
-  "commit_subject": "Record workflow history change intention audit",
+  "intent": "Make CommitGuard a repository-wide requirement for all branches, pull requests, ordinary development changes, and releases; clarify that required CI and branch-protection settings are needed because GitHub API commits bypass local hooks.",
+  "reviewed_by": "Assistant diff review against the user's explicit repository-wide CommitGuard requirement; repository-owner review remains possible",
+  "commit_subject": "Record repository-wide README intention audit",
   "requirements": [
     {
       "id": "R1",
-      "text": "CI must fetch the PR head commit and sufficient Git history for CommitGuard to inspect the changed words and files."
+      "text": "CommitGuard policy must apply to all repository changes and commits, not only releases; CI and required branch checks must cover development branches and pull requests."
     }
   ],
   "file_reviews": {
-    ".github/workflows/build-apk.yml": {
+    "README.md": {
       "requirement_ids": [
         "R1"
       ],
-      "necessity": "The CommitGuard job needs the actual PR head and its parent history; the default shallow merge checkout has no HEAD^ and cannot support a fail-closed diff audit."
+      "necessity": "The README is the repository's authoritative developer policy; its prior wording did not explicitly establish repository-wide scope or distinguish CI/branch-protection enforcement from local hooks."
     }
   },
   "word_reviews": [
     {
-      "direction": "added",
-      "token": "with",
+      "direction": "removed",
+      "token": "CommitGuard",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "pre-commit",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "verification",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Introduces checkout configuration for the CommitGuard job."
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
     },
     {
       "direction": "added",
-      "token": "ref",
-      "count": 1,
+      "token": "CommitGuard",
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Selects the actual PR head SHA, or push SHA outside pull requests."
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
     },
     {
       "direction": "added",
-      "token": "github.event.pull_request.head.sha",
-      "count": 1,
+      "token": "repository-wide",
+      "count": 2,
       "requirement_id": "R1",
-      "rationale": "Audits the pull request source branch commit rather than the synthetic merge commit."
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
     },
     {
       "direction": "added",
-      "token": "github.sha",
+      "token": "commit",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Provides the event commit SHA for non-pull-request runs."
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
     },
     {
       "direction": "added",
-      "token": "fetch-depth",
+      "token": "verification",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Fetches complete history so the parent diff can be inspected."
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "removed",
+      "token": "Before",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "committing",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "changes",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "run",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "the",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "repository",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "guard",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "from",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "project",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "root",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
     },
     {
       "direction": "added",
-      "token": "0",
+      "token": "is",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "a",
+      "count": 6,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "requirement",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Disables shallow history for this checkout."
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "for",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "all",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "changes",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "and",
+      "count": 7,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "commits",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "not",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "release-only",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "check",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "It",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "applies",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "to",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "ordinary",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "feature",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "work",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "bug",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "fixes",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "maintenance",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "pull",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "requests",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "branch",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "pushes",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "releases",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "Before",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "committing",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "run",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "the",
+      "count": 6,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "repository",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "guard",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "from",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "project",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "root",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "removed",
+      "token": "The",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "reference",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "checker",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "accepts",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "valid",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "Python",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "submodule",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "imports",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "for",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "example",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "unittest",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "import",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "mock",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "and",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "tests",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "a",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "known",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "typo",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "case",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "re.MULTIL",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "suggesting",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "re.MULTILINE",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "Both",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "build",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "release",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "workflows",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "invoke",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "added",
+      "token": "The",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "reference",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "checker",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "accepts",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "valid",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "Python",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "submodule",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "imports",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "example",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "unittest",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "import",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "mock",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "tests",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "known",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "typo",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "case",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "re.MULTIL",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "suggesting",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "re.MULTILINE",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "general",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "Android",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "CI",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "workflow",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "runs",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "every",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "invokes",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "as",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "required",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "validation",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "job",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "release",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "also",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "same",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "an",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "additional",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "use",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "scope",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "of",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "policy",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "removed",
+      "token": "Direct",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "commits",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "made",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "through",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "GitHub",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "s",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "API",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "do",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "not",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "execute",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "local",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "hook",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "so",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "CI",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "required",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "checks",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "must",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "enforce",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "implemented",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "gates",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "API-based",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "also",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "be",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "audited",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "before",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "they",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "removed",
+      "token": "are",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removes wording that incorrectly described CommitGuard as pre-commit-only or limited to existing workflow invocation."
+    },
+    {
+      "direction": "added",
+      "token": "Direct",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "made",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "through",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "GitHub",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "s",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "API",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "do",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "execute",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "local",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "pre-commit",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "hook",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "Therefore",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "treat",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "only",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "enforcement",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "branch-protection",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "required-check",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "settings",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "must",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "enforce",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "development",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "branches",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "well",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "API-based",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "be",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "audited",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "before",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "they",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
+    },
+    {
+      "direction": "added",
+      "token": "are",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Clarifies that CommitGuard is required for all repository work, branch pushes, pull requests, and release validation."
     }
   ]
 }
