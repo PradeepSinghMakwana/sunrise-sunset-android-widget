@@ -14,7 +14,7 @@ SCRIPT_DIR = ROOT / "scripts"
 
 def check_file(path: Path) -> list[str]:
     errors: list[str] = []
-    display_path = display_path if path.is_relative_to(ROOT) else path
+    display_path = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except (SyntaxError, UnicodeDecodeError) as exc:
