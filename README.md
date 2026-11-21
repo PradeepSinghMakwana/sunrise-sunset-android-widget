@@ -43,9 +43,9 @@ The widget displays solar times in the device's current time zone. The location 
 
 The widget refreshes periodically and when Android reports date, time, or time-zone changes.
 
-## CommitGuard: pre-commit verification
+## CommitGuard: repository-wide commit verification
 
-Before committing changes, run the repository guard from the project root:
+CommitGuard is a repository-wide requirement for **all changes and commits**, not a release-only check. It applies to ordinary feature work, bug fixes, maintenance, pull requests, branch pushes, and releases. Before committing changes, run the repository guard from the project root:
 
 ```bash
 bash scripts/commit-guard.sh
@@ -57,7 +57,7 @@ CommitGuard is intended to fail closed and checks:
 - The Python regression test suite, including CommitGuard's own tests.
 - Gradle JVM unit tests (and fails if the Gradle command is unavailable).
 
-The reference checker accepts valid Python submodule imports (for example, `from unittest import mock`) and tests a known typo case (`re.MULTIL`, suggesting `re.MULTILINE`). Both build and release workflows invoke CommitGuard.
+The reference checker accepts valid Python submodule imports (for example, `from unittest import mock`) and tests a known typo case (`re.MULTIL`, suggesting `re.MULTILINE`). The general Android CI workflow runs for pushes to every branch and pull requests, and invokes CommitGuard as a required validation job. The release workflow also invokes the same guard; release validation is an additional use, not the scope of the policy.
 
 ### Mandatory intention and commit audit
 
@@ -74,7 +74,7 @@ Automated checks cannot infer unstated human intent with certainty. When intent 
 
 **Implementation status:** the existing guard currently provides syntax, selected Python reference, whitespace, regression-test, and JVM-test checks. It does **not yet fully implement** the intention/necessity audit, comprehensive cross-reference validation, or commit approval and post-commit gates above. These are required CommitGuard capabilities, not claims that the current script already provides them. Until implemented and covered by regression tests, a passing CommitGuard run must not be represented as proof that a commit is justified or matches the user's intention.
 
-Direct commits made through GitHub's API do not execute a local pre-commit hook, so CI/required checks must enforce the implemented gates; API-based commits must also be audited before they are made.
+Direct commits made through GitHub's API do not execute a local pre-commit hook. Therefore, do not treat a local hook as the only enforcement: CI and repository branch-protection/required-check settings must enforce CommitGuard for ordinary development branches and pull requests as well as releases. API-based commits must also be audited before they are made.
 
 ## CI checks
 
