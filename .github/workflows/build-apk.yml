@@ -153,7 +153,7 @@ jobs:
           arch: x86_64
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: 180
           script: bash scripts/run-android-ui-tests.sh
       - name: Upload Android 13 UI test screenshots and diagnostics
         if: always()
