@@ -167,10 +167,12 @@ def validate(staged: bool) -> list[str]:
         if not nonempty(proposed):
             errors.append("commit_subject must state the proposed commit's purpose")
     else:
-        subject = git("log", "-1", "--format=%s").strip()
+        current_files = set(git("diff", "HEAD^", "HEAD", "--name-only", "--no-renames").splitlines())
+        audited_ref = "HEAD^" if current_files == {AUDIT_PATH} else "HEAD"
+        subject = git("log", "-1", "--format=%s", audited_ref).strip()
         proposed = manifest.get("commit_subject")
         if proposed != subject:
-            errors.append(f"commit_subject does not match actual HEAD subject {subject!r}")
+            errors.append(f"commit_subject does not match audited commit subject {subject!r}")
 
     if errors:
         return errors

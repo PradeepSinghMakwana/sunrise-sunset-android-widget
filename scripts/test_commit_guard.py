@@ -176,5 +176,43 @@ class CommitGuardTest(unittest.TestCase):
             self.assertNotIn(("added", "s"), actual)
             self.assertNotIn(("removed", "s"), actual)
 
+    def test_head_audit_checks_subject_of_commit_before_manifest_only_followup(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.email", "guard@example.invalid"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.name", "CommitGuard Test"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("before\\n", encoding="utf-8")
+            (repo / ".commitguard").mkdir()
+            manifest_path = repo / ".commitguard" / "intent-audit.json"
+            manifest_path.write_text("{}", encoding="utf-8")
+            subprocess.run(["git", "add", "."], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("after\\n", encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "Change sample"], cwd=repo, check=True)
+            manifest = {
+                "intent": "Change sample as required",
+                "reviewed_by": "repository owner",
+                "commit_subject": "Change sample",
+                "requirements": [{"id": "R1", "text": "Change sample value"}],
+                "file_reviews": {"sample.txt": {
+                    "requirement_ids": ["R1"], "necessity": "Required sample correction"
+                }},
+                "word_reviews": [
+                    {"direction": "removed", "token": "before", "count": 1,
+                     "requirement_id": "R1", "rationale": "Remove old sample value"},
+                    {"direction": "added", "token": "after", "count": 1,
+                     "requirement_id": "R1", "rationale": "Use new sample value"}
+                ]
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            subprocess.run(["git", "add", ".commitguard/intent-audit.json"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "Record sample intention audit"], cwd=repo, check=True)
+            with patch.object(commit_intent_audit, "ROOT", repo), patch.object(
+                commit_intent_audit, "MANIFEST", manifest_path
+            ):
+                self.assertEqual([], commit_intent_audit.validate(staged=False))
+
 if __name__ == "__main__":
     unittest.main()
