@@ -282,9 +282,23 @@ def validate_range(base: str, head: str) -> list[str]:
         raise AuditError("range base and head SHAs are required")
     git("cat-file", "-e", base + "^{commit}")
     git("cat-file", "-e", head + "^{commit}")
-    records = load_manifest().get("commit_audits")
+    manifest = load_manifest()
+    records = manifest.get("commit_audits")
     if not isinstance(records, dict):
         raise AuditError("commit_audits must map each changed commit SHA to its audit record")
+    audit_start = manifest.get("audit_start_sha")
+    if audit_start:
+        git("cat-file", "-e", audit_start + "^{commit}")
+        is_start_ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", audit_start, head],
+            cwd=ROOT, capture_output=True, check=False
+        ).returncode == 0
+        is_start_ancestor_of_base = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", audit_start, base],
+            cwd=ROOT, capture_output=True, check=False
+        ).returncode == 0
+        if is_start_ancestor and not is_start_ancestor_of_base:
+            base = audit_start
     commits = git("rev-list", "--reverse", base + ".." + head).splitlines()
     if not commits:
         raise AuditError(f"no commits found in range {base}..{head}")
