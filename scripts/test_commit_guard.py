@@ -1,10 +1,13 @@
 """Regression tests for CommitGuard and its static Python reference checker."""
 import subprocess
+import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from check_python_references import check_file
+import commit_intent_audit
 
 ROOT = Path(__file__).resolve().parents[1]
 GUARD = ROOT / "scripts" / "commit-guard.sh"
@@ -89,6 +92,68 @@ class CommitGuardTest(unittest.TestCase):
     def test_guard_shell_syntax(self):
         result = subprocess.run(["bash", "-n", str(GUARD)], cwd=ROOT, text=True, capture_output=True)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+    def test_word_audit_requires_every_added_and_removed_occurrence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.email", "guard@example.invalid"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.name", "CommitGuard Test"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("old label\n", encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("new label\n", encoding="utf-8")
+            (repo / ".commitguard").mkdir()
+            manifest_path = repo / ".commitguard" / "intent-audit.json"
+            manifest = {
+                "intent": "Rename the displayed label as requested",
+                "reviewed_by": "repository owner",
+                "commit_subject": "Rename displayed label",
+                "requirements": [{"id": "R1", "text": "Rename old label to new label"}],
+                "file_reviews": {"sample.txt": {
+                    "requirement_ids": ["R1"], "necessity": "Required visible label correction"
+                }},
+                "word_reviews": [
+                    {"direction": "removed", "token": "old", "count": 1, "requirement_id": "R1",
+                     "rationale": "Remove superseded label"},
+                    {"direction": "added", "token": "new", "count": 1, "requirement_id": "R1",
+                     "rationale": "Use requested label"}
+                ]
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt", ".commitguard/intent-audit.json"], cwd=repo, check=True)
+            with patch.object(commit_intent_audit, "ROOT", repo), patch.object(
+                commit_intent_audit, "MANIFEST", manifest_path
+            ):
+                self.assertEqual([], commit_intent_audit.validate(staged=True))
+                manifest["word_reviews"].pop()
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                errors = commit_intent_audit.validate(staged=True)
+                self.assertTrue(any("added word 'new'" in error for error in errors))
+
+    def test_word_audit_rejects_unreviewed_changed_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.email", "guard@example.invalid"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.name", "CommitGuard Test"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("before\n", encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("after\n", encoding="utf-8")
+            (repo / ".commitguard").mkdir()
+            manifest_path = repo / ".commitguard" / "intent-audit.json"
+            manifest_path.write_text(json.dumps({
+                "intent": "Update sample", "reviewed_by": "owner", "commit_subject": "Update sample",
+                "requirements": [{"id": "R1", "text": "Update sample"}],
+                "file_reviews": {}, "word_reviews": []
+            }), encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt", ".commitguard/intent-audit.json"], cwd=repo, check=True)
+            with patch.object(commit_intent_audit, "ROOT", repo), patch.object(
+                commit_intent_audit, "MANIFEST", manifest_path
+            ):
+                errors = commit_intent_audit.validate(staged=True)
+                self.assertTrue(any("no review" in error for error in errors))
 
 
 if __name__ == "__main__":
