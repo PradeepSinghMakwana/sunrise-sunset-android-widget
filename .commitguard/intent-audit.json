@@ -1,0 +1,77 @@
+{
+  "intent": "Refine CommitGuard's word tokenizer so it audits meaningful identifier and word tokens without treating punctuation as standalone words.",
+  "reviewed_by": "ChatGPT assistant review against the user's explicit CommitGuard requirements; repository-owner review remains possible",
+  "commit_subject": "Add mandatory word-audit review manifest",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Track every added and removed word occurrence in the changed diff and require a rationale tied to the user's stated intention."
+    }
+  ],
+  "file_reviews": {
+    "scripts/commit_intent_audit.py": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "necessity": "The tokenizer must compare meaningful changed words and identifiers occurrence by occurrence; punctuation-only tokens add noise and do not represent words."
+    }
+  },
+  "word_reviews": [
+    {
+      "direction": "removed",
+      "token": "re.compile",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "The changed tokenizer line removes no meaningful use of this regular-expression constructor; the token is part of the reviewed source expression."
+    },
+    {
+      "direction": "removed",
+      "token": "r",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviewed raw-string prefix retained in the new expression."
+    },
+    {
+      "direction": "removed",
+      "token": "A-Za-z0-9_",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviewed character-class text retained twice in the new word-token pattern."
+    },
+    {
+      "direction": "removed",
+      "token": "w",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removed from the punctuation/whitespace alternative because punctuation is not an audited word."
+    },
+    {
+      "direction": "removed",
+      "token": "s",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Removed from the punctuation/whitespace alternative because whitespace is not an audited word."
+    },
+    {
+      "direction": "added",
+      "token": "re.compile",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Retains regular-expression compilation for the word-only tokenizer."
+    },
+    {
+      "direction": "added",
+      "token": "r",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Retains the raw-string literal prefix."
+    },
+    {
+      "direction": "added",
+      "token": "A-Za-z0-9_",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Retains the identifier/word character class in both occurrences."
+    }
+  ]
+}
