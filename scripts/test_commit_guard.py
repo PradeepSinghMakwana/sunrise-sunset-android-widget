@@ -45,10 +45,10 @@ class CommitGuardTest(unittest.TestCase):
     def test_checker_accepts_valid_python_submodule_import(self):
         with tempfile.TemporaryDirectory() as temp:
             fixture = Path(temp) / "valid_submodule.py"
-            fixture.write_text("from unittest import mock\\n", encoding="utf-8")
+            fixture.write_text("from unittest import mock\n", encoding="utf-8")
             self.assertEqual([], check_file(fixture))
 
-    def test_checker_itself_parses_and_checks_all_script_files(selfself:
+    def test_checker_itself_parses_and_checks_all_script_files(self:
         import subprocess
         result = subprocess.run(
             ["python3", str(CHECKER)], cwd=ROOT, text=True, capture_output=True
