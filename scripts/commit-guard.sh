@@ -17,11 +17,11 @@ git diff --cached --check || fail "staged patch contains whitespace errors"
 git show --check --oneline HEAD >/dev/null || fail "HEAD commit contains whitespace errors"
 
 echo "[CommitGuard] Word-by-word intention and necessity audit"
-if [[ -n "\${COMMITGUARD_BASE_SHA:-}" && -n "\${COMMITGUARD_HEAD_SHA:-}" ]]; then
+if [[ -n "${COMMITGUARD_BASE_SHA:-}" && -n "${COMMITGUARD_HEAD_SHA:-}" ]]; then
   base="$COMMITGUARD_BASE_SHA"
   head="$COMMITGUARD_HEAD_SHA"
   if [[ "$base" =~ ^0+$ ]]; then
-    default_branch="\${COMMITGUARD_DEFAULT_BRANCH:-}"
+    default_branch="${COMMITGUARD_DEFAULT_BRANCH:-}"
     [[ -n "$default_branch" ]] || fail "default branch is required for a new-branch audit"
     git show-ref --verify --quiet "refs/remotes/origin/$default_branch" || fail "default branch history is unavailable"
     base="$(git merge-base "$head" "origin/$default_branch")" || fail "cannot determine new-branch merge base"
