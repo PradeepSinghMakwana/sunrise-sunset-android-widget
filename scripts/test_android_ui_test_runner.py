@@ -31,7 +31,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "printf '%s\\n' \"$*\" >> \"$ADB_CALLS\"\n"
                 "if [[ \"$*\" == \"shell date +%Z%z\" ]]; then echo \"$DEVICE_TIMEZONE\"; fi\n"
                 "if [[ \"$*\" == \"shell wm size\" ]]; then echo \"Override size: 1080x2400\"; fi\n"
-                "if [[ \"$*\" == \"shell wm density\" ]]; then echo \"Override density: 420\"; fi\n"
+                "if [[ \\"$*\\" == \\"shell wm density\\" ]]; then if [[ \\"$DENSITY_MODE\\" == \\"physical\\" ]]; then echo \\"Physical density: 420\\"; else echo \\"Override density: 420\\"; fi; fi\\n"
                 "exit 0\n",
                 encoding="utf-8",
             )
@@ -74,6 +74,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "GRADLE_TEST_EXIT": str(gradle_status),
                 "ADB_CALLS": str(calls),
                 "DEVICE_TIMEZONE": timezone,\n                "DENSITY_MODE": density_mode,
+                "DENSITY_MODE": density_mode,
             })
             result = subprocess.run(
                 ["bash", str(RUNNER)],
