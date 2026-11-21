@@ -13,7 +13,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "build-apk.yml"
 
 
 class AndroidUiTestRunnerTest(unittest.TestCase):
-    def _run_with_stubs(self, gradle_status, evidence_mode="missing", timezone="PST-0800"):
+    def _run_with_stubs(self, gradle_status, evidence_mode="missing", timezone="PST-0800", density_mode="override"):
         with tempfile.TemporaryDirectory() as directory:
             temp = Path(directory)
             calls = temp / "adb-calls.txt"
@@ -73,7 +73,7 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
                 "PATH": f"{bin_dir}{os.pathsep}{env['PATH']}",
                 "GRADLE_TEST_EXIT": str(gradle_status),
                 "ADB_CALLS": str(calls),
-                "DEVICE_TIMEZONE": timezone,
+                "DEVICE_TIMEZONE": timezone,\n                "DENSITY_MODE": density_mode,
             })
             result = subprocess.run(
                 ["bash", str(RUNNER)],
@@ -123,6 +123,11 @@ class AndroidUiTestRunnerTest(unittest.TestCase):
         result, _ = self._run_with_stubs(0, evidence_mode="complete", timezone="PDT-0700")
         self.assertEqual(0, result.returncode)
         self.assertNotIn("expected a California PST/PDT offset", result.stdout)
+
+    def test_accepts_physical_density_when_already_420_dpi(self):
+        result, calls = self._run_with_stubs(0, evidence_mode="complete", density_mode="physical")
+        self.assertEqual(0, result.returncode)
+        self.assertIn("shell wm density", calls)
 
     def test_fails_when_gradle_succeeds_but_evidence_is_missing(self):
         result, _ = self._run_with_stubs(0)
