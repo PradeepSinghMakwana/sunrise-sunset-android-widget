@@ -17,7 +17,17 @@ git diff --cached --check || fail "staged patch contains whitespace errors"
 git show --check --oneline HEAD >/dev/null || fail "HEAD commit contains whitespace errors"
 
 echo "[CommitGuard] Word-by-word intention and necessity audit"
-if git diff --cached --quiet; then
+if [[ -n "\${COMMITGUARD_BASE_SHA:-}" && -n "\${COMMITGUARD_HEAD_SHA:-}" ]]; then
+  base="$COMMITGUARD_BASE_SHA"
+  head="$COMMITGUARD_HEAD_SHA"
+  if [[ "$base" =~ ^0+$ ]]; then
+    default_branch="\${COMMITGUARD_DEFAULT_BRANCH:-}"
+    [[ -n "$default_branch" ]] || fail "default branch is required for a new-branch audit"
+    git show-ref --verify --quiet "refs/remotes/origin/$default_branch" || fail "default branch history is unavailable"
+    base="$(git merge-base "$head" "origin/$default_branch")" || fail "cannot determine new-branch merge base"
+  fi
+  python3 scripts/commit_intent_audit.py --range "$base" "$head" || fail "one or more commits lack a complete intention/word audit"
+elif git diff --cached --quiet; then
   python3 scripts/commit_intent_audit.py --head || fail "committed change lacks a complete intention/word audit"
 else
   python3 scripts/commit_intent_audit.py --staged || fail "staged change lacks a complete intention/word audit"

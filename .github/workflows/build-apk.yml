@@ -41,7 +41,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: 8.9
-      - name: Run CommitGuard (mandatory pre-commit checks)
+      - name: Run CommitGuard (mandatory per-commit checks)
+        env:
+          COMMITGUARD_BASE_SHA: \${{ github.event.pull_request.base.sha || github.event.before }}
+          COMMITGUARD_HEAD_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+          COMMITGUARD_DEFAULT_BRANCH: \${{ github.event.repository.default_branch }}
         run: bash scripts/commit-guard.sh
       - name: Upload JVM test results
         if: always()
