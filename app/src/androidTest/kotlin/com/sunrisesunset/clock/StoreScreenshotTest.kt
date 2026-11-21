@@ -49,7 +49,7 @@ class StoreScreenshotTest {
             val screenshot = File(output, "01-app-setup.png")
             assertTrue("Could not capture app setup screen", captureScreenshot(device, screenshot, "screen"))
             assertTrue("App screenshot is empty", screenshot.length() > 10_000)
-            captureHierarchy(device, hierarchyFile(context, "01-app-setup"))
+            captureHierarchy(device, hierarchyFile(context, "01-app-setup"), "app setup")
             captureShellEvidence(device, context, "01-app-setup")
         } finally {
             scenario.close()
@@ -83,7 +83,7 @@ class StoreScreenshotTest {
         waitForUiIdle(device, "UI idle")
         stage("settle screen", 2_000) { Thread.sleep(250) }
         captureScreenshot(device, File(output, "02-launcher-before.png"), "launcher-before")
-        captureHierarchy(device, hierarchyFile(context, "02-launcher-before"))
+        captureHierarchy(device, hierarchyFile(context, "02-launcher-before"), "launcher before")
         captureShellEvidence(device, context, "02-launcher-before")
 
         val workspace = device.wait(
@@ -114,8 +114,10 @@ class StoreScreenshotTest {
             val fullyVisible = bounds != null && bounds.width() > 0 && bounds.height() > 0 &&
                 bounds.top >= pickerViewportTop && bounds.bottom <= pickerViewportBottom
             if (fullyVisible) break
-            device.swipe(device.displayWidth / 2, (device.displayHeight * 0.78).toInt(),
-                device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
+            stage("scroll widget picker", 5_000) {
+                device.swipe(device.displayWidth / 2, (device.displayHeight * 0.78).toInt(),
+                    device.displayWidth / 2, (device.displayHeight * 0.30).toInt(), 35)
+            }
             waitForUiIdle(device, "UI idle")
         }
         // Reacquire after the final swipe: a UiObject2 can retain stale bounds.
@@ -135,17 +137,20 @@ class StoreScreenshotTest {
         // Save evidence immediately after tapping the provider row. Launcher3's
         // widget_name accessibility ID is not stable across Android 13 builds.
         captureCheckpoint(device, context, "07-widget-row-selected")
-        val widgetPreview = device.wait(
-            Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
-        captureHierarchy(device, hierarchyFile(context, "07-widget-row-selected"))
+        val widgetPreview = stage("detect widget preview", 8_500) {
+            device.wait(Until.findObject(By.res("com.android.launcher3", "widget_preview")), 8_000)
+        }
+        captureHierarchy(device, hierarchyFile(context, "07-widget-row-selected"), "widget row selected")
         assertNotNull(
             "Could not locate the actual Launcher3 widget_preview view; " +
                 "do not drag the app-name text",
             widgetPreview
         )
-        widgetPreview!!.drag(
-            android.graphics.Point(device.displayWidth / 2, (device.displayHeight * 0.48).toInt()),
-            1_000)
+        stage("drag widget onto launcher", 5_000) {
+            widgetPreview!!.drag(
+                android.graphics.Point(device.displayWidth / 2, (device.displayHeight * 0.48).toInt()),
+                1_000)
+        }
         waitForUiIdle(device, "UI idle")
         stage("settle screen", 2_000) { Thread.sleep(250) }
         captureCheckpoint(device, context, "08-widget-after-placement")
@@ -175,16 +180,18 @@ class StoreScreenshotTest {
         // AppWidgetHostView node; individual TextViews aren't queryable via UiAutomator.
         // The launcher host must exist after leaving resize mode: a preview tile or
         // placement outline is not an acceptable substitute for a bound host view.
-        val widgetHost = device.wait(
-            Until.findObject(By.clazz("com.android.launcher3.widget.LauncherAppWidgetHostView")),
-            8_000
-        )
+        val widgetHost = stage("verify rendered widget host", 8_500) {
+            device.wait(
+                Until.findObject(By.clazz("com.android.launcher3.widget.LauncherAppWidgetHostView")),
+                8_000
+            )
+        }
         assertNotNull(
             "Placed widget host is not present after dismissing placement mode; " +
                 "inspect 08-widget-after-placement.xml",
             widgetHost
         )
-        val widgetBounds = widgetHost!!.visibleBounds
+        val widgetBounds = stage("read placed widget bounds", 3_000) { widgetHost!!.visibleBounds }
         assertTrue("Widget host is clipped or has zero size: $widgetBounds",
             widgetBounds.width() >= 250 && widgetBounds.height() >= 130)
         assertTrue("Widget host extends beyond the display: $widgetBounds",
@@ -193,7 +200,7 @@ class StoreScreenshotTest {
                 widgetBounds.bottom <= device.displayHeight)
 
         val screenshot = File(output, "02-home-screen-widget.png")
-        assertTrue("Could not capture launcher widget screenshot", device.takeScreenshot(screenshot))
+        assertTrue("Could not capture launcher widget screenshot", captureScreenshot(device, screenshot, "placed widget"))
         assertTrue("Widget screenshot is empty", screenshot.length() > 10_000)
         val before = BitmapFactory.decodeFile(File(output, "02-launcher-before.png").absolutePath)
         val after = BitmapFactory.decodeFile(screenshot.absolutePath)
@@ -227,7 +234,7 @@ class StoreScreenshotTest {
         )
         before.recycle()
         after.recycle()
-        captureHierarchy(device, hierarchyFile(context, "02-home-screen-widget"))
+        captureHierarchy(device, hierarchyFile(context, "02-home-screen-widget"), "home screen widget")
         captureShellEvidence(device, context, "02-home-screen-widget")
     }
 
@@ -289,7 +296,7 @@ class StoreScreenshotTest {
     private fun captureCheckpoint(device: UiDevice, context: Context, name: String) {
         val output = screenshotDirectory(context)
         captureScreenshot(device, File(output, "$name.png"), "$name checkpoint")
-        captureHierarchy(device, hierarchyFile(context, name))
+        captureHierarchy(device, hierarchyFile(context, name), "$name checkpoint")
         captureShellEvidence(device, context, name)
     }
 
@@ -303,11 +310,12 @@ class StoreScreenshotTest {
         shell(device, "screencap -p $evidenceDirectory/$name.png", "$name shell screenshot", 5_000)
         // Run uiautomator dump as the shell UID directly into shell-owned storage.
         // App-specific external storage is not reliably readable by shell on Android 13.
-        val dumpResult = device.executeShellCommand(
-            "uiautomator dump $hierarchyPath 2>&1"
-        )
-        val verification = device.executeShellCommand(
-            "if test -s $hierarchyPath; then echo HIERARCHY_DUMP_OK; else ls -l $evidenceDirectory; fi"
+        val dumpResult = shell(device, "uiautomator dump $hierarchyPath 2>&1", "$name hierarchy export", 10_000)
+        val verification = shell(
+            device,
+            "if test -s $hierarchyPath; then echo HIERARCHY_DUMP_OK; else ls -l $evidenceDirectory; fi",
+            "$name hierarchy verification",
+            3_000
         )
         assertTrue(
             "Could not export non-empty hierarchy for $name. " +
