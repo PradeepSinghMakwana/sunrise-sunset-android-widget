@@ -1,15 +1,15 @@
 {
-  "intent": "Make the word-by-word audit use identical token boundaries in Python and Git, and add regression coverage for hyphenated words, apostrophes, and unchanged tokens.",
-  "reviewed_by": "Assistant review of the exact source and regression-test diff; repository-owner review remains possible",
-  "commit_subject": "Align CommitGuard word tokenization with audit manifest",
+  "intent": "Ensure the committed-diff audit validates the subject of the code commit when a manifest-only follow-up commit carries its audit, and add a two-commit regression test.",
+  "reviewed_by": "Assistant review of the exact audit implementation and regression-test diff; repository-owner review remains possible",
+  "commit_subject": "Validate audited commit subject across manifest follow-up",
   "requirements": [
     {
       "id": "R1",
-      "text": "The Python token counter and Git word-diff tokenizer must recognize the same complete word tokens, including hyphenated and underscored tokens, without counting unchanged words."
+      "text": "When HEAD only updates the audit manifest, CommitGuard must validate the reviewed subject against the preceding audited code commit, not the metadata follow-up commit."
     },
     {
       "id": "R2",
-      "text": "Regression tests must detect token-boundary errors involving apostrophes, hyphens, and unchanged words."
+      "text": "A regression test must construct a code commit followed by a manifest-only commit and prove the audit passes only against the audited commit's subject."
     }
   ],
   "file_reviews": {
@@ -17,520 +17,737 @@
       "requirement_ids": [
         "R1"
       ],
-      "necessity": "The existing Git word-diff split whitespace tokens differently from the Python regular expression, causing valid manifest counts to fail and allowing tokenization ambiguity. An explicit shared word-diff regex aligns the two sides."
+      "necessity": "The audit compared the code diff from HEAD^ but compared its subject to HEAD, so valid metadata follow-ups were always rejected. Subject selection must use the same audited commit."
     },
     "scripts/test_commit_guard.py": {
       "requirement_ids": [
         "R1",
         "R2"
       ],
-      "necessity": "Regression coverage is needed to prevent mismatches for hyphenated terms, apostrophes, and unchanged words from returning."
+      "necessity": "The two-commit regression fixture protects the exact metadata-follow-up behavior and catches future mismatch between the diff target and subject target."
     }
   },
   "word_reviews": [
     {
       "direction": "added",
-      "token": "0",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
       "token": "1",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "A-Za-z0-9_",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "actual",
-      "count": 7,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "add",
-      "count": 2,
+      "count": 3,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "added",
-      "count": 3,
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "after",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "as",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "audit",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "AUDIT_PATH",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "audited",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "audited_ref",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "b",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "baseline",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "before",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "Change",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "check",
-      "count": 6,
+      "count": 9,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "commit",
-      "count": 3,
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "commit_intent_audit",
-      "count": 1,
+      "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "commit_intent_audit.word_occurrences",
+      "token": "commit_intent_audit.validate",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "commit_subject",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "commitguard",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "CommitGuard",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "common",
-      "count": 3,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "config",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "correction",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "count",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "current_files",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "cwd",
-      "count": 6,
+      "count": 9,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "def",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "diff",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "direction",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "else",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "encoding",
-      "count": 2,
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "example.invalid",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "False",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "file_reviews",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "git",
-      "count": 6,
+      "count": 10,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "GitHub",
-      "count": 4,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "guard",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "hook",
-      "count": 2,
+      "token": "HEAD",
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "id",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "if",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "init",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "intent",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "intent-audit.json",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "intention",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "json.dumps",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "manifest",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "MANIFEST",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "manifest_path",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "manifest_path.write_text",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "mkdir",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "n",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "no-color",
+      "token": "name-only",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "no-ext-diff",
+      "token": "necessity",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "new",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "no-renames",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "old",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "owner",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "patch.object",
-      "count": 1,
+      "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "Path",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "porcelain",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "pre-commit",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "q",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "qm",
-      "count": 1,
+      "count": 3,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "r",
+      "token": "R1",
+      "count": 4,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "rationale",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "Record",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "Remove",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "removed",
-      "count": 3,
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "repo",
-      "count": 10,
+      "count": 15,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "repository",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "required",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "Required",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "requirement_id",
+      "count": 2,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "requirement_ids",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "requirements",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "reviewed_by",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "ROOT",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "s",
-      "count": 4,
+      "token": "sample",
+      "count": 8,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "sample.txt",
       "count": 4,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "scripts",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "self",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "self.assertEqual",
-      "count": 2,
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "self.assertNotIn",
-      "count": 4,
+      "token": "set",
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "splitlines",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "staged",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "subprocess.run",
-      "count": 6,
+      "count": 9,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "temp",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "tempfile.TemporaryDirectory",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "Test",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "test_commit_guard.py",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "test_word_audit_tokenizer_handles_hyphens_apostrophes_and_unchanged_words",
+      "token": "test_head_audit_checks_subject_of_commit_before_manifest_only_followup",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "TOKEN_PATTERN",
+      "token": "text",
+      "count": 1,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "token",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "True",
-      "count": 7,
+      "count": 9,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "unified",
+      "token": "Use",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "user.email",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "user.name",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "utf-8",
-      "count": 2,
+      "count": 4,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
+    },
+    {
+      "direction": "added",
+      "token": "value",
+      "count": 3,
+      "requirement_id": "R1",
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "with",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
-      "token": "word-diff",
+      "token": "word_reviews",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "added",
-      "token": "word-diff-regex",
-      "count": 1,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "added",
       "token": "write_text",
       "count": 2,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "removed",
-      "token": "0",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "removed",
       "token": "a",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "removed",
-      "token": "no-color",
-      "count": 2,
+      "token": "actual",
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "removed",
-      "token": "no-ext-diff",
-      "count": 2,
+      "token": "HEAD",
+      "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "removed",
-      "token": "no-renames",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "removed",
-      "token": "porcelain",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "removed",
       "token": "scripts",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     },
     {
       "direction": "removed",
       "token": "test_commit_guard.py",
       "count": 1,
       "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "removed",
-      "token": "unified",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
-    },
-    {
-      "direction": "removed",
-      "token": "word-diff",
-      "count": 2,
-      "requirement_id": "R1",
-      "rationale": "Accounts for this exact token occurrence in the CommitGuard tokenizer correction or its regression test; the change is necessary to make the audit compare identical token boundaries."
+      "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     }
   ]
 }
