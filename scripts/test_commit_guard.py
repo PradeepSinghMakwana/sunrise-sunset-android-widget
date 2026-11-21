@@ -42,7 +42,7 @@ class CommitGuardTest(unittest.TestCase):
                      ROOT / ".github" / "workflows" / "release.yml"):
             self.assertIn("scripts/check_python_references.py", path.read_text(encoding="utf-8"))
 
-    def test_checker_itself_parses_and_checks_all_script_files(selfself:
+    def test_checker_itself_parses_and_checks_all_script_files(self):
         import subprocess
         result = subprocess.run(
             ["python3", str(CHECKER)], cwd=ROOT, text=True, capture_output=True
