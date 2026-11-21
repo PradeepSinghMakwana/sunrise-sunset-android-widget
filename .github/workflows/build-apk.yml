@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate release script syntax
-        run: bash -n scripts/release-audit.sh scripts/generate-fdroid-metadata.sh
+        run: bash -n scripts/release-audit.sh scripts/semver-release-validation.sh scripts/generate-fdroid-metadata.sh
       - name: Test AVD profile existence validation
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
 
