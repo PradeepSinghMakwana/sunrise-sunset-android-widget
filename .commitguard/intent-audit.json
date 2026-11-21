@@ -3821,6 +3821,313 @@
           "rationale": "The removed occurrence(s) of 'records' are part of the exact diff for 'Anchor per-commit auditing at policy activation'. In the changed file(s) scripts/commit_intent_audit.py, this token identifies an implementation keyword, identifier, option, value, or explanatory term needed for the stated behavior; it is reviewed as part of requirement R1."
         }
       ]
+    },
+    "b53d1773914abc795bb45310ade3cc70b1bba44e": {
+      "intent": "Handle consecutive manifest-only audit commits. This commit is reviewed independently under the repository-wide CommitGuard policy.",
+      "reviewed_by": "Assistant review of the exact commit diff and CI token-count diagnostics; repository-owner review remains possible",
+      "commit_subject": "Handle consecutive manifest-only audit commits",
+      "requirements": [
+        {
+          "id": "R1",
+          "text": "Consecutive manifest-only audit commits must resolve to the nearest preceding code commit and verify that code commit's individual audit record."
+        }
+      ],
+      "file_reviews": {
+        "scripts/commit_intent_audit.py": {
+          "requirement_ids": [
+            "R1"
+          ],
+          "necessity": "Required for Handle consecutive manifest-only audit commits: the audit must follow metadata-only commits back to the preceding code commit and validate its record."
+        }
+      },
+      "word_reviews": [
+        {
+          "direction": "added",
+          "token": "AUDIT_PATH",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'AUDIT_PATH' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "None",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'None' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "and",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'and' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "code",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'code' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "commit_files",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'commit_files' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "commit_parent",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'commit_parent' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "is",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'is' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "not",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'not' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "parent",
+          "count": 4,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'parent' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "the",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'the' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "while",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'while' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "removed",
+          "token": "its",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The removed occurrence(s) of 'its' are part of the exact diff for 'Handle consecutive manifest-only audit commits' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        }
+      ]
+    },
+    "f440cf5c22257861a4571e6542873ac73a5298be": {
+      "intent": "Test consecutive manifest-only audit follow-ups. This commit is reviewed independently under the repository-wide CommitGuard policy.",
+      "reviewed_by": "Assistant review of the exact commit diff and CI token-count diagnostics; repository-owner review remains possible",
+      "commit_subject": "Test consecutive manifest-only audit follow-ups",
+      "requirements": [
+        {
+          "id": "R1",
+          "text": "Consecutive manifest-only audit commits must resolve to the nearest preceding code commit and verify that code commit's individual audit record."
+        }
+      ],
+      "file_reviews": {
+        "scripts/test_commit_guard.py": {
+          "requirement_ids": [
+            "R1"
+          ],
+          "necessity": "Required for Test consecutive manifest-only audit follow-ups: the regression test must prove consecutive manifest-only follow-ups remain auditable without hiding the original code change."
+        }
+      },
+      "word_reviews": [
+        {
+          "direction": "added",
+          "token": "Record",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'Record' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "True",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'True' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "add",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'add' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "audit",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'audit' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "audit_note",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'audit_note' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "check",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'check' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "commit",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'commit' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "commitguard",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'commitguard' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "cwd",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'cwd' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "encoding",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'encoding' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "follow-up",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'follow-up' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "git",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'git' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "intent-audit.json",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'intent-audit.json' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "json.dumps",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'json.dumps' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "ledger",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'ledger' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "manifest",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'manifest' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "manifest_path.write_text",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'manifest_path.write_text' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "metadata-only",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'metadata-only' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "qm",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'qm' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "repo",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'repo' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "second",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'second' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "subprocess.run",
+          "count": 2,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'subprocess.run' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        },
+        {
+          "direction": "added",
+          "token": "utf-8",
+          "count": 1,
+          "requirement_id": "R1",
+          "rationale": "The added occurrence(s) of 'utf-8' are part of the exact diff for 'Test consecutive manifest-only audit follow-ups' and are reviewed as necessary to implement or test consecutive metadata-only audit handling."
+        }
+      ]
+    },
+    "3441ff9541dd490c743044adbac67996a0275f43": {
+      "intent": "Load audit fixture before second metadata follow-up. This commit is reviewed independently under the repository-wide CommitGuard policy.",
+      "reviewed_by": "Assistant review of the test diff; repository-owner review remains possible",
+      "commit_subject": "Load audit fixture before second metadata follow-up",
+      "requirements": [
+        {
+          "id": "R1",
+          "text": "The multi-commit regression fixture must correctly reload the audit manifest before adding a second metadata-only follow-up."
+        }
+      ],
+      "file_reviews": {
+        "scripts/test_commit_guard.py": {
+          "requirement_ids": [
+            "R1"
+          ],
+          "necessity": "The fixture previously referenced an uninitialized local variable while preparing its second manifest-only commit; this change loads the first committed manifest before modifying it."
+        }
+      },
+      "word_reviews": []
     }
   }
 }
