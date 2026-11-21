@@ -28,8 +28,11 @@ if [[ "$display_density" != *"Override density: 420"* && "$display_density" != *
 fi
 
 set +e
-gradle :app:connectedDebugAndroidTest
+timeout --signal=TERM --kill-after=15s 300s gradle :app:connectedDebugAndroidTest
 test_status=$?
+if [[ "$test_status" -eq 124 || "$test_status" -eq 137 ]]; then
+    echo "Instrumented test suite exceeded its 300-second suite deadline"
+fi
 set -e
 
 mkdir -p android-13-screenshots
