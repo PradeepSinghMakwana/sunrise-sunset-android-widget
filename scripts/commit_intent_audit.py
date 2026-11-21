@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / ".commitguard" / "intent-audit.json"
-TOKEN_RE = re.compile(r"[A-Za-z0-9_]+(?:[.-][A-Za-z0-9_]+)*|[^\w\s]", re.UNICODE)
+TOKEN_RE = re.compile(r"[A-Za-z0-9_]+(?:[.-][A-Za-z0-9_]+)*", re.UNICODE)
 AUDIT_PATH = ".commitguard/intent-audit.json"
 
 
