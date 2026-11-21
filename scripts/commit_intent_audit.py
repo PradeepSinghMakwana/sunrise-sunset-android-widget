@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / ".commitguard" / "intent-audit.json"
+TOKEN_PATTERN = r"[A-Za-z0-9_]+([.-][A-Za-z0-9_]+)*"
 TOKEN_RE = re.compile(r"[A-Za-z0-9_]+(?:[.-][A-Za-z0-9_]+)*", re.UNICODE)
 AUDIT_PATH = ".commitguard/intent-audit.json"
 
@@ -46,16 +47,14 @@ def changed_files(staged: bool) -> list[str]:
 
 
 def word_occurrences(staged: bool) -> collections.Counter[tuple[str, str]]:
+    common = ["--no-ext-diff", "--no-renames", "--word-diff=porcelain",
+              "--word-diff-regex=" + TOKEN_PATTERN, "--unified=0", "--no-color"]
     if staged:
-        output = git("diff", "--cached", "--no-ext-diff", "--no-renames",
-                     "--word-diff=porcelain", "--unified=0", "--no-color",
-                     "--", ".", ":(exclude)" + AUDIT_PATH)
+        output = git("diff", "--cached", *common, "--", ".", ":(exclude)" + AUDIT_PATH)
     else:
         current = set(git("diff", "HEAD^", "HEAD", "--name-only", "--no-renames").splitlines())
         base, target = ("HEAD^^", "HEAD^") if current == {AUDIT_PATH} else ("HEAD^", "HEAD")
-        output = git("diff", base, target, "--no-ext-diff", "--no-renames",
-                     "--word-diff=porcelain", "--unified=0", "--no-color",
-                     "--", ".", ":(exclude)" + AUDIT_PATH)
+        output = git("diff", base, target, *common, "--", ".", ":(exclude)" + AUDIT_PATH)
     counts: collections.Counter[tuple[str, str]] = collections.Counter()
     in_hunk = False
     for line in output.splitlines():

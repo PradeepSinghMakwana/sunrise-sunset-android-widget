@@ -156,5 +156,25 @@ class CommitGuardTest(unittest.TestCase):
                 self.assertTrue(any("no review" in error for error in errors))
 
 
+    def test_word_audit_tokenizer_handles_hyphens_apostrophes_and_unchanged_words(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.email", "guard@example.invalid"], cwd=repo, check=True)
+            subprocess.run(["git", "config", "user.name", "CommitGuard Test"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("GitHub's pre-commit hook\\n", encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
+            (repo / "sample.txt").write_text("GitHub's commit hook\\n", encoding="utf-8")
+            subprocess.run(["git", "add", "sample.txt"], cwd=repo, check=True)
+            with patch.object(commit_intent_audit, "ROOT", repo):
+                actual = commit_intent_audit.word_occurrences(staged=True)
+            self.assertEqual(1, actual[("removed", "pre-commit")])
+            self.assertEqual(1, actual[("added", "commit")])
+            self.assertNotIn(("added", "GitHub"), actual)
+            self.assertNotIn(("removed", "GitHub"), actual)
+            self.assertNotIn(("added", "s"), actual)
+            self.assertNotIn(("removed", "s"), actual)
+
 if __name__ == "__main__":
     unittest.main()
