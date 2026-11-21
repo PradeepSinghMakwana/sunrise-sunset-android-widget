@@ -116,7 +116,7 @@ class StoreScreenshotTest {
         // click on a clipped row can hit another app/category or empty space.
         stage("find fully visible widget row", 25_000) {
         for (attempt in 0 until 12) {
-            appEntry = stage("reacquire widget row", 3_000) { device.findObject(widgetEntrySelector) }
+            appEntry = stage("query widget row", 3_000) { device.findObject(widgetEntrySelector) }
             val bounds = appEntry?.visibleBounds
             val fullyVisible = bounds != null && bounds.width() > 0 && bounds.height() > 0 &&
                 bounds.top >= pickerViewportTop && bounds.bottom <= pickerViewportBottom
@@ -129,7 +129,7 @@ class StoreScreenshotTest {
         }
         }
         // Reacquire after the final swipe: a UiObject2 can retain stale bounds.
-        appEntry = device.findObject(widgetEntrySelector)
+        appEntry = stage("reacquire widget row", 3_000) { device.findObject(widgetEntrySelector) }
         assertNotNull("Widget picker did not list Sunrise Sunset Clock", appEntry)
         val appEntryBounds = appEntry!!.visibleBounds
         assertTrue(
