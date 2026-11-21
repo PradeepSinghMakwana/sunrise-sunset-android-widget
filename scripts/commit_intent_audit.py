@@ -39,7 +39,10 @@ def changed_files(staged: bool) -> list[str]:
     args = ["diff", "--cached", "--name-only", "--no-renames"] if staged else [
         "diff", "HEAD^", "HEAD", "--name-only", "--no-renames"
     ]
-    return sorted(set(git(*args).splitlines()))
+    paths = sorted(set(git(*args).splitlines()))
+    if not staged and paths and set(paths) == {AUDIT_PATH}:
+        return sorted(set(git("diff", "HEAD^^", "HEAD^", "--name-only", "--no-renames").splitlines()))
+    return paths
 
 
 def word_occurrences(staged: bool) -> collections.Counter[tuple[str, str]]:
@@ -48,7 +51,9 @@ def word_occurrences(staged: bool) -> collections.Counter[tuple[str, str]]:
                      "--word-diff=porcelain", "--unified=0", "--no-color",
                      "--", ".", ":(exclude)" + AUDIT_PATH)
     else:
-        output = git("diff", "HEAD^", "HEAD", "--no-ext-diff", "--no-renames",
+        current = set(git("diff", "HEAD^", "HEAD", "--name-only", "--no-renames").splitlines())
+        base, target = ("HEAD^^", "HEAD^") if current == {AUDIT_PATH} else ("HEAD^", "HEAD")
+        output = git("diff", base, target, "--no-ext-diff", "--no-renames",
                      "--word-diff=porcelain", "--unified=0", "--no-color",
                      "--", ".", ":(exclude)" + AUDIT_PATH)
     counts: collections.Counter[tuple[str, str]] = collections.Counter()
