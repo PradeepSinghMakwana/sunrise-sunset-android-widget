@@ -749,5 +749,7 @@
       "requirement_id": "R1",
       "rationale": "Reviews this exact token occurrence in the manifest-follow-up subject validation and its two-commit regression test."
     }
-  ]
+  ],
+  "audit_start_sha": "e48298790f869da5d98924cc1b9fc9cd3ea7fd9e",
+  "commit_audits": {}
 }
