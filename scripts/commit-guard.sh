@@ -16,6 +16,13 @@ git diff --check || fail "unstaged patch contains whitespace errors"
 git diff --cached --check || fail "staged patch contains whitespace errors"
 git show --check --oneline HEAD >/dev/null || fail "HEAD commit contains whitespace errors"
 
+echo "[CommitGuard] Word-by-word intention and necessity audit"
+if git diff --cached --quiet; then
+  python3 scripts/commit_intent_audit.py --head || fail "committed change lacks a complete intention/word audit"
+else
+  python3 scripts/commit_intent_audit.py --staged || fail "staged change lacks a complete intention/word audit"
+fi
+
 echo "[CommitGuard] Shell syntax checks"
 shopt -s nullglob
 shell_files=(scripts/*.sh)
