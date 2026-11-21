@@ -77,8 +77,9 @@ class CommitGuardTest(unittest.TestCase):
 
     def test_ci_executes_commitguard(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("Run CommitGuard (mandatory pre-commit checks)", workflow)
+        self.assertIn("Run CommitGuard (mandatory per-commit checks)", workflow)
         self.assertIn("bash scripts/commit-guard.sh", workflow)
+        self.assertIn("--range", (ROOT / "scripts" / "commit-guard.sh").read_text(encoding="utf-8"))
         release = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
         self.assertIn("Run CommitGuard (mandatory release validation)", release)
         self.assertIn("bash scripts/commit-guard.sh", release)
