@@ -22,7 +22,7 @@ class CommitGuardTest(unittest.TestCase):
     def test_reference_checker_catches_typo_in_imported_module_attribute(self):
         with tempfile.TemporaryDirectory() as temp:
             fixture = Path(temp) / "typo_fixture.py"
-            fixture.write_text("import re\\nre.MULTIL\\n", encoding="utf-8")
+            fixture.write_text("import re\nre.MULTIL\n", encoding="utf-8")
             errors = check_file(fixture)
             self.assertTrue(errors)
             self.assertIn("re.MULTIL", errors[0])
@@ -31,7 +31,7 @@ class CommitGuardTest(unittest.TestCase):
     def test_reference_checker_passes_correct_reference(self):
         with tempfile.TemporaryDirectory() as temp:
             fixture = Path(temp) / "correct_fixture.py"
-            fixture.write_text("import re\\nre.MULTILINE\\n", encoding="utf-8")
+            fixture.write_text("import re\nre.MULTILINE\n", encoding="utf-8")
             self.assertEqual([], check_file(fixture))
 
     def test_ci_executes_commitguard(self):
