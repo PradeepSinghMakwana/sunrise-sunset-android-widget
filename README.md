@@ -57,9 +57,24 @@ CommitGuard is intended to fail closed and checks:
 - The Python regression test suite, including CommitGuard's own tests.
 - Gradle JVM unit tests (and fails if the Gradle command is unavailable).
 
-The reference checker accepts valid Python submodule imports (for example, `from unittest import mock`) and tests a known typo case (`re.MULTIL`, suggesting `re.MULTILINE`). CI invokes the guard as part of the build workflow; release CI also runs Python preflight checks.
+The reference checker accepts valid Python submodule imports (for example, `from unittest import mock`) and tests a known typo case (`re.MULTIL`, suggesting `re.MULTILINE`). Both build and release workflows invoke CommitGuard.
 
-**Known limitations:** this is not a full spell-checker and cannot determine whether every word, identifier, or change matches the author's intent. Review the diff against the task requirements; run tests and inspect generated UI/screenshots where relevant. A successful guard is evidence from its checks, not proof of correctness. Direct commits made through GitHub's API do not execute a local pre-commit hook, so rely on CI/required checks to block unverified changes.
+### Mandatory intention and commit audit
+
+Passing syntax checks and tests is not, by itself, permission to commit. **Every proposed commit must be checked against the user's stated task and acceptance criteria.** CommitGuard is required to perform (and fail closed on) all of the following before a commit is approved:
+
+1. **Intention traceability:** Review every changed line and meaningful word, identifier, setting, resource name, test, workflow entry, and commit-message claim. Map each change to an explicit user requirement or a clearly explained necessary supporting fix. Flag unexplained or ambiguous changes; do not silently infer approval.
+2. **Necessity and scope:** Establish why each change is required. Detect and block unrelated edits, scope creep, unnecessary refactoring, duplicate or dead code, and changes that do not contribute to an accepted requirement. If a change is optional, do not include it without approval.
+3. **Reference correctness:** Verify that changed references resolve and are used in the right context. This includes imports and symbols, identifiers, resource IDs, filenames and paths, configuration keys, Gradle tasks, workflow/job/step references, test names, and links or other cross-file references. A reference merely existing is not enough; check that its target and usage match the intended meaning.
+4. **Behavior and regression evidence:** Run the applicable regression, boundary, negative, static-analysis, build, and UI checks. Inspect failures and relevant generated screenshots/diagnostics. Never weaken or remove a test merely to obtain a passing result.
+5. **Commit decision gate:** Produce an auditable report of requirement-to-change mapping, necessity, reference validation, tests, failures, and unresolved concerns. Block approval if a mandatory check fails, a change is unjustified, or a material uncertainty remains. Do not commit until the audit passes and the diff is reviewed.
+6. **Post-commit verification:** Inspect the actual committed diff and commit message against the approved audit, and verify that the committed content is the content that was checked. A changed or expanded diff requires a new audit.
+
+Automated checks cannot infer unstated human intent with certainty. When intent or necessity cannot be established from the task specification, the guard must flag the item for explicit review rather than mark it as verified.
+
+**Implementation status:** the existing guard currently provides syntax, selected Python reference, whitespace, regression-test, and JVM-test checks. It does **not yet fully implement** the intention/necessity audit, comprehensive cross-reference validation, or commit approval and post-commit gates above. These are required CommitGuard capabilities, not claims that the current script already provides them. Until implemented and covered by regression tests, a passing CommitGuard run must not be represented as proof that a commit is justified or matches the user's intention.
+
+Direct commits made through GitHub's API do not execute a local pre-commit hook, so CI/required checks must enforce the implemented gates; API-based commits must also be audited before they are made.
 
 ## CI checks
 
