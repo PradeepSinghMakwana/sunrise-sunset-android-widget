@@ -38,9 +38,13 @@ def check_file(path: Path) -> list[str]:
                 if item.name == "*":
                     continue
                 if not hasattr(module, item.name):
-                    suggestions = difflib.get_close_matches(item.name, dir(module), n=1, cutoff=0.72)
-                    hint = f"; did you mean {suggestions[0]!r}?" if suggestions else ""
-                    errors.append(f"{path.relative_to(ROOT)}:{node.lineno}: imported reference {node.module}.{item.name} does not exist{hint}")
+                    # Allow valid package submodules (e.g. from unittest import mock).
+                    try:
+                        importlib.import_module(f"{node.module}.{item.name}")
+                    except ImportError:
+                        suggestions = difflib.get_close_matches(item.name, dir(module), n=1, cutoff=0.72)
+                        hint = f"; did you mean {suggestions[0]!r}?" if suggestions else ""
+                        errors.append(f"{path.relative_to(ROOT)}:{node.lineno}: imported reference {node.module}.{item.name} does not exist{hint}")
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
