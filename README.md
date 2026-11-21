@@ -43,6 +43,24 @@ The widget displays solar times in the device's current time zone. The location 
 
 The widget refreshes periodically and when Android reports date, time, or time-zone changes.
 
+## CommitGuard: pre-commit verification
+
+Before committing changes, run the repository guard from the project root:
+
+```bash
+bash scripts/commit-guard.sh
+```
+
+CommitGuard is intended to fail closed and checks:
+- Shell scripts for syntax errors.
+- Python scripts for parse errors and suspicious imported-module attribute references (including typo suggestions).
+- The Python regression test suite, including CommitGuard's own tests.
+- Gradle JVM unit tests (and fails if the Gradle command is unavailable).
+
+The reference checker accepts valid Python submodule imports (for example, `from unittest import mock`) and tests a known typo case (`re.MULTIL`, suggesting `re.MULTILINE`). CI invokes the guard as part of the build workflow; release CI also runs Python preflight checks.
+
+**Known limitations:** this is not a full spell-checker and cannot determine whether every word, identifier, or change matches the author's intent. Review the diff against the task requirements; run tests and inspect generated UI/screenshots where relevant. A successful guard is evidence from its checks, not proof of correctness. Direct commits made through GitHub's API do not execute a local pre-commit hook, so rely on CI/required checks to block unverified changes.
+
 ## CI checks
 
 Pull requests and pushes to `main` run independent checks:
