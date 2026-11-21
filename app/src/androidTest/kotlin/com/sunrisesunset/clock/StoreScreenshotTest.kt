@@ -275,10 +275,10 @@ class StoreScreenshotTest {
         // Run uiautomator dump as the shell UID directly into shell-owned storage.
         // App-specific external storage is not reliably readable by shell on Android 13.
         val dumpResult = device.executeShellCommand(
-            "uiautomator dump --compressed $hierarchyPath"
+            "uiautomator dump $hierarchyPath 2>&1"
         )
         val verification = device.executeShellCommand(
-            "test -s $hierarchyPath && echo HIERARCHY_DUMP_OK"
+            "if test -s $hierarchyPath; then echo HIERARCHY_DUMP_OK; else ls -l $evidenceDirectory; fi"
         )
         assertTrue(
             "Could not export non-empty hierarchy for $name. " +
