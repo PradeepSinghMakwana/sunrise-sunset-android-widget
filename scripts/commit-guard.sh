@@ -1,30 +1,40 @@
 #!/usr/bin/env bash
-# Mandatory pre-commit gate: fail closed before a commit is created.
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Mandatory, fail-closed repository validation gate.
+set -Eeuo pipefail
+IFS=$'\n\t'
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$ROOT"
 
-echo "[CommitGuard] Git whitespace and patch-integrity validation"
-# Check staged and unstaged changes for local pre-commit use, and HEAD for CI.
-git diff --check
-git diff --cached --check
-git show --check --oneline HEAD
+fail() { printf '[CommitGuard] ERROR: %s\n' "$*" >&2; exit 1; }
+command -v git >/dev/null 2>&1 || fail "git is required"
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "run inside a Git working tree"
+command -v python3 >/dev/null 2>&1 || fail "python3 is required"
+command -v bash >/dev/null 2>&1 || fail "bash is required"
 
-echo "[CommitGuard] Shell syntax validation"
-bash -n scripts/*.sh
+echo "[CommitGuard] Git patch-integrity checks"
+git diff --check || fail "unstaged patch contains whitespace errors"
+git diff --cached --check || fail "staged patch contains whitespace errors"
+git show --check --oneline HEAD >/dev/null || fail "HEAD commit contains whitespace errors"
 
-echo "[CommitGuard] Python syntax and imported-module reference validation"
-python3 scripts/check_python_references.py
+echo "[CommitGuard] Shell syntax checks"
+shopt -s nullglob
+shell_files=(scripts/*.sh)
+(("${#shell_files[@]}" > 0)) || fail "no shell scripts found under scripts/"
+bash -n "${shell_files[@]}" || fail "shell syntax validation failed"
+
+echo "[CommitGuard] Python syntax and standard-library reference checks"
+python3 scripts/check_python_references.py || fail "Python syntax/reference validation failed"
 
 echo "[CommitGuard] Complete Python regression suite"
-python3 -m unittest discover -s scripts -p 'test_*.py' -v
-
-if ! command -v gradle >/dev/null 2>&1; then
-  echo "[CommitGuard] ERROR: Gradle not installed; refusing to pass without JVM tests" >&2
-  exit 1
-fi
+python3 -m unittest discover -s scripts -p 'test_*.py' -v || fail "Python regression tests failed"
 
 echo "[CommitGuard] JVM unit tests"
-gradle :app:testDebugUnitTest
+if command -v gradle >/dev/null 2>&1; then
+  gradle --no-daemon :app:testDebugUnitTest || fail "JVM unit tests failed"
+elif [[ -x ./gradlew ]]; then
+  ./gradlew --no-daemon :app:testDebugUnitTest || fail "JVM unit tests failed"
+else
+  fail "Gradle or executable ./gradlew is required; refusing to skip JVM tests"
+fi
 
-echo "[CommitGuard] PASS — all configured checks passed"
+echo "[CommitGuard] PASS — every configured check passed"
