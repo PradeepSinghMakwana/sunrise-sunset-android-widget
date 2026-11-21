@@ -10,13 +10,13 @@
    - `02-home-screen-widget.png`: the actual Android 13 emulator launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
 5. Inspect the two PNGs in the release workflow artifact. The images are genuine emulator screenshots, not physical-device captures or generated mockups.
 6. Commit and push the release-ready change to `main`.
-7. Create and push a matching version tag, for example `v2.0`:
+7. Create and push a matching SemVer version tag, for example `v2.0.0`:
    ```sh
-   git tag v2.0
-   git push origin v2.0
+   git tag v2.0.0
+   git push origin v2.0.0
    ```
 
-The tag must exactly match `versionName`. The release workflow validates the version/tag and Android permissions, runs JVM tests and the Android 13 emulator UI test, validates the captured screenshot files, builds the release APK, records the resolved Gradle dependency tree, generates F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. Emulator screenshots are explicitly identified as emulator captures; they do not prove compatibility with every physical device or OEM launcher.
+Stable tags must use `vMAJOR.MINOR.PATCH`; prereleases may use `-alpha.N`, `-beta.N`, or `-rc.N`. The tag without `v` must exactly match `versionName`. `versionCode` must increase monotonically for every published release. The release workflow validates the version/tag and Android permissions, runs JVM tests and the Android 13 emulator UI test, validates the captured screenshot files, builds the release APK, records the resolved Gradle dependency tree, generates F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. Emulator screenshots are explicitly identified as emulator captures; they do not prove compatibility with every physical device or OEM launcher.
 
 ## Gradle build
 
@@ -60,3 +60,8 @@ The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCAT
 ## Android 13 emulator validation
 
 See [Android 13 emulator validation](ANDROID_13_PHYSICAL_DEVICE_TEST.md) for the API 33 AOSP image, runner configuration, deterministic test timezone, screenshot checkpoints, and evidence requirements.
+
+
+## Semantic version policy
+
+See [SEMVER_RELEASE_POLICY.md](SEMVER_RELEASE_POLICY.md) for the project's version increment rules, allowed tag format, prerelease policy, and release gates.
