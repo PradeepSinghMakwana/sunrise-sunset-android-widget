@@ -310,8 +310,10 @@ def validate_range(base: str, head: str) -> list[str]:
             continue
         if files == [AUDIT_PATH]:
             parent = commit_parent(sha)
+            while parent is not None and commit_files(parent) == [AUDIT_PATH]:
+                parent = commit_parent(parent)
             if parent is None or parent not in records:
-                errors.append(f"manifest-only commit {sha} lacks an audit record for its preceding commit")
+                errors.append(f"manifest-only commit {sha} lacks an audit record for the preceding code commit")
             continue
         record = records.get(sha)
         if record is None:
