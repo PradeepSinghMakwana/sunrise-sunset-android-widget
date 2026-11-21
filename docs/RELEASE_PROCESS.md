@@ -4,15 +4,19 @@
 
 1. Update `versionName` and increment `versionCode` in `app/build.gradle.kts`.
 2. Update store listing text under `fastlane/metadata/android/en-US/` if the app description or features changed.
-3. The release workflow runs Android emulator UI tests and captures both the app setup screen and the widget placed on the Android launcher home screen into `fastlane/metadata/android/en-US/images/phoneScreenshots/`. The release is blocked if the launcher widget screenshot is missing. Review both images in the GitHub Release assets.
-4. Commit and push the release-ready change to `main`.
-5. Create and push a matching version tag, for example `v2.1`:
+3. Run JVM unit tests and the Android 13 (API 33) emulator UI test. The release workflow does this automatically on the tagged source.
+4. The Android 13 UI test captures:
+   - `01-app-setup.png`: the actual app setup screen, with the setup action visible.
+   - `02-home-screen-widget.png`: the actual Android 13 emulator launcher home screen with Sunrise Sunset Clock placed and both SUNRISE and SUNSET values visible.
+5. Inspect the two PNGs in the release workflow artifact. The images are genuine emulator screenshots, not physical-device captures or generated mockups.
+6. Commit and push the release-ready change to `main`.
+7. Create and push a matching SemVer version tag, for example `v2.0.0`:
    ```sh
-   git tag v2.1
-   git push origin v2.1
+   git tag v2.0.0
+   git push origin v2.0.0
    ```
 
-The tag must exactly match `versionName`. The release workflow then audits the version and Android permissions, builds the release APK, records the resolved Gradle dependency tree, generates version-specific F-Droid metadata, packages the exact tagged source, checks for store screenshots, and publishes the assets as a GitHub Release.
+Stable tags must use `vMAJOR.MINOR.PATCH`; prereleases may use `-alpha.N`, `-beta.N`, or `-rc.N`. The tag without `v` must exactly match `versionName`. `versionCode` must increase monotonically for every published release. The release workflow validates the version/tag and Android permissions, runs JVM tests and the Android 13 emulator UI test, validates the captured screenshot files, builds the release APK, records the resolved Gradle dependency tree, generates F-Droid metadata, packages the exact tagged source, and publishes the assets as a GitHub Release. Emulator screenshots are explicitly identified as emulator captures; they do not prove compatibility with every physical device or OEM launcher.
 
 ## Gradle build
 
@@ -27,7 +31,7 @@ gradle :app:assembleRelease
 gradle :app:dependencies --configuration releaseRuntimeClasspath
 ```
 
-The GitHub Actions workflows install JDK 17 and Gradle 8.9 automatically. The debug workflow is for installable test builds. The release workflow produces an unsigned release APK because no signing key is stored in the repository.
+The GitHub Actions workflows install JDK 17 and Gradle 8.9 automatically. The debug workflow is for installable test builds. The release workflow currently produces an unsigned release APK because no signing key is stored in the repository. F-Droid performs its own build and signing after accepting the metadata submission; do not distribute the unsigned APK as an installable consumer release.
 
 ## Dependency and permission audit
 
@@ -37,17 +41,27 @@ Review the dependency report for new libraries and their licenses before every p
 
 ## F-Droid
 
-The release workflow generates a version-specific metadata file as a release asset. Official F-Droid inclusion still requires a submission/merge in the separate `fdroiddata` repository and a successful F-Droid build. The metadata template in `fdroid/metadata/` is a starting point and must be validated against the current F-Droid metadata schema before submission.
+The release workflow generates a version-specific metadata file as a release asset. Official F-Droid inclusion requires a separate submission to the F-Droid Data project on GitLab, successful metadata CI, review/acceptance by F-Droid maintainers, and a successful F-Droid build. Publishing a GitHub Release or generating YAML does not publish the app on F-Droid.
 
-The current application ID `com.sunrisesunset.clock` must also be checked for F-Droid package-name policy and developer domain ownership before submission.
+For a first-time app, F-Droid recommends opening a Request for Packaging (RFP). Otherwise, prepare `metadata/com.sunrisesunset.clock.yml` in a fork of `fdroiddata`, validate it with the F-Droid CI pipeline, and open a merge request. The GitHub mirror of fdroiddata is read-only; submissions are made through GitLab.
 
-## Screenshots
+Before submission, confirm the application ID `com.sunrisesunset.clock` is acceptable under F-Droid's package-name policy and that the reverse-domain namespace is appropriate for the developer.
 
-Screenshots must be genuine captures of the running application. Add them to the Fastlane screenshots directory. The release workflow uses an Android emulator and UI Automator to open the launcher widget picker, place the Sunrise Sunset Clock widget on the home screen, verify its SUNRISE and SUNSET labels, and capture the actual launcher screen. It also captures the app setup screen separately. Both captures are genuine emulator screenshots, not mockups. Demo coordinates are written only to the disposable emulator test profile.
+## Screenshot evidence
+
+The two screenshot assets are captured by the real Android UI on an Android 13 (API 33) emulator. The tests must verify that the setup action is visible and that the launcher widget is actually placed, settled, unclipped, and displaying both sunrise and sunset values before screenshots are accepted. Blank screens, placement placeholders, resize handles, and generated/composited images are not acceptable.
+
+The release workflow also checks PNG signatures, dimensions, file size, and distinct hashes. These structural checks supplement, but do not replace, the UI assertions. Review the screenshots visually from the release run artifact. Clearly identify the images as Android 13 emulator screenshots wherever their origin is described.
+
+Emulator screenshots are suitable for this project's automated release evidence under this policy, but they do not establish compatibility with all physical devices, launchers, screen sizes, or OEM customizations. Physical-device testing remains useful additional coverage, not a release prerequisite.
+
+The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. Test-only instrumentation permissions are not requested from installed app users.
+
+## Android 13 emulator validation
+
+See [Android 13 emulator validation](ANDROID_13_PHYSICAL_DEVICE_TEST.md) for the API 33 AOSP image, runner configuration, deterministic test timezone, screenshot checkpoints, and evidence requirements.
 
 
-## Emulator diagnostics and test permissions
+## Semantic version policy
 
-The UI screenshot suite is also a release-readiness check. Keep the failure-evidence collection and genuine screenshot requirements described in [Emulator UI test diagnostics](EMULATOR_DIAGNOSTICS.md). On failure, inspect the uploaded diagnostics artifact before changing app code or relaxing assertions. The app setup screenshot and actual launcher widget screenshot must both be verified; an APK build or a black final-emulator capture is not a substitute.
-
-The app user is expected to grant **approximate location** (`ACCESS_COARSE_LOCATION`) when choosing **Use approximate location**, and to have Android location services enabled for a location fix. No other runtime permission is currently required. The emulator test harness uses instrumentation/ADB to inspect and capture its disposable test device; those test capabilities are not requested from installed app users. Deterministic coordinates are seeded only in the emulator test profile. See the diagnostics guide for the complete permission and privacy explanation.
+See [SEMVER_RELEASE_POLICY.md](SEMVER_RELEASE_POLICY.md) for the project's version increment rules, allowed tag format, prerelease policy, and release gates.

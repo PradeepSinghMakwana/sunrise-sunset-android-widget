@@ -18,6 +18,10 @@ if [[ "$VERSION_NAME" != "$VERSION" ]]; then
   echo "Tag $TAG does not match app versionName $VERSION_NAME" >&2
   exit 1
 fi
+if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.(0|[1-9][0-9]*))?$ ]]; then
+  echo "FAIL: tag is not valid SemVer (vMAJOR.MINOR.PATCH[-alpha|beta|rc.N])" >&2
+  exit 1
+fi
 if [[ -z "$VERSION_CODE" ]]; then
   echo "Could not read versionCode from $GRADLE_FILE" >&2
   exit 1

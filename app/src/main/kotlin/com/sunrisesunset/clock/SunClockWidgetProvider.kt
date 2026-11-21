@@ -44,6 +44,10 @@ class SunClockWidgetProvider : AppWidgetProvider() {
         private const val LOCATION_REQUIRED_TEXT = "Open app to set approximate location"
 
         fun updateWidget(context: Context, manager: AppWidgetManager, id: Int) {
+            manager.updateAppWidget(id, buildRemoteViews(context))
+        }
+
+        internal fun buildRemoteViews(context: Context): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.sun_clock_widget)
             val zone = ZoneId.systemDefault()
             val today = LocalDate.now(zone)
@@ -56,7 +60,7 @@ class SunClockWidgetProvider : AppWidgetProvider() {
             }
 
             attachOpenAppAction(context, views)
-            manager.updateAppWidget(id, views)
+            return views
         }
 
         private fun readCoordinates(context: Context): Pair<Double, Double>? {

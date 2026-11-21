@@ -439,4 +439,116 @@ class SolarCalculatorEdgeCaseTest {
             sunset!!.toInstant()
         ).toMinutes()
     }
+
+    @Test
+    fun exactGeographicPolesNeverProduceNonFiniteSolarTimes() {
+        val dates = listOf(
+            LocalDate.of(2026, 3, 20),
+            LocalDate.of(2026, 6, 21),
+            LocalDate.of(2026, 12, 21)
+        )
+        for (latitude in listOf(-90.0, 90.0)) {
+            for (date in dates) {
+                for (sunrise in listOf(true, false)) {
+                    val result = SolarCalculator.calculate(
+                        date,
+                        latitude,
+                        0.0,
+                        sunrise,
+                        ZoneOffset.UTC
+                    )
+                    assertEquals(
+                        "The geographic pole has no standard sunrise/sunset crossing on $date",
+                        null,
+                        result
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun coordinateBoundariesAreInclusiveAndAdjacentValuesAreRejected() {
+        assertTrue(SolarCalculator.hasValidCoordinates(-90.0, -180.0))
+        assertTrue(SolarCalculator.hasValidCoordinates(90.0, 180.0))
+        assertTrue(!SolarCalculator.hasValidCoordinates(-90.0000001, 0.0))
+        assertTrue(!SolarCalculator.hasValidCoordinates(90.0000001, 0.0))
+        assertTrue(!SolarCalculator.hasValidCoordinates(0.0, -180.0000001))
+        assertTrue(!SolarCalculator.hasValidCoordinates(0.0, 180.0000001))
+        assertTrue(!SolarCalculator.hasValidCoordinates(Double.NaN, 0.0))
+        assertTrue(!SolarCalculator.hasValidCoordinates(0.0, Double.POSITIVE_INFINITY))
+        assertTrue(!SolarCalculator.hasValidCoordinates(0.0, Double.NEGATIVE_INFINITY))
+    }
+
+    @Test
+    fun solarEventsRemainOrderedAcrossYearBoundaryAndDateLineZones() {
+        val cases = listOf(
+            Triple(LocalDate.of(2026, 12, 31), 66.0, 179.9),
+            Triple(LocalDate.of(2027, 1, 1), -66.0, -179.9),
+            Triple(LocalDate.of(2026, 12, 31), 0.0, 180.0),
+            Triple(LocalDate.of(2027, 1, 1), 0.0, -180.0)
+        )
+        for ((date, latitude, longitude) in cases) {
+            val zone = if (longitude >= 0) {
+                ZoneOffset.ofHours(12)
+            } else {
+                ZoneOffset.ofHours(-12)
+            }
+            val sunrise = SolarCalculator.calculate(date, latitude, longitude, true, zone)
+            val sunset = SolarCalculator.calculate(date, latitude, longitude, false, zone)
+            if (sunrise != null && sunset != null) {
+                assertEquals(date, sunrise.toLocalDate())
+                assertEquals(date, sunset.toLocalDate())
+                assertTrue(sunrise.toInstant().isBefore(sunset.toInstant()))
+            }
+        }
+    }
+
+    @Test
+    fun changingDisplayZonePreservesTheUnderlyingSolarInstant() {
+        val date = LocalDate.of(2026, 9, 22)
+        val utc = SolarCalculator.calculate(
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneOffset.UTC
+        )
+        val kolkata = SolarCalculator.calculate(
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneId.of("Asia/Kolkata")
+        )
+        val losAngeles = SolarCalculator.calculate(
+            date,
+            22.7196,
+            75.8577,
+            true,
+            ZoneId.of("America/Los_Angeles")
+        )
+        assertEquals(utc?.toInstant(), kolkata?.toInstant())
+        assertEquals(utc?.toInstant(), losAngeles?.toInstant())
+    }
+
+    @Test
+    fun polarTransitionReturnsEitherAValidFiniteEventOrNoEvent() {
+        val date = LocalDate.of(2026, 6, 21)
+        for (latitude in listOf(65.0, 66.0, 66.5, 67.0, 67.5, 68.0, 69.0)) {
+            for (sunrise in listOf(true, false)) {
+                val result = SolarCalculator.calculate(
+                    date,
+                    latitude,
+                    0.0,
+                    sunrise,
+                    ZoneOffset.UTC
+                )
+                if (result != null) {
+                    assertTrue(result.toInstant().epochSecond > 0)
+                    assertEquals(date, result.toLocalDate())
+                }
+            }
+        }
+    }
 }

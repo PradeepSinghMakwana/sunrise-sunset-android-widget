@@ -50,7 +50,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="☀  SUNRISE"
+                android:id="@+id/sunrise_label"
+                android:text="@string/sunrise_label"
                 android:textColor="#FFD27A"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -72,7 +73,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="☾  SUNSET"
+                android:id="@+id/sunset_label"
+                android:text="@string/sunset_label"
                 android:textColor="#FFB28A"
                 android:textSize="11sp"
                 android:textStyle="bold" />

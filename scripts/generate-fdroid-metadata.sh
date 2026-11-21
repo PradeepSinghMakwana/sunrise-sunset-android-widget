@@ -40,6 +40,7 @@ Builds:
     versionCode: $VERSION_CODE
     commit: $TAG
     subdir: .
+    target: android-35
     gradle:
       - yes
 EOF

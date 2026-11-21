@@ -29,23 +29,78 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Verify Semantic Version tag matches Gradle versionName
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: bash scripts/semver-release-validation.sh
+
       - name: Verify tag, version, and location permissions
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: bash scripts/release-audit.sh
 
-      - name: Capture genuine app screenshot on Android emulator
+      - name: Validate release script syntax
+        run: bash -n scripts/release-audit.sh scripts/semver-release-validation.sh scripts/generate-fdroid-metadata.sh
+
+      - name: Run CommitGuard (mandatory release validation)
+        run: bash scripts/commit-guard.sh
+
+      - name: Enable KVM for hardware-accelerated emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Verify non-Pixel Nexus 5X AVD profile exists
+        run: python3 scripts/avd_profile_validation.py 'Nexus 5X'
+
+      - name: Capture release screenshots on Android 13 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 33
+          target: default
+          profile: Nexus 5X
           arch: x86_64
-          profile: pixel_2
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
-          script: |
-            gradle :app:connectedDebugAndroidTest
-            mkdir -p fastlane/metadata/android/en-US/images/phoneScreenshots
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/01-app-setup.png fastlane/metadata/android/en-US/images/phoneScreenshots/01-app-setup.png
-            adb pull /sdcard/Android/data/com.sunrisesunset.clock/files/screenshots/02-home-screen-widget.png fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png
+          emulator-boot-timeout: 600
+          script: bash scripts/run-android-ui-tests.sh
+
+      - name: Validate Android 13 emulator screenshots
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import struct
+          import sys
+
+          directory = Path("android-13-screenshots")
+          required = ["01-app-setup.png", "02-home-screen-widget.png"]
+          hashes = set()
+          for filename in required:
+              path = directory / filename
+              if not path.is_file():
+                  sys.exit(f"FAIL: missing Android 13 emulator screenshot: {path}")
+              data = path.read_bytes()
+              if len(data) < 10_000 or data[:8].hex() != "89504e470d0a1a0a" or data[12:16] != b"IHDR":
+                  sys.exit(f"FAIL: invalid or incomplete PNG: {path}")
+              width, height = struct.unpack(">II", data[16:24])
+              if not (320 <= width <= 3840 and 320 <= height <= 3840):
+                  sys.exit(f"FAIL: unexpected dimensions {width}x{height}: {path}")
+              digest = hashlib.sha256(data).hexdigest()
+              if digest in hashes:
+                  sys.exit("FAIL: setup and widget screenshots are identical")
+              hashes.add(digest)
+              print(f"PASS: {filename}: {width}x{height}, {len(data)} bytes (Android 13 emulator)")
+          PY
+
+      - name: Upload Android 13 release screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Android-13-emulator-release-screenshots-and-diagnostics
+          path: android-13-screenshots/
+          if-no-files-found: warn
 
       - name: Build release APK
         run: gradle :app:assembleRelease
@@ -63,24 +118,6 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: bash scripts/generate-fdroid-metadata.sh
-
-      - name: Check store screenshots
-        run: |
-          mkdir -p release-reports
-          WIDGET_SCREENSHOT="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-screen-widget.png"
-          COUNT="$(find fastlane/metadata/android/en-US/images/phoneScreenshots -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.webp' \) | wc -l)"
-          {
-            echo "Genuine emulator screenshot count: $COUNT"
-            if [ ! -s "$WIDGET_SCREENSHOT" ]; then
-              echo "FAIL: genuine launcher widget screenshot is missing."
-              exit 1
-            fi
-            if [ "$COUNT" -lt 2 ]; then
-              echo "FAIL: expected both app and launcher widget screenshots."
-              exit 1
-            fi
-            echo "PASS: $COUNT genuine emulator screenshot(s), including the launcher widget. Review before store submission."
-          } | tee release-reports/screenshots-status.txt
 
       - name: Package exact tagged source
         env:
@@ -101,5 +138,5 @@ jobs:
             release-reports/com.sunrisesunset.clock.yml
             release-reports/permissions-and-version.txt
             release-reports/gradle-release-dependencies.txt
-            release-reports/screenshots-status.txt
-            fastlane/metadata/android/en-US/images/phoneScreenshots/*.png
+            android-13-screenshots/01-app-setup.png
+            android-13-screenshots/02-home-screen-widget.png
